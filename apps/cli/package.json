@@ -1,0 +1,23 @@
+{
+  "name": "@jarvis/cli",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "jarvis": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@jarvis/db": "workspace:*",
+    "commander": "^12.0.0",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@jarvis/typescript-config": "workspace:*",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3"
+  }
+}
