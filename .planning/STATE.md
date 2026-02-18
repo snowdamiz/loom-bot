@@ -118,5 +118,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed 03-06 (Journal checkpointing, startup crash recovery, full autonomous loop wired — PHASE 3 COMPLETE)
-Resume file: .planning/phases/04-wallet/04-01-PLAN.md
+Stopped at: Phase 4 context gathered
+Resume file: .planning/phases/04-wallet-and-financial-governance/04-CONTEXT.md
