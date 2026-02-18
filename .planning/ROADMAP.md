@@ -89,11 +89,12 @@ Plans:
   2. Agent can send SOL to a specified address through the signing service, and the transaction is logged with destination, amount, and stated purpose
   3. A transaction exceeding the per-transaction or daily aggregate spending limit is rejected by the signing service before signing
   4. The wallet private key never appears in any LLM context window, log output, or tool call parameter
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 04-01: TBD
-- [ ] 04-02: TBD
+- [ ] 04-01-PLAN.md — DB schemas (wallet_transactions, spend_limits, wallet_config) + @jarvis/wallet package + IPC signing service
+- [ ] 04-02-PLAN.md — Balance reading (SOL + SPL tokens) + spend governance (per-tx + daily limits) + Discord notifications
+- [ ] 04-03-PLAN.md — SOL/SPL send pipeline + inbound monitoring + agent-facing wallet tools + process wiring
 
 ### Phase 5: Web Dashboard
 **Goal**: The operator has a real-time window into everything the agent is doing -- live status, activity feed, P&L data, strategy history, decision reasoning, and a kill switch button
@@ -173,7 +174,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 1. Infrastructure | 4/4 | Complete    | 2026-02-18 |
 | 2. AI Backbone and Safety | 0/3 | Complete    | 2026-02-18 |
 | 3. Autonomous Loop | 6/6 | Complete    | 2026-02-18 |
-| 4. Wallet and Financial Governance | 0/0 | Not started | - |
+| 4. Wallet and Financial Governance | 0/3 | Planned | - |
 | 5. Web Dashboard | 0/0 | Not started | - |
 | 6. Browser, Identity, and Bootstrapping | 0/0 | Not started | - |
 | 7. Strategy Engine | 0/0 | Not started | - |
