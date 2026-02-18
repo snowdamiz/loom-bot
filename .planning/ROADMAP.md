@@ -36,7 +36,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans:** 4 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Monorepo scaffold + @jarvis/db schemas + Docker Compose
+- [x] 01-01-PLAN.md — Monorepo scaffold + @jarvis/db schemas + Docker Compose
 - [ ] 01-02-PLAN.md — @jarvis/logging audit trail + Redis session memory
 - [ ] 01-03-PLAN.md — Tool registry + shell/HTTP/file/DB tool implementations
 - [ ] 01-04-PLAN.md — Agent process wiring + BullMQ worker + memory consolidation
@@ -59,15 +59,17 @@ Plans:
 - [ ] 02-03: TBD
 
 ### Phase 3: Autonomous Loop
-**Goal**: The agent runs as a continuous goal-planner -- setting goals, decomposing them, dispatching work through the task queue, evaluating outcomes, replanning when needed, and surviving crashes without losing progress
+**Goal**: The agent runs as a continuous goal-planner -- setting goals, decomposing them, dispatching work through the task queue, evaluating outcomes, replanning when needed, and surviving crashes without losing progress. The main agent can spawn focused sub-agents for parallel task execution.
 **Depends on**: Phase 2
-**Requirements**: LOOP-01, LOOP-02, LOOP-03, LOOP-04, LOOP-05, QUEUE-01, QUEUE-02, QUEUE-03, QUEUE-04, QUEUE-05, RECOV-01, RECOV-02, RECOV-03, RECOV-04
+**Requirements**: LOOP-01, LOOP-02, LOOP-03, LOOP-04, LOOP-05, MULTI-01, MULTI-02, MULTI-03, MULTI-04, MULTI-05, MULTI-06, QUEUE-01, QUEUE-02, QUEUE-03, QUEUE-04, QUEUE-05, RECOV-01, RECOV-02, RECOV-03, RECOV-04
 **Success Criteria** (what must be TRUE):
   1. Agent autonomously sets a high-level goal, decomposes it into sub-goals with dependencies, and executes them in priority order without human prompting
   2. When a sub-goal outcome diverges from expectations, the agent detects the divergence and triggers replanning rather than continuing the original plan
   3. Failed external calls retry with exponential backoff, and exhausted retries appear in a dead-letter queue visible to the operator
   4. A scheduled task enqueued with cron-like timing fires at the specified interval across multiple planning cycles
   5. After a simulated crash (process kill), the agent restarts, replays its journal, and resumes from the last checkpoint without re-executing completed steps
+  6. Main agent spawns a sub-agent for a specific task, the sub-agent executes with its own LLM context, and the main agent receives the structured result
+  7. Main agent can run multiple sub-agents concurrently and aggregate their results
 **Plans**: TBD
 
 Plans:
@@ -165,7 +167,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Infrastructure | 0/4 | Planned | - |
+| 1. Infrastructure | 1/4 | In Progress | - |
 | 2. AI Backbone and Safety | 0/0 | Not started | - |
 | 3. Autonomous Loop | 0/0 | Not started | - |
 | 4. Wallet and Financial Governance | 0/0 | Not started | - |

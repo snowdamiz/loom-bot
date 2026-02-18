@@ -10,27 +10,27 @@ See: .planning/PROJECT.md (updated 2026-02-18)
 ## Current Position
 
 Phase: 1 of 8 (Infrastructure)
-Plan: 0 of 0 in current phase
-Status: Ready to plan
-Last activity: 2026-02-18 — Roadmap created (8 phases, 91 requirements mapped)
+Plan: 1 of 4 in current phase
+Status: Executing
+Last activity: 2026-02-18 — Completed 01-01 (Turborepo monorepo + @jarvis/db + 5 Drizzle schemas + Docker Compose)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█░░░░░░░░░] 3%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
-- Average duration: -
-- Total execution time: 0 hours
+- Total plans completed: 1
+- Average duration: 6 min
+- Total execution time: 0.1 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 01-infrastructure | 1/4 | 6 min | 6 min |
 
 **Recent Trend:**
-- Last 5 plans: -
+- Last 5 plans: 01-01 (6 min)
 - Trend: -
 
 *Updated after each plan completion*
@@ -43,10 +43,14 @@ Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
 - [Roadmap]: 8 phases derived from 89 requirements; safety systems precede capabilities; research SUMMARY.md phase structure adopted with refinements for comprehensive depth
+- [01-01]: jarvis-postgres uses port 5433 (port 5432 occupied by another project on host) — all DATABASE_URL must use 5433
+- [01-01]: drizzle.config.ts enumerates individual schema .ts files (not barrel index) to avoid drizzle-kit CJS .js resolution failure
+- [01-01]: Append-only LOG-05 compliance via two-row pattern — initial row immutable, completion inserts new row with parentId FK
+- [01-01]: AnyPgColumn type required for self-referential FK callbacks in TypeScript strict mode
 
 ### Pending Todos
 
-None yet.
+None.
 
 ### Blockers/Concerns
 
@@ -57,6 +61,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-18
-Stopped at: Phase 1 context gathered
-Resume file: .planning/phases/01-infrastructure/01-CONTEXT.md
+Last session: 2026-02-18T17:28:50Z
+Stopped at: Completed 01-01-PLAN.md (monorepo scaffold + @jarvis/db + all 5 schemas pushed to Postgres)
+Resume file: .planning/phases/01-infrastructure/01-02-PLAN.md

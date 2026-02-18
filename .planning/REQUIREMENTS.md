@@ -15,6 +15,15 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **LOOP-04**: Agent runs continuous planning cycles without human intervention
 - [ ] **LOOP-05**: Agent prioritizes sub-goals based on expected value and current capabilities
 
+### Multi-Agent Execution
+
+- [ ] **MULTI-01**: Main agent can spawn sub-agents to handle specific tasks concurrently
+- [ ] **MULTI-02**: Sub-agents have isolated LLM context focused on their assigned task
+- [ ] **MULTI-03**: Sub-agents report structured results back to the main agent on completion or failure
+- [ ] **MULTI-04**: Main agent can monitor sub-agent status and cancel running sub-agents
+- [ ] **MULTI-05**: Sub-agents share the same tool layer and database but have independent LLM sessions
+- [ ] **MULTI-06**: Main agent decides when to spawn a sub-agent vs execute inline based on task complexity and parallelism opportunity
+
 ### Tool Execution
 
 - [ ] **TOOL-01**: Agent can execute shell commands on the host VM
@@ -42,11 +51,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Persistent Memory
 
-- [ ] **DATA-01**: Agent state persists in Postgres across restarts
-- [ ] **DATA-02**: Agent can CREATE TABLE and ALTER TABLE to extend its own schema
+- [x] **DATA-01**: Agent state persists in Postgres across restarts
+- [x] **DATA-02**: Agent can CREATE TABLE and ALTER TABLE to extend its own schema
 - [ ] **DATA-03**: Working memory (current cycle state) lives in LLM context window
 - [ ] **DATA-04**: Session memory (recent cycle summaries, active strategies) persists in Redis
-- [ ] **DATA-05**: Long-term memory (distilled facts, strategy history, credentials) persists in Postgres
+- [x] **DATA-05**: Long-term memory (distilled facts, strategy history, credentials) persists in Postgres
 - [ ] **DATA-06**: Memory consolidation runs periodically to distill raw outputs into structured facts
 
 ### Task Queue
@@ -86,8 +95,8 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **LOG-01**: Every agent decision is logged with timestamp and reasoning summary
 - [ ] **LOG-02**: Every tool call is logged with inputs, outputs, duration, and success/failure
 - [ ] **LOG-03**: Every planning cycle is logged with goals set, tasks completed, and outcomes
-- [ ] **LOG-04**: Logs are structured JSON and queryable via SQL
-- [ ] **LOG-05**: Audit log is append-only and immutable
+- [x] **LOG-04**: Logs are structured JSON and queryable via SQL
+- [x] **LOG-05**: Audit log is append-only and immutable
 
 ### Web Dashboard
 
@@ -172,7 +181,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | Multi-User Support | Single operator. Multi-tenancy is a v2+ business decision, not a v1 technical one. |
 | Mobile App | Responsive web dashboard on mobile is sufficient. |
 | Real-Time Streaming of Every Thought | Write amplification, expensive. Log at decision points, not every micro-step. |
-| Flat Agent Swarm | 17x error amplification (DeepMind). Hierarchical planner-worker is the architecture. |
+| Flat Agent Swarm | 17x error amplification (DeepMind). Hierarchical multi-agent (main spawns focused sub-agents) is the architecture. |
 | On-Chain Agent Logic | Smart contract execution is expensive and exposes strategy. Reasoning stays off-chain. |
 | Complex Confidence Scoring | Adds latency to every decision. Binary action criteria instead. |
 | External Content Filters | Project is explicitly unconstrained. Structural limits (kill switch, budget caps) instead. |
@@ -190,17 +199,17 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TOOL-05 | Phase 1 | Pending |
 | TOOL-06 | Phase 2 | Pending |
 | TOOL-07 | Phase 1 | Pending |
-| DATA-01 | Phase 1 | Pending |
-| DATA-02 | Phase 1 | Pending |
+| DATA-01 | Phase 1 | Complete |
+| DATA-02 | Phase 1 | Complete |
 | DATA-03 | Phase 1 | Pending |
 | DATA-04 | Phase 1 | Pending |
-| DATA-05 | Phase 1 | Pending |
+| DATA-05 | Phase 1 | Complete |
 | DATA-06 | Phase 1 | Pending |
 | LOG-01 | Phase 1 | Pending |
 | LOG-02 | Phase 1 | Pending |
 | LOG-03 | Phase 1 | Pending |
-| LOG-04 | Phase 1 | Pending |
-| LOG-05 | Phase 1 | Pending |
+| LOG-04 | Phase 1 | Complete |
+| LOG-05 | Phase 1 | Complete |
 | MODL-01 | Phase 2 | Pending |
 | MODL-02 | Phase 2 | Pending |
 | MODL-03 | Phase 2 | Pending |
@@ -215,6 +224,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | COST-03 | Phase 2 | Pending |
 | COST-04 | Phase 2 | Pending |
 | COST-05 | Phase 2 | Pending |
+| MULTI-01 | Phase 3 | Pending |
+| MULTI-02 | Phase 3 | Pending |
+| MULTI-03 | Phase 3 | Pending |
+| MULTI-04 | Phase 3 | Pending |
+| MULTI-05 | Phase 3 | Pending |
+| MULTI-06 | Phase 3 | Pending |
 | LOOP-01 | Phase 3 | Pending |
 | LOOP-02 | Phase 3 | Pending |
 | LOOP-03 | Phase 3 | Pending |
@@ -276,8 +291,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AGENT-04 | Phase 8 | Pending |
 
 **Coverage:**
-- v1 requirements: 91 total
-- Mapped to phases: 91
+- v1 requirements: 97 total
+- Mapped to phases: 97
 - Unmapped: 0
 
 ---
