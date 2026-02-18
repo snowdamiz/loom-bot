@@ -26,13 +26,13 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Tool Execution
 
-- [ ] **TOOL-01**: Agent can execute shell commands on the host VM
-- [ ] **TOOL-02**: Agent can make HTTP requests to external APIs and services
-- [ ] **TOOL-03**: Agent can read and write files on the host filesystem
-- [ ] **TOOL-04**: Agent can query and modify the Postgres database via Drizzle ORM
+- [x] **TOOL-01**: Agent can execute shell commands on the host VM
+- [x] **TOOL-02**: Agent can make HTTP requests to external APIs and services
+- [x] **TOOL-03**: Agent can read and write files on the host filesystem
+- [x] **TOOL-04**: Agent can query and modify the Postgres database via Drizzle ORM
 - [x] **TOOL-05**: Every tool call is logged before execution with input parameters
 - [ ] **TOOL-06**: Every tool call is checked against kill switch before execution
-- [ ] **TOOL-07**: Every tool call has a configurable timeout with graceful failure
+- [x] **TOOL-07**: Every tool call has a configurable timeout with graceful failure
 
 ### Multi-Model AI Routing
 
@@ -192,13 +192,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TOOL-01 | Phase 1 | Pending |
-| TOOL-02 | Phase 1 | Pending |
-| TOOL-03 | Phase 1 | Pending |
-| TOOL-04 | Phase 1 | Pending |
+| TOOL-01 | Phase 1 | Complete |
+| TOOL-02 | Phase 1 | Complete |
+| TOOL-03 | Phase 1 | Complete |
+| TOOL-04 | Phase 1 | Complete |
 | TOOL-05 | Phase 1 | Complete |
 | TOOL-06 | Phase 2 | Pending |
-| TOOL-07 | Phase 1 | Pending |
+| TOOL-07 | Phase 1 | Complete |
 | DATA-01 | Phase 1 | Complete |
 | DATA-02 | Phase 1 | Complete |
 | DATA-03 | Phase 1 | Pending |

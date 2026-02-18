@@ -10,27 +10,27 @@ See: .planning/PROJECT.md (updated 2026-02-18)
 ## Current Position
 
 Phase: 1 of 8 (Infrastructure)
-Plan: 2 of 4 in current phase
+Plan: 3 of 4 in current phase
 Status: Executing
-Last activity: 2026-02-18 — Completed 01-02 (@jarvis/logging + @jarvis/tools Redis session layer)
+Last activity: 2026-02-18 — Completed 01-03 (@jarvis/tools ToolRegistry + 4 tool implementations)
 
-Progress: [██░░░░░░░░] 6%
+Progress: [███░░░░░░░] 9%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
-- Average duration: 6.5 min
-- Total execution time: 0.2 hours
+- Total plans completed: 3
+- Average duration: 7 min
+- Total execution time: 0.35 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-infrastructure | 2/4 | 13 min | 6.5 min |
+| 01-infrastructure | 3/4 | 21 min | 7 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (6 min), 01-02 (7 min)
+- Last 5 plans: 01-01 (6 min), 01-02 (7 min), 01-03 (8 min)
 - Trend: stable
 
 *Updated after each plan completion*
@@ -51,6 +51,10 @@ Recent decisions affecting current work:
 - [01-02]: ioredis named export { Redis } required for NodeNext moduleResolution — default import causes TS2351 no-construct-signatures
 - [01-02]: Redis error handler writes to stderr only — Postgres unavailable during Redis failures, stderr always available
 - [01-02]: session: prefix for all Redis keys — BullMQ uses separate prefix, avoids key collisions
+- [01-03]: ZodType<TInput, ZodTypeDef, unknown> for inputSchema — third generic param unknown allows ZodDefault fields without TypeScript variance errors
+- [01-03]: createDbTool(db) factory pattern — DB tool requires DbClient injection at registry creation, not module load time
+- [01-03]: sql imported from @jarvis/db (not drizzle-orm) — pnpm strict isolation prevents transitive imports
+- [01-03]: shell: false always in spawn — avoids shell injection even in unrestricted agent mode; args passed as array
 
 ### Pending Todos
 
@@ -65,6 +69,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-18T17:42:00Z
-Stopped at: Completed 01-02-PLAN.md (@jarvis/logging 6 audit functions + @jarvis/tools Redis session layer)
-Resume file: .planning/phases/01-infrastructure/01-03-PLAN.md
+Last session: 2026-02-18T17:53:47Z
+Stopped at: Completed 01-03-PLAN.md (ToolRegistry + 4 tool implementations + invokeWithLogging)
+Resume file: .planning/phases/01-infrastructure/01-04-PLAN.md

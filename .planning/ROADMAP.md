@@ -37,8 +37,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 Plans:
 - [x] 01-01-PLAN.md — Monorepo scaffold + @jarvis/db schemas + Docker Compose
-- [ ] 01-02-PLAN.md — @jarvis/logging audit trail + Redis session memory
-- [ ] 01-03-PLAN.md — Tool registry + shell/HTTP/file/DB tool implementations
+- [x] 01-02-PLAN.md — @jarvis/logging audit trail + Redis session memory
+- [x] 01-03-PLAN.md — Tool registry + shell/HTTP/file/DB tool implementations
 - [ ] 01-04-PLAN.md — Agent process wiring + BullMQ worker + memory consolidation
 
 ### Phase 2: AI Backbone and Safety
