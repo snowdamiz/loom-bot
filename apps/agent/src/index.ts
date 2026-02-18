@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { db, pool, agentState, eq } from '@jarvis/db';
 import { createDefaultRegistry, redis } from '@jarvis/tools';
+import { createRouter, KillSwitchGuard, loadModelConfig } from '@jarvis/ai';
 import { Queue } from 'bullmq';
 import { startConsolidation } from './memory-consolidation.js';
 import { registerShutdownHandlers } from './shutdown.js';
@@ -13,12 +14,13 @@ import { registerShutdownHandlers } from './shutdown.js';
  * 2. Create BullMQ Queue for dispatching jobs to worker processes
  * 3. Start memory consolidation periodic job
  * 4. Register graceful shutdown handlers (SIGTERM/SIGINT)
- * 5. Log startup to stderr
- * 6. Write system status to agent_state (DATA-01)
+ * 5. Wire KillSwitchGuard and ModelRouter (Phase 2)
+ * 6. Log startup to stderr
+ * 7. Write system status to agent_state (DATA-01)
  *
  * This process does NOT start the autonomous planning loop (Phase 3).
  * It starts, registers everything, writes its state, and waits.
- * This is sufficient to verify Phase 1 infrastructure end-to-end.
+ * This is sufficient to verify Phase 2 infrastructure end-to-end.
  */
 
 async function main(): Promise<void> {
@@ -42,15 +44,26 @@ async function main(): Promise<void> {
     consolidation,
   });
 
-  // 5. Log startup to stderr
+  // 5. Wire Phase 2 components: KillSwitchGuard and ModelRouter
+  const killSwitch = new KillSwitchGuard(db);
+  const modelConfig = loadModelConfig();
+  const router = createRouter(db, process.env.OPENROUTER_API_KEY!);
+
+  // Log model config to stderr for verification
+  process.stderr.write(
+    `[agent] AI router ready. Models: strong=${modelConfig.strong}, mid=${modelConfig.mid}, cheap=${modelConfig.cheap}\n`
+  );
+
+  // 6. Log startup to stderr
   const toolCount = registry.count();
   process.stderr.write(`[agent] Jarvis agent started. Tools: ${toolCount}. Consolidation: active.\n`);
 
-  // 6. Write system status to agent_state (DATA-01 persistence verification)
+  // 7. Write system status to agent_state (DATA-01 persistence verification)
   const systemStatus = {
     status: 'running',
     startedAt: new Date().toISOString(),
     tools: registry.list().map((t) => t.name),
+    aiRouter: 'ready',
   };
 
   // Upsert: update if exists, insert if not
@@ -73,6 +86,11 @@ async function main(): Promise<void> {
 
   process.stderr.write('[agent] System status written to agent_state.\n');
   process.stderr.write(`[agent] Queue "${queue.name}" ready for worker dispatch.\n`);
+
+  // Suppress unused variable warnings for Phase 2 wiring
+  // These will be used in Phase 3 planning loop
+  void killSwitch;
+  void router;
 
   // The process stays alive — shutdown is handled by registerShutdownHandlers on SIGTERM/SIGINT.
 }

@@ -1,13 +1,17 @@
 import 'dotenv/config';
 import { Worker } from 'bullmq';
 import { db } from '@jarvis/db';
-import { createDefaultRegistry, invokeWithLogging } from '@jarvis/tools';
+import { createDefaultRegistry, invokeWithKillCheck } from '@jarvis/tools';
+import { KillSwitchGuard } from '@jarvis/ai';
 
 /**
  * BullMQ worker entry point for long-running tool execution.
  *
  * Listens on the 'tool-execution' queue and processes tool invocation jobs
- * by delegating to invokeWithLogging() — the single invocation entry point.
+ * by delegating to invokeWithKillCheck() — the kill-switch-gated invocation entry point.
+ *
+ * TOOL-06: Every tool execution job checks the kill switch before running.
+ * If the kill switch is active, the job throws KillSwitchActiveError without executing.
  *
  * Concurrency: 5 (process up to 5 jobs in parallel).
  *
@@ -20,6 +24,7 @@ import { createDefaultRegistry, invokeWithLogging } from '@jarvis/tools';
  */
 
 const registry = createDefaultRegistry(db);
+const killSwitch = new KillSwitchGuard(db);
 
 const worker = new Worker(
   'tool-execution',
@@ -30,7 +35,7 @@ const worker = new Worker(
       timeoutMs?: number;
     };
 
-    const result = await invokeWithLogging(registry, db, toolName, input, timeoutMs);
+    const result = await invokeWithKillCheck(killSwitch, registry, db, toolName, input, timeoutMs);
     return result;
   },
   {

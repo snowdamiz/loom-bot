@@ -9,6 +9,7 @@ export type { ToolDefinition, ToolResult } from './types.js';
 export { ToolRegistry } from './registry.js';
 export { withTimeout, ToolTimeoutError } from './timeout.js';
 export { invokeWithLogging } from './invoke.js';
+export { invokeWithKillCheck } from './invoke-safe.js';
 
 // Tool implementations (Plan 03)
 export { shellTool } from './shell/index.js';

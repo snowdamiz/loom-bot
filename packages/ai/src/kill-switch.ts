@@ -1,4 +1,4 @@
-import { agentState, eq } from '@jarvis/db';
+import { agentState, killSwitchAudit, eq } from '@jarvis/db';
 import type { DbClient } from '@jarvis/db';
 
 /**
@@ -62,4 +62,84 @@ export class KillSwitchGuard {
   clearCache(): void {
     this.cachedState = null;
   }
+}
+
+/**
+ * KILL-01: Activate the kill switch.
+ * Upserts agent_state key='kill_switch' with active=true and inserts an audit record.
+ * Used by the CLI and can be called programmatically.
+ */
+export async function activateKillSwitch(
+  db: DbClient,
+  reason: string,
+  triggeredBy: string = 'cli'
+): Promise<void> {
+  const killSwitchValue = {
+    active: true,
+    reason,
+    activatedAt: new Date().toISOString(),
+  };
+
+  const existing = await db
+    .select()
+    .from(agentState)
+    .where(eq(agentState.key, 'kill_switch'))
+    .limit(1);
+
+  if (existing.length > 0) {
+    await db
+      .update(agentState)
+      .set({ value: killSwitchValue, updatedAt: new Date() })
+      .where(eq(agentState.key, 'kill_switch'));
+  } else {
+    await db
+      .insert(agentState)
+      .values({ key: 'kill_switch', value: killSwitchValue });
+  }
+
+  await db.insert(killSwitchAudit).values({
+    action: 'activate',
+    reason,
+    triggeredBy,
+  });
+}
+
+/**
+ * KILL-01: Deactivate the kill switch.
+ * Upserts agent_state key='kill_switch' with active=false and inserts an audit record.
+ * Used by the CLI and can be called programmatically.
+ */
+export async function deactivateKillSwitch(
+  db: DbClient,
+  reason: string,
+  triggeredBy: string = 'cli'
+): Promise<void> {
+  const killSwitchValue = {
+    active: false,
+    reason,
+    deactivatedAt: new Date().toISOString(),
+  };
+
+  const existing = await db
+    .select()
+    .from(agentState)
+    .where(eq(agentState.key, 'kill_switch'))
+    .limit(1);
+
+  if (existing.length > 0) {
+    await db
+      .update(agentState)
+      .set({ value: killSwitchValue, updatedAt: new Date() })
+      .where(eq(agentState.key, 'kill_switch'));
+  } else {
+    await db
+      .insert(agentState)
+      .values({ key: 'kill_switch', value: killSwitchValue });
+  }
+
+  await db.insert(killSwitchAudit).values({
+    action: 'deactivate',
+    reason,
+    triggeredBy,
+  });
 }

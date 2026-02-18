@@ -11,6 +11,7 @@
     "worker:start": "node dist/worker.js"
   },
   "dependencies": {
+    "@jarvis/ai": "workspace:*",
     "@jarvis/db": "workspace:*",
     "@jarvis/logging": "workspace:*",
     "@jarvis/tools": "workspace:*",
