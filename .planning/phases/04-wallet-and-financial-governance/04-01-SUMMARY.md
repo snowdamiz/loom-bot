@@ -152,6 +152,21 @@ Run the signer: `pnpm --filter @jarvis/wallet signer`
 - Signer process ready to launch once SOLANA_PRIVATE_KEY and SIGNER_SHARED_SECRET are set
 - Plan 4-02 (spend governance) can import SpendLimit and WalletTransaction types from @jarvis/db
 
+## Self-Check: PASSED
+
+All key files verified present on disk:
+- packages/db/src/schema/wallet-transactions.ts: FOUND
+- packages/db/src/schema/spend-limits.ts: FOUND
+- packages/db/src/schema/wallet-config.ts: FOUND
+- packages/wallet/src/signer/server.ts: FOUND
+- packages/wallet/src/client/signer-client.ts: FOUND
+- packages/wallet/src/signer/protocol.ts: FOUND
+
+All commits verified in git history:
+- 61a3a4c: FOUND (feat: DB schemas)
+- b4c2f30: FOUND (feat: @jarvis/wallet package)
+- 8a9416b: FOUND (docs: plan metadata)
+
 ---
 *Phase: 04-wallet-and-financial-governance*
 *Completed: 2026-02-18*

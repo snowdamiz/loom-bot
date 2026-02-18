@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** The agent must be able to autonomously reason about opportunities, acquire the tools and accounts it needs, and execute money-making strategies without human intervention.
-**Current focus:** Phase 4: Wallet and Financial Governance — In Progress (2/3 plans complete)
+**Current focus:** Phase 4: Wallet and Financial Governance — COMPLETE (3/3 plans done)
 
 ## Current Position
 
-Phase: 4 of 8 (Wallet and Financial Governance)
-Plan: 2 of 3 in current phase (04-02 complete — Balance reading + spend governance)
-Status: In Progress
-Last activity: 2026-02-18 — Completed 04-02 (Balance reading, wallet config, spend governance, Discord notifications)
+Phase: 4 of 8 (Wallet and Financial Governance) — COMPLETE
+Plan: 3 of 3 in current phase (04-03 complete — Send pipeline, wallet tools, agent integration)
+Status: Phase Complete — ready to begin Phase 5 (Strategy Engine)
+Last activity: 2026-02-18 — Completed 04-03 (SOL/SPL send pipeline, inbound monitoring, 4 wallet tools, signer lifecycle)
 
-Progress: [██████████] 50%
+Progress: [████████████] 62%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11
-- Average duration: 3.4 min
-- Total execution time: 0.62 hours
+- Total plans completed: 12
+- Average duration: 3.7 min
+- Total execution time: 0.69 hours
 
 **By Phase:**
 
@@ -30,10 +30,11 @@ Progress: [██████████] 50%
 | 01-infrastructure | 4/4 | 26 min | 6.5 min |
 | 02-ai-backbone-and-safety | 3/3 | 9 min | 3 min |
 | 03-autonomous-loop | 6/6 | 20 min | 3.3 min |
+| 04-wallet-and-financial-governance | 3/3 | 26 min | 8.7 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-01 (3 min), 03-04 (3 min), 03-05 (4 min), 03-06 (4 min)
-- Trend: stable
+- Last 5 plans: 03-05 (4 min), 03-06 (4 min), 04-01 (8 min), 04-02 (4 min), 04-03 (14 min)
+- Trend: Phase 4 plans heavier than Phase 3 (Solana deps, more complex integrations)
 
 *Updated after each plan completion*
 | Phase 02-ai-backbone-and-safety P02 | 4 | 2 tasks | 11 files |
@@ -45,6 +46,7 @@ Progress: [██████████] 50%
 | Phase 03-autonomous-loop P06 | 4 | 3 tasks | 5 files |
 | Phase 04-wallet-and-financial-governance P01 | 8 | 2 tasks | 13 files |
 | Phase 04-wallet-and-financial-governance P02 | 4 | 2 tasks | 6 files |
+| Phase 04-wallet-and-financial-governance P03 | 14 | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -110,6 +112,11 @@ Recent decisions affecting current work:
 - [Phase 04-01]: process.send('ready') guarded by if (process.send) — allows signer to run both standalone and via child_process.fork() without IPC
 - [Phase 04-wallet-and-financial-governance]: Rolling 24h window for daily aggregate spend (not calendar day) — avoids timezone ambiguity
 - [Phase 04-wallet-and-financial-governance]: No active spend limit row = allow all transactions (high generous defaults per locked decision)
+- [Phase 04-03]: @solana/web3.js v1 Transaction API used for SOL/SPL sends — @solana-program/system incompatible with @solana/kit@2.x; web3.js v1 already a dep
+- [Phase 04-03]: Idempotent ATA creation bundled in same tx as transfer — createAssociatedTokenAccountIdempotentInstruction is no-op if ATA exists
+- [Phase 04-03]: SPL token governance skipped in Phase 4 — base units not lamports; USD governance requires oracle pricing, deferred to future phase
+- [Phase 04-03]: createRequire(import.meta.url).resolve() for signer path — ESM-compatible, resolves @jarvis/wallet/dist/signer/server.js from node_modules
+- [Phase 04-03]: ShutdownSignerProcess.kill() accepts number|NodeJS.Signals|string — matches ChildProcess.kill() while staying pnpm-isolated
 
 ### Pending Todos
 
@@ -124,5 +131,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed 04-02-PLAN.md (Balance reading, wallet config, spend governance, Discord notifications)
-Resume file: .planning/phases/04-wallet-and-financial-governance/04-02-SUMMARY.md
+Stopped at: Completed 04-03-PLAN.md (SOL/SPL send pipeline, inbound monitoring, wallet tools, agent wiring)
+Resume file: .planning/phases/04-wallet-and-financial-governance/04-03-SUMMARY.md
