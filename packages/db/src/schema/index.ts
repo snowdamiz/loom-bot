@@ -10,3 +10,6 @@ export * from './kill-switch-audit.js';
 export * from './pnl-view.js';
 export * from './goals.js';
 export * from './sub-goals.js';
+export * from './wallet-transactions.js';
+export * from './spend-limits.js';
+export * from './wallet-config.js';
