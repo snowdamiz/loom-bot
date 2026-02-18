@@ -7,6 +7,7 @@ import type { SubGoal } from '@jarvis/db';
 import type { GoalManager } from './goal-manager.js';
 import type { Evaluator, EvaluationResult } from './evaluator.js';
 import type { Replanner } from './replanner.js';
+import { checkpoint, clearJournal } from '../recovery/journal.js';
 
 /**
  * Re-use the ChatCompletionMessageParam type from @jarvis/ai's ToolCompletionRequest.
@@ -279,6 +280,8 @@ export class AgentLoop {
           if (isComplete) {
             process.stderr.write(`[agent-loop] Goal ${goalId} complete.\n`);
             await this.goalManager.updateGoalStatus(goalId, 'completed');
+            // Clean up journal now that the goal is fully complete
+            await clearJournal(this.db, goalId);
           } else {
             // Remaining sub-goals are blocked by failed/stuck dependencies
             process.stderr.write(
@@ -295,6 +298,18 @@ export class AgentLoop {
         );
         const result = await this.executeSubGoal(subGoal);
         outcomes.push(result.outcome);
+
+        // RECOV-01: Checkpoint MUST succeed before proceeding to the next sub-goal.
+        // checkpoint() has 3-retry-with-halt semantics — if it fails after 3 attempts,
+        // it throws an error that propagates here and stops the cycle for this goal.
+        // This prevents uncheckpointed progress that would cause duplicate execution on recovery.
+        await checkpoint(this.db, goalId, {
+          subGoalId: subGoal.id,
+          goalId,
+          completedAt: new Date().toISOString(),
+          outcome: result.outcome,
+          status: result.success ? 'completed' : 'failed',
+        });
 
         // LOOP-03: Evaluate outcome if evaluator is wired
         if (this.evaluator) {
