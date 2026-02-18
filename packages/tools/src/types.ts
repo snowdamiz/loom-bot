@@ -19,7 +19,10 @@ import { z } from 'zod';
 export interface ToolDefinition<TInput = unknown, TOutput = unknown> {
   name: string;
   description: string;
-  inputSchema: z.ZodType<TInput>;
+  // ZodType<TOutput, Def, TInput> — the third param (TInput to the schema) is unknown
+  // because we always receive raw (unvalidated) input. This allows ZodDefault fields
+  // whose _input type is T|undefined to be assigned to ZodType<T, ZodTypeDef, unknown>.
+  inputSchema: z.ZodType<TInput, z.ZodTypeDef, unknown>;
   /** Default timeout in milliseconds; overridable per invocation via invokeWithLogging */
   timeoutMs: number;
   /**
