@@ -115,7 +115,7 @@ Recent decisions affecting current work:
 - [Phase 04-wallet-and-financial-governance]: No active spend limit row = allow all transactions (high generous defaults per locked decision)
 - [Phase 04-03]: @solana/web3.js v1 Transaction API used for SOL/SPL sends — @solana-program/system incompatible with @solana/kit@2.x; web3.js v1 already a dep
 - [Phase 04-03]: Idempotent ATA creation bundled in same tx as transfer — createAssociatedTokenAccountIdempotentInstruction is no-op if ATA exists
-- [Phase 04-03]: SPL token governance skipped in Phase 4 — base units not lamports; USD governance requires oracle pricing, deferred to future phase
+- [Phase 04-03]: SPL token governance initially skipped — resolved by 04-04 gap closure (checkSpendLimits now enforced in sendSplToken)
 - [Phase 04-03]: createRequire(import.meta.url).resolve() for signer path — ESM-compatible, resolves @jarvis/wallet/dist/signer/server.js from node_modules
 - [Phase 04-03]: ShutdownSignerProcess.kill() accepts number|NodeJS.Signals|string — matches ChildProcess.kill() while staying pnpm-isolated
 - [Phase 04-04]: SPL governance uses raw token base units vs lamport ceilings — coarse safety net preventing unbounded SPL sends; USD-denominated per-token limits require oracle pricing, deferred to future phase
