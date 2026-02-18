@@ -27,3 +27,15 @@ export {
   notifySpendLimitBreach,
   notifyHighValueTransaction,
 } from './governance/notify.js';
+
+// Send pipeline (SOL + SPL tokens)
+export {
+  sendSol,
+  sendSplToken,
+  getTransactionHistory,
+} from './client/send.js';
+export type { SendResult } from './client/send.js';
+
+// Inbound monitoring (WebSocket subscriptions)
+export { subscribeToWallet } from './client/subscribe.js';
+export type { InboundEvent } from './client/subscribe.js';

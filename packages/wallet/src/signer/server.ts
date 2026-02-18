@@ -75,7 +75,7 @@ function verifyHmac(txBase64: string, receivedHex: string): boolean {
     return false;
   }
   if (expected.length !== received.length) return false;
-  return timingSafeEqual(expected, received);
+  return timingSafeEqual(new Uint8Array(expected), new Uint8Array(received));
 }
 
 // ─── Request handler ──────────────────────────────────────────────────────────
@@ -109,7 +109,7 @@ async function handleRequest(line: string, socket: Socket, keyPair: CryptoKeyPai
   // Decode transaction bytes
   let txBytes: Uint8Array;
   try {
-    txBytes = Buffer.from(txBase64, 'base64');
+    txBytes = new Uint8Array(Buffer.from(txBase64, 'base64'));
     if (txBytes.length === 0) throw new Error('empty transaction bytes');
   } catch {
     const resp: SignResponse = { ok: false, error: 'invalid_tx', requestId };
