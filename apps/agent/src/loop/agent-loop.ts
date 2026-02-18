@@ -121,6 +121,15 @@ export class AgentLoop {
     await this.goalManager.updateSubGoalStatus(subGoal.id, 'in-progress');
 
     while (turnsUsed < this.maxTurnsPerSubGoal) {
+      // Check cancellation flag at the top of each tool-calling turn
+      if (this.cancelled) {
+        process.stderr.write(
+          `[agent-loop] Sub-goal ${subGoal.id} cancelled mid-execution.\n`,
+        );
+        await this.goalManager.updateSubGoalStatus(subGoal.id, 'failed', { outcome: 'cancelled' });
+        return { success: false, outcome: 'cancelled' };
+      }
+
       turnsUsed++;
 
       // LOOP-02: router.completeWithTools enforces kill switch via KillSwitchGuard
