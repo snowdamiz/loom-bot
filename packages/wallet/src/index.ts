@@ -13,3 +13,17 @@ export {
   setWalletConfig,
   WalletConfigKeys,
 } from './client/config.js';
+
+// Spend governance
+export {
+  checkSpendLimits,
+  getActiveSpendLimit,
+  getTodaySpentLamports,
+} from './governance/limits.js';
+export type { SpendCheckResult } from './governance/limits.js';
+
+// Operator notifications
+export {
+  notifySpendLimitBreach,
+  notifyHighValueTransaction,
+} from './governance/notify.js';
