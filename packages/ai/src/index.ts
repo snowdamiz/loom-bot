@@ -5,6 +5,7 @@ export * from './kill-switch.js';
 export * from './router.js';
 export * from './discord.js';
 export * from './cost-monitor.js';
+export * from './tool-schema.js';
 
 // Convenience factory — wires all components together
 import type { DbClient } from '@jarvis/db';
