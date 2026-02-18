@@ -7,3 +7,4 @@ export * from './ai-calls.js';
 export * from './operating-costs.js';
 export * from './revenue.js';
 export * from './kill-switch-audit.js';
+export * from './pnl-view.js';
