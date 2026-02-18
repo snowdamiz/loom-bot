@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-02-18)
 ## Current Position
 
 Phase: 1 of 8 (Infrastructure)
-Plan: 1 of 4 in current phase
+Plan: 2 of 4 in current phase
 Status: Executing
-Last activity: 2026-02-18 — Completed 01-01 (Turborepo monorepo + @jarvis/db + 5 Drizzle schemas + Docker Compose)
+Last activity: 2026-02-18 — Completed 01-02 (@jarvis/logging + @jarvis/tools Redis session layer)
 
-Progress: [█░░░░░░░░░] 3%
+Progress: [██░░░░░░░░] 6%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
-- Average duration: 6 min
-- Total execution time: 0.1 hours
+- Total plans completed: 2
+- Average duration: 6.5 min
+- Total execution time: 0.2 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-infrastructure | 1/4 | 6 min | 6 min |
+| 01-infrastructure | 2/4 | 13 min | 6.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (6 min)
-- Trend: -
+- Last 5 plans: 01-01 (6 min), 01-02 (7 min)
+- Trend: stable
 
 *Updated after each plan completion*
 
@@ -47,6 +47,10 @@ Recent decisions affecting current work:
 - [01-01]: drizzle.config.ts enumerates individual schema .ts files (not barrel index) to avoid drizzle-kit CJS .js resolution failure
 - [01-01]: Append-only LOG-05 compliance via two-row pattern — initial row immutable, completion inserts new row with parentId FK
 - [01-01]: AnyPgColumn type required for self-referential FK callbacks in TypeScript strict mode
+- [01-02]: DbClient from @jarvis/db used as logger db param type — avoids drizzle-orm direct dep in @jarvis/logging (pnpm strict isolation)
+- [01-02]: ioredis named export { Redis } required for NodeNext moduleResolution — default import causes TS2351 no-construct-signatures
+- [01-02]: Redis error handler writes to stderr only — Postgres unavailable during Redis failures, stderr always available
+- [01-02]: session: prefix for all Redis keys — BullMQ uses separate prefix, avoids key collisions
 
 ### Pending Todos
 
@@ -61,6 +65,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-18T17:28:50Z
-Stopped at: Completed 01-01-PLAN.md (monorepo scaffold + @jarvis/db + all 5 schemas pushed to Postgres)
-Resume file: .planning/phases/01-infrastructure/01-02-PLAN.md
+Last session: 2026-02-18T17:42:00Z
+Stopped at: Completed 01-02-PLAN.md (@jarvis/logging 6 audit functions + @jarvis/tools Redis session layer)
+Resume file: .planning/phases/01-infrastructure/01-03-PLAN.md

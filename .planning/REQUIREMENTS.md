@@ -30,7 +30,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **TOOL-02**: Agent can make HTTP requests to external APIs and services
 - [ ] **TOOL-03**: Agent can read and write files on the host filesystem
 - [ ] **TOOL-04**: Agent can query and modify the Postgres database via Drizzle ORM
-- [ ] **TOOL-05**: Every tool call is logged before execution with input parameters
+- [x] **TOOL-05**: Every tool call is logged before execution with input parameters
 - [ ] **TOOL-06**: Every tool call is checked against kill switch before execution
 - [ ] **TOOL-07**: Every tool call has a configurable timeout with graceful failure
 
@@ -54,7 +54,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **DATA-01**: Agent state persists in Postgres across restarts
 - [x] **DATA-02**: Agent can CREATE TABLE and ALTER TABLE to extend its own schema
 - [ ] **DATA-03**: Working memory (current cycle state) lives in LLM context window
-- [ ] **DATA-04**: Session memory (recent cycle summaries, active strategies) persists in Redis
+- [x] **DATA-04**: Session memory (recent cycle summaries, active strategies) persists in Redis
 - [x] **DATA-05**: Long-term memory (distilled facts, strategy history, credentials) persists in Postgres
 - [ ] **DATA-06**: Memory consolidation runs periodically to distill raw outputs into structured facts
 
@@ -92,9 +92,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Activity Logging
 
-- [ ] **LOG-01**: Every agent decision is logged with timestamp and reasoning summary
-- [ ] **LOG-02**: Every tool call is logged with inputs, outputs, duration, and success/failure
-- [ ] **LOG-03**: Every planning cycle is logged with goals set, tasks completed, and outcomes
+- [x] **LOG-01**: Every agent decision is logged with timestamp and reasoning summary
+- [x] **LOG-02**: Every tool call is logged with inputs, outputs, duration, and success/failure
+- [x] **LOG-03**: Every planning cycle is logged with goals set, tasks completed, and outcomes
 - [x] **LOG-04**: Logs are structured JSON and queryable via SQL
 - [x] **LOG-05**: Audit log is append-only and immutable
 
@@ -196,18 +196,18 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TOOL-02 | Phase 1 | Pending |
 | TOOL-03 | Phase 1 | Pending |
 | TOOL-04 | Phase 1 | Pending |
-| TOOL-05 | Phase 1 | Pending |
+| TOOL-05 | Phase 1 | Complete |
 | TOOL-06 | Phase 2 | Pending |
 | TOOL-07 | Phase 1 | Pending |
 | DATA-01 | Phase 1 | Complete |
 | DATA-02 | Phase 1 | Complete |
 | DATA-03 | Phase 1 | Pending |
-| DATA-04 | Phase 1 | Pending |
+| DATA-04 | Phase 1 | Complete |
 | DATA-05 | Phase 1 | Complete |
 | DATA-06 | Phase 1 | Pending |
-| LOG-01 | Phase 1 | Pending |
-| LOG-02 | Phase 1 | Pending |
-| LOG-03 | Phase 1 | Pending |
+| LOG-01 | Phase 1 | Complete |
+| LOG-02 | Phase 1 | Complete |
+| LOG-03 | Phase 1 | Complete |
 | LOG-04 | Phase 1 | Complete |
 | LOG-05 | Phase 1 | Complete |
 | MODL-01 | Phase 2 | Pending |
