@@ -5,9 +5,12 @@ import type { Worker } from 'bullmq';
  *
  * Listens for SIGTERM and SIGINT signals and shuts down:
  * 1. Memory consolidation interval (if provided)
- * 2. BullMQ worker (if provided)
- * 3. Redis client
- * 4. Postgres connection pool
+ * 2. Supervisor: stop all active main agent loops (Phase 3)
+ * 3. Agent worker: close BullMQ worker for sub-agent jobs (Phase 3)
+ * 4. Agent-tasks queue: close BullMQ queue for sub-agent dispatch (Phase 3)
+ * 5. BullMQ worker (if provided)
+ * 6. Redis client
+ * 7. Postgres connection pool
  *
  * Per research anti-pattern guidance: ALWAYS call pool.end() to prevent connection leaks.
  * A 10-second force-kill timeout ensures the process exits even if graceful shutdown hangs.
@@ -23,15 +26,30 @@ export interface ShutdownRedis {
   quit(): Promise<string>;
 }
 
+/**
+ * Minimal interface for Supervisor shutdown — avoids importing the concrete Supervisor class
+ * directly, keeping shutdown.ts decoupled from the supervisor implementation.
+ */
+export interface ShutdownSupervisor {
+  stopMainAgent(goalId: number): Promise<void>;
+  getActiveGoalIds(): number[];
+}
+
 export interface ShutdownResources {
   pool: ShutdownPool;
   redis: ShutdownRedis;
   worker?: Worker;
   consolidation?: ReturnType<typeof setInterval>;
+  /** Phase 3: Supervisor managing main agent loops */
+  supervisor?: ShutdownSupervisor;
+  /** Phase 3: BullMQ worker processing sub-agent jobs */
+  agentWorker?: Worker;
+  /** Phase 3: BullMQ queue for sub-agent job dispatch */
+  agentTasksQueue?: { close(): Promise<void> };
 }
 
 export function registerShutdownHandlers(resources: ShutdownResources): void {
-  const { pool, redis, worker, consolidation } = resources;
+  const { pool, redis, worker, consolidation, supervisor, agentWorker, agentTasksQueue } = resources;
 
   async function gracefulShutdown(signal: string): Promise<void> {
     process.stderr.write(`[shutdown] Received ${signal}. Shutting down...\n`);
@@ -52,17 +70,38 @@ export function registerShutdownHandlers(resources: ShutdownResources): void {
         process.stderr.write('[shutdown] Memory consolidation stopped.\n');
       }
 
-      // 2. Close BullMQ worker (stop accepting new jobs, drain in-flight)
+      // 2. Stop all active main agent loops via supervisor
+      if (supervisor !== undefined) {
+        const activeGoalIds = supervisor.getActiveGoalIds();
+        for (const goalId of activeGoalIds) {
+          await supervisor.stopMainAgent(goalId);
+        }
+        process.stderr.write(`[shutdown] Stopped ${activeGoalIds.length} main agent loops.\n`);
+      }
+
+      // 3. Close sub-agent worker (stop accepting new jobs, drain in-flight)
+      if (agentWorker !== undefined) {
+        await agentWorker.close();
+        process.stderr.write('[shutdown] Sub-agent worker closed.\n');
+      }
+
+      // 4. Close agent-tasks queue
+      if (agentTasksQueue !== undefined) {
+        await agentTasksQueue.close();
+        process.stderr.write('[shutdown] Agent-tasks queue closed.\n');
+      }
+
+      // 5. Close BullMQ worker (stop accepting new jobs, drain in-flight)
       if (worker !== undefined) {
         await worker.close();
         process.stderr.write('[shutdown] BullMQ worker closed.\n');
       }
 
-      // 3. Quit Redis (sends QUIT command, waits for acknowledgment)
+      // 6. Quit Redis (sends QUIT command, waits for acknowledgment)
       await redis.quit();
       process.stderr.write('[shutdown] Redis disconnected.\n');
 
-      // 4. End Postgres pool (drains in-flight queries, prevents connection leaks)
+      // 7. End Postgres pool (drains in-flight queries, prevents connection leaks)
       await pool.end();
       process.stderr.write('[shutdown] Postgres pool closed.\n');
 
