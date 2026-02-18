@@ -3,3 +3,7 @@ export * from './memory-facts.js';
 export * from './tool-calls.js';
 export * from './decision-log.js';
 export * from './planning-cycles.js';
+export * from './ai-calls.js';
+export * from './operating-costs.js';
+export * from './revenue.js';
+export * from './kill-switch-audit.js';
