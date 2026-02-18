@@ -13,7 +13,7 @@ Jarvis is built in eight phases that follow a strict dependency chain: infrastru
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Infrastructure** - Tool primitives, persistent storage, and structured logging (completed 2026-02-18)
-- [ ] **Phase 2: AI Backbone and Safety** - Multi-model routing, kill switch, cost tracking
+- [x] **Phase 2: AI Backbone and Safety** - Multi-model routing, kill switch, cost tracking (completed 2026-02-18)
 - [ ] **Phase 3: Autonomous Loop** - Goal-planner cycle, task queue, crash recovery
 - [ ] **Phase 4: Wallet and Financial Governance** - Solana integration with signing service and spend limits
 - [ ] **Phase 5: Web Dashboard** - Operator visibility into agent decisions, status, and P&L
@@ -51,7 +51,7 @@ Plans:
   3. Kill switch state persists across process restarts -- a restarted agent with active kill switch remains halted
   4. Every AI model call is logged with model name, token counts, and estimated cost, and these costs are queryable as aggregate totals
   5. Adding a new model provider does not require changes to the core routing logic
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] 02-01-PLAN.md — DB schemas (ai_calls, operating_costs, revenue, kill_switch_audit) + @jarvis/ai package (provider, router, kill switch, config)
@@ -168,7 +168,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Infrastructure | 4/4 | Complete    | 2026-02-18 |
-| 2. AI Backbone and Safety | 0/3 | Planning complete | - |
+| 2. AI Backbone and Safety | 0/3 | Complete    | 2026-02-18 |
 | 3. Autonomous Loop | 0/0 | Not started | - |
 | 4. Wallet and Financial Governance | 0/0 | Not started | - |
 | 5. Web Dashboard | 0/0 | Not started | - |
