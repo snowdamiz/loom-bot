@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** The agent must be able to autonomously reason about opportunities, acquire the tools and accounts it needs, and execute money-making strategies without human intervention.
-**Current focus:** Phase 2: AI Backbone and Safety — In Progress (1/3 plans complete)
+**Current focus:** Phase 2: AI Backbone and Safety — In Progress (3/3 plans complete)
 
 ## Current Position
 
 Phase: 2 of 8 (AI Backbone and Safety)
-Plan: 1 of 3 in current phase (02-01 complete)
-Status: Phase 2 In Progress
-Last activity: 2026-02-18 — Completed 02-01 (@jarvis/ai package: AiProvider, OpenRouterProvider, ModelRouter, KillSwitchGuard, 4 DB tables)
+Plan: 3 of 3 in current phase (02-01, 02-02, 02-03 complete)
+Status: Phase 2 Complete
+Last activity: 2026-02-18 — Completed 02-03 (CreditMonitor, Discord DM alerts, P&L query functions: getPnl, getAiSpendSummary)
 
-Progress: [████░░░░░░] 15%
+Progress: [██████░░░░] 25%
 
 ## Performance Metrics
 
@@ -28,7 +28,7 @@ Progress: [████░░░░░░] 15%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-infrastructure | 4/4 | 26 min | 6.5 min |
-| 02-ai-backbone-and-safety | 1/3 | 3 min | 3 min |
+| 02-ai-backbone-and-safety | 3/3 | 9 min | 3 min |
 
 **Recent Trend:**
 - Last 5 plans: 01-01 (6 min), 01-02 (7 min), 01-03 (8 min), 01-04 (5 min), 02-01 (3 min)
@@ -65,6 +65,11 @@ Recent decisions affecting current work:
 - [02-01]: Env-var model config (JARVIS_MODEL_STRONG/MID/CHEAP) over DB storage — models swappable without redeploy
 - [02-01]: OpenRouter cost field accessed via cast (usage as unknown as { cost?: number }) — non-SDK extension
 - [02-01]: cost_category as pgEnum (not text constraint) — enforced at DB level; costUsd uses numeric(12,8) not float for financial precision
+- [02-03]: GET /api/v1/key not /api/v1/credits for balance polling — /api/v1/credits requires management key; /api/v1/key works with standard API key
+- [02-03]: Partials.Channel required in discord.js v14 for DM support — without it bot cannot send/receive direct messages
+- [02-03]: P&L as query functions not SQL views — drizzle db:push does not manage Postgres views; query functions equally type-safe
+- [02-03]: coalesce(sum(...), '0') pattern — returns '0' string on empty tables, parsed to 0 number; avoids null arithmetic in getPnl
+- [02-03]: getAiSpendSummary() queries ai_calls directly — no need to bridge to operating_costs since ai_calls stores per-call cost data
 
 ### Pending Todos
 
@@ -80,5 +85,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed 02-01 (@jarvis/ai package: AiProvider, OpenRouterProvider, ModelRouter, KillSwitchGuard, 4 DB tables)
-Resume file: .planning/phases/02-ai-backbone-and-safety/02-02-PLAN.md
+Stopped at: Completed 02-03 (CreditMonitor, Discord DM alerts, P&L query functions)
+Resume file: .planning/phases/03-autonomous-loop/03-01-PLAN.md

@@ -78,10 +78,10 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Operating Cost Tracking
 
 - [x] **COST-01**: AI model API spend is tracked per call with model, tokens, and cost
-- [ ] **COST-02**: Total operating costs (VM, API, services) are aggregated and queryable
-- [ ] **COST-03**: Revenue is tracked per strategy with source attribution
-- [ ] **COST-04**: P&L (revenue minus costs) is computed and available via dashboard
-- [ ] **COST-05**: Agent can query its own P&L to inform planning decisions
+- [x] **COST-02**: Total operating costs (VM, API, services) are aggregated and queryable
+- [x] **COST-03**: Revenue is tracked per strategy with source attribution
+- [x] **COST-04**: P&L (revenue minus costs) is computed and available via dashboard
+- [x] **COST-05**: Agent can query its own P&L to inform planning decisions
 
 ### Kill Switch
 
@@ -220,10 +220,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | KILL-03 | Phase 2 | Pending |
 | KILL-04 | Phase 2 | Complete |
 | COST-01 | Phase 2 | Complete |
-| COST-02 | Phase 2 | Pending |
-| COST-03 | Phase 2 | Pending |
-| COST-04 | Phase 2 | Pending |
-| COST-05 | Phase 2 | Pending |
+| COST-02 | Phase 2 | Complete |
+| COST-03 | Phase 2 | Complete |
+| COST-04 | Phase 2 | Complete |
+| COST-05 | Phase 2 | Complete |
 | MULTI-01 | Phase 3 | Pending |
 | MULTI-02 | Phase 3 | Pending |
 | MULTI-03 | Phase 3 | Pending |
