@@ -9,7 +9,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Agent Core Loop
 
-- [ ] **LOOP-01**: Agent sets high-level goals and decomposes them into sub-goals with dependencies
+- [x] **LOOP-01**: Agent sets high-level goals and decomposes them into sub-goals with dependencies
 - [ ] **LOOP-02**: Agent executes sub-goals by invoking tools and recording outcomes
 - [ ] **LOOP-03**: Agent evaluates outcomes against expectations and triggers replanning when divergent
 - [ ] **LOOP-04**: Agent runs continuous planning cycles without human intervention
@@ -21,7 +21,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **MULTI-02**: Sub-agents have isolated LLM context focused on their assigned task
 - [ ] **MULTI-03**: Sub-agents report structured results back to the main agent on completion or failure
 - [ ] **MULTI-04**: Main agent can monitor sub-agent status and cancel running sub-agents
-- [ ] **MULTI-05**: Sub-agents share the same tool layer and database but have independent LLM sessions
+- [x] **MULTI-05**: Sub-agents share the same tool layer and database but have independent LLM sessions
 - [ ] **MULTI-06**: Main agent decides when to spawn a sub-agent vs execute inline based on task complexity and parallelism opportunity
 
 ### Tool Execution
@@ -228,9 +228,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MULTI-02 | Phase 3 | Pending |
 | MULTI-03 | Phase 3 | Pending |
 | MULTI-04 | Phase 3 | Pending |
-| MULTI-05 | Phase 3 | Pending |
+| MULTI-05 | Phase 3 | Complete |
 | MULTI-06 | Phase 3 | Pending |
-| LOOP-01 | Phase 3 | Pending |
+| LOOP-01 | Phase 3 | Complete |
 | LOOP-02 | Phase 3 | Pending |
 | LOOP-03 | Phase 3 | Pending |
 | LOOP-04 | Phase 3 | Pending |

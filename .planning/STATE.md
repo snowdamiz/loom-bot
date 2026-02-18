@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** The agent must be able to autonomously reason about opportunities, acquire the tools and accounts it needs, and execute money-making strategies without human intervention.
-**Current focus:** Phase 2: AI Backbone and Safety — In Progress (3/3 plans complete)
+**Current focus:** Phase 3: Autonomous Loop — In Progress (1/6 plans complete)
 
 ## Current Position
 
-Phase: 2 of 8 (AI Backbone and Safety)
-Plan: 3 of 3 in current phase (02-01, 02-02, 02-03 complete)
-Status: Phase 2 Complete
-Last activity: 2026-02-18 — Completed 02-03 (CreditMonitor, Discord DM alerts, P&L query functions: getPnl, getAiSpendSummary)
+Phase: 3 of 8 (Autonomous Loop)
+Plan: 1 of 6 in current phase (03-01 complete)
+Status: Phase 3 In Progress
+Last activity: 2026-02-18 — Completed 03-01 (goals/sub_goals schema, completeWithTools, toolDefinitionsToOpenAI)
 
-Progress: [██████░░░░] 25%
+Progress: [███████░░░] 30%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
-- Average duration: 5.8 min
-- Total execution time: 0.46 hours
+- Total plans completed: 6
+- Average duration: 5.2 min
+- Total execution time: 0.52 hours
 
 **By Phase:**
 
@@ -29,13 +29,15 @@ Progress: [██████░░░░] 25%
 |-------|-------|-------|----------|
 | 01-infrastructure | 4/4 | 26 min | 6.5 min |
 | 02-ai-backbone-and-safety | 3/3 | 9 min | 3 min |
+| 03-autonomous-loop | 1/6 | 3 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (6 min), 01-02 (7 min), 01-03 (8 min), 01-04 (5 min), 02-01 (3 min)
+- Last 5 plans: 01-03 (8 min), 01-04 (5 min), 02-01 (3 min), 02-02 (3 min), 03-01 (3 min)
 - Trend: stable
 
 *Updated after each plan completion*
 | Phase 02-ai-backbone-and-safety P02 | 4 | 2 tasks | 11 files |
+| Phase 03-autonomous-loop P01 | 3 | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -74,6 +76,10 @@ Recent decisions affecting current work:
 - [Phase 02-ai-backbone-and-safety]: CLI commands use activateKillSwitch/deactivateKillSwitch helpers from @jarvis/ai — DRY and centralizes the upsert+audit logic
 - [Phase 02-02]: KillCheckable duck-typed interface in invoke-safe.ts — @jarvis/tools does not depend on @jarvis/ai, keeps dep graph clean (tools->db, not tools->ai->db)
 - [Phase 02-02]: Worker creates KillSwitchGuard at module level — 1s cache shared across all 5 concurrent BullMQ jobs avoids redundant DB queries under load
+- [Phase 03-01]: goalId FK in sub_goals uses plain .references() not AnyPgColumn — not self-referential
+- [Phase 03-01]: zodToJsonSchema manual converter in @jarvis/ai — no zod-to-json-schema package, handles all tool Zod types
+- [Phase 03-01]: ToolRegistryLike duck-typed interface in tool-schema.ts — @jarvis/ai does not depend on @jarvis/tools
+- [Phase 03-01]: completeWithTools does NOT throw on content===null — valid response format for finish_reason=tool_calls
 
 ### Pending Todos
 
@@ -89,5 +95,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed 02-03 (CreditMonitor, Discord DM alerts, P&L query functions)
-Resume file: .planning/phases/03-autonomous-loop/03-01-PLAN.md
+Stopped at: Completed 03-01 (goals/sub_goals schema, completeWithTools, toolDefinitionsToOpenAI)
+Resume file: .planning/phases/03-autonomous-loop/03-02-PLAN.md
