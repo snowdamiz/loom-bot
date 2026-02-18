@@ -5,32 +5,32 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** The agent must be able to autonomously reason about opportunities, acquire the tools and accounts it needs, and execute money-making strategies without human intervention.
-**Current focus:** Phase 1: Infrastructure
+**Current focus:** Phase 1: Infrastructure — COMPLETE. Ready for Phase 2.
 
 ## Current Position
 
 Phase: 1 of 8 (Infrastructure)
-Plan: 3 of 4 in current phase
-Status: Executing
-Last activity: 2026-02-18 — Completed 01-03 (@jarvis/tools ToolRegistry + 4 tool implementations)
+Plan: 4 of 4 in current phase (PHASE COMPLETE)
+Status: Phase 1 Complete
+Last activity: 2026-02-18 — Completed 01-04 (@jarvis/agent main process, worker, memory consolidation, graceful shutdown)
 
-Progress: [███░░░░░░░] 9%
+Progress: [████░░░░░░] 13%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
-- Average duration: 7 min
-- Total execution time: 0.35 hours
+- Total plans completed: 4
+- Average duration: 6.5 min
+- Total execution time: 0.43 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-infrastructure | 3/4 | 21 min | 7 min |
+| 01-infrastructure | 4/4 | 26 min | 6.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (6 min), 01-02 (7 min), 01-03 (8 min)
+- Last 5 plans: 01-01 (6 min), 01-02 (7 min), 01-03 (8 min), 01-04 (5 min)
 - Trend: stable
 
 *Updated after each plan completion*
@@ -55,6 +55,10 @@ Recent decisions affecting current work:
 - [01-03]: createDbTool(db) factory pattern — DB tool requires DbClient injection at registry creation, not module load time
 - [01-03]: sql imported from @jarvis/db (not drizzle-orm) — pnpm strict isolation prevents transitive imports
 - [01-03]: shell: false always in spawn — avoids shell injection even in unrestricted agent mode; args passed as array
+- [01-04]: ShutdownPool/ShutdownRedis duck-typing interfaces — apps/agent cannot import ioredis/pg directly (not direct deps); structural interfaces satisfy the contract
+- [01-04]: drizzle-orm operators (eq, and, gt, etc.) re-exported from @jarvis/db — extends the sql re-export pattern from 01-01 for full operator access under pnpm isolation
+- [01-04]: Memory consolidation joins success rows to parent started rows via parentId to get actual tool names (two-row pattern stores toolName='completion' on success rows)
+- [01-04]: consolidate() runs immediately at startup before setInterval to process results from previous agent runs without waiting 5 minutes
 
 ### Pending Todos
 
@@ -69,6 +73,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-18T17:53:47Z
-Stopped at: Completed 01-03-PLAN.md (ToolRegistry + 4 tool implementations + invokeWithLogging)
-Resume file: .planning/phases/01-infrastructure/01-04-PLAN.md
+Last session: 2026-02-18T18:03:50Z
+Stopped at: Completed 01-04-PLAN.md (apps/agent main process + worker + memory consolidation + graceful shutdown — Phase 1 Infrastructure COMPLETE)
+Resume file: .planning/phases/02-agent-core/ (Phase 2 planning needed)

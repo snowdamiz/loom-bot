@@ -53,10 +53,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **DATA-01**: Agent state persists in Postgres across restarts
 - [x] **DATA-02**: Agent can CREATE TABLE and ALTER TABLE to extend its own schema
-- [ ] **DATA-03**: Working memory (current cycle state) lives in LLM context window
+- [x] **DATA-03**: Working memory (current cycle state) lives in LLM context window
 - [x] **DATA-04**: Session memory (recent cycle summaries, active strategies) persists in Redis
 - [x] **DATA-05**: Long-term memory (distilled facts, strategy history, credentials) persists in Postgres
-- [ ] **DATA-06**: Memory consolidation runs periodically to distill raw outputs into structured facts
+- [x] **DATA-06**: Memory consolidation runs periodically to distill raw outputs into structured facts
 
 ### Task Queue
 
@@ -201,10 +201,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TOOL-07 | Phase 1 | Complete |
 | DATA-01 | Phase 1 | Complete |
 | DATA-02 | Phase 1 | Complete |
-| DATA-03 | Phase 1 | Pending |
+| DATA-03 | Phase 1 | Complete |
 | DATA-04 | Phase 1 | Complete |
 | DATA-05 | Phase 1 | Complete |
-| DATA-06 | Phase 1 | Pending |
+| DATA-06 | Phase 1 | Complete |
 | LOG-01 | Phase 1 | Complete |
 | LOG-02 | Phase 1 | Complete |
 | LOG-03 | Phase 1 | Complete |
