@@ -33,12 +33,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Agent state written to Postgres survives a process restart and is readable on recovery
   4. Redis contains session-level memory that is distinct from Postgres long-term storage
   5. Every tool invocation appears in the structured JSON log with timestamp, inputs, outputs, duration, and success/failure status
-**Plans**: TBD
+**Plans:** 4 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
-- [ ] 01-03: TBD
+- [ ] 01-01-PLAN.md — Monorepo scaffold + @jarvis/db schemas + Docker Compose
+- [ ] 01-02-PLAN.md — @jarvis/logging audit trail + Redis session memory
+- [ ] 01-03-PLAN.md — Tool registry + shell/HTTP/file/DB tool implementations
+- [ ] 01-04-PLAN.md — Agent process wiring + BullMQ worker + memory consolidation
 
 ### Phase 2: AI Backbone and Safety
 **Goal**: The agent can think using multiple AI models routed by task type, every action is gated by the kill switch, and all operating costs are tracked from the first API call
@@ -164,7 +165,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Infrastructure | 0/0 | Not started | - |
+| 1. Infrastructure | 0/4 | Planned | - |
 | 2. AI Backbone and Safety | 0/0 | Not started | - |
 | 3. Autonomous Loop | 0/0 | Not started | - |
 | 4. Wallet and Financial Governance | 0/0 | Not started | - |
