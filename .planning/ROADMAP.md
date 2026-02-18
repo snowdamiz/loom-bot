@@ -70,12 +70,15 @@ Plans:
   5. After a simulated crash (process kill), the agent restarts, replays its journal, and resumes from the last checkpoint without re-executing completed steps
   6. Main agent spawns a sub-agent for a specific task, the sub-agent executes with its own LLM context, and the main agent receives the structured result
   7. Main agent can run multiple sub-agents concurrently and aggregate their results
-**Plans**: TBD
+**Plans:** 6 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
-- [ ] 03-03: TBD
+- [ ] 03-01-PLAN.md — DB schema (goals + sub_goals) + AiProvider tool-calling protocol extension
+- [ ] 03-02-PLAN.md — Agent core loop + GoalManager + LLM planner
+- [ ] 03-03-PLAN.md — Sub-agent tools (spawn/await/cancel) + agent-tasks BullMQ worker
+- [ ] 03-04-PLAN.md — BullMQ retry/DLQ/scheduler configuration
+- [ ] 03-05-PLAN.md — Evaluator + Replanner + Supervisor + ResultCollector
+- [ ] 03-06-PLAN.md — Journal checkpointing + crash recovery + agent process wiring
 
 ### Phase 4: Wallet and Financial Governance
 **Goal**: The agent has a bank account on Solana with structural spend governance -- it can read balances, send and receive tokens, but never touches the private key, and every transaction is governed by limits and logged with its stated purpose
