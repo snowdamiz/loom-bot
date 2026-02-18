@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** The agent must be able to autonomously reason about opportunities, acquire the tools and accounts it needs, and execute money-making strategies without human intervention.
-**Current focus:** Phase 4: Wallet and Financial Governance — In Progress (1/3 plans complete)
+**Current focus:** Phase 4: Wallet and Financial Governance — In Progress (2/3 plans complete)
 
 ## Current Position
 
 Phase: 4 of 8 (Wallet and Financial Governance)
-Plan: 1 of 3 in current phase (04-01 complete — DB schemas + IPC signing co-process)
+Plan: 2 of 3 in current phase (04-02 complete — Balance reading + spend governance)
 Status: In Progress
-Last activity: 2026-02-18 — Completed 04-01 (Wallet DB schemas, @jarvis/wallet IPC signing co-process)
+Last activity: 2026-02-18 — Completed 04-02 (Balance reading, wallet config, spend governance, Discord notifications)
 
 Progress: [██████████] 50%
 
@@ -44,6 +44,7 @@ Progress: [██████████] 50%
 | Phase 03-autonomous-loop P05 | 4 | 2 tasks | 5 files |
 | Phase 03-autonomous-loop P06 | 4 | 3 tasks | 5 files |
 | Phase 04-wallet-and-financial-governance P01 | 8 | 2 tasks | 13 files |
+| Phase 04-wallet-and-financial-governance P02 | 4 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -107,6 +108,8 @@ Recent decisions affecting current work:
 - [Phase 04-01]: signBytes (raw byte signing) used instead of @solana/kit transaction object API — signer stays format-agnostic, returns 64-byte Ed25519 signature as base64; callers embed signature into transaction structure themselves
 - [Phase 04-01]: Sub-goals co-located in goals.ts — cross-file .js imports break drizzle-kit CJS bundler (esbuild-register); sub-goals.ts becomes a re-export shim for backward compat
 - [Phase 04-01]: process.send('ready') guarded by if (process.send) — allows signer to run both standalone and via child_process.fork() without IPC
+- [Phase 04-wallet-and-financial-governance]: Rolling 24h window for daily aggregate spend (not calendar day) — avoids timezone ambiguity
+- [Phase 04-wallet-and-financial-governance]: No active spend limit row = allow all transactions (high generous defaults per locked decision)
 
 ### Pending Todos
 
@@ -121,5 +124,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed 04-01-PLAN.md (Wallet DB schemas + IPC signing co-process)
-Resume file: .planning/phases/04-wallet-and-financial-governance/04-01-SUMMARY.md
+Stopped at: Completed 04-02-PLAN.md (Balance reading, wallet config, spend governance, Discord notifications)
+Resume file: .planning/phases/04-wallet-and-financial-governance/04-02-SUMMARY.md
