@@ -1,0 +1,65 @@
+import { agentState, eq } from '@jarvis/db';
+import type { DbClient } from '@jarvis/db';
+
+/**
+ * KILL-02, KILL-04: Kill switch guard.
+ * Reads kill switch state from the agent_state table.
+ * Caches the result for 1 second to avoid excessive DB queries.
+ */
+
+export class KillSwitchActiveError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'KillSwitchActiveError';
+  }
+}
+
+export class KillSwitchGuard {
+  private cachedState: { active: boolean; expiresAt: number } | null = null;
+  private readonly TTL_MS = 1000;
+
+  constructor(private readonly db: DbClient) {}
+
+  /**
+   * Check if the kill switch is currently active.
+   * Uses a 1-second cache to avoid DB round-trips on every AI call.
+   */
+  async isActive(): Promise<boolean> {
+    const now = Date.now();
+    if (this.cachedState !== null && now < this.cachedState.expiresAt) {
+      return this.cachedState.active;
+    }
+
+    const rows = await this.db
+      .select()
+      .from(agentState)
+      .where(eq(agentState.key, 'kill_switch'))
+      .limit(1);
+
+    const row = rows[0];
+    const value = row?.value as { active?: boolean } | undefined;
+    const active = value?.active === true;
+
+    this.cachedState = { active, expiresAt: now + this.TTL_MS };
+    return active;
+  }
+
+  /**
+   * Assert that the kill switch is NOT active.
+   * Throws KillSwitchActiveError if kill switch is enabled.
+   * Call this before every AI completion.
+   */
+  async assertActive(): Promise<void> {
+    if (await this.isActive()) {
+      throw new KillSwitchActiveError('Kill switch is active. No new operations allowed.');
+    }
+  }
+
+  /**
+   * Clear the cached state.
+   * Useful in tests to force a fresh DB read.
+   */
+  clearCache(): void {
+    this.cachedState = null;
+  }
+}

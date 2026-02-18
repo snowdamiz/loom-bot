@@ -1,0 +1,25 @@
+{
+  "name": "@jarvis/ai",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@jarvis/db": "workspace:*",
+    "openai": "^4.x",
+    "zod": "^3.24.x"
+  },
+  "devDependencies": {
+    "@jarvis/typescript-config": "workspace:*",
+    "typescript": "^5.7.3"
+  }
+}
