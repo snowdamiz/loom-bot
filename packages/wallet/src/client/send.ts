@@ -201,18 +201,21 @@ export async function sendSol(
 /**
  * Send an SPL token (Token Program or Token-2022) to a destination address.
  *
- * Flow:
+ * Full pipeline:
+ * 0. Governance check: checkSpendLimits — rejects before any RPC or signing if limit exceeded.
+ *    Token amount (in base units) is compared against the same lamport-denominated ceilings
+ *    used for SOL sends. This is a coarse safety net that prevents unbounded SPL sends.
+ *    USD-denominated per-token limits (requiring oracle pricing) are deferred to a future phase.
  * 1. Auto-detect token program (TOKEN_PROGRAM_ID vs TOKEN_2022_PROGRAM_ID) via mint account owner
  * 2. Get mint decimals from on-chain mint account
  * 3. Get/create source and destination ATAs (ATA creation costs ~0.002 SOL — known Phase 4 limitation)
  * 4. Build createTransferCheckedInstruction with correct program ID and decimals
- * 5. Same governance check skipped for SPL (see NOTE) -> sign -> broadcast -> log pipeline
+ * 5. Sign via IPC -> broadcast -> log pipeline
  * 6. Notify high-value (non-blocking)
  *
- * NOTE on governance: The governance check in checkSpendLimits compares lamports.
- * SPL token amounts are in token base units (not lamports), making direct lamport comparison
- * meaningless for token sends. Full token-to-USD governance requires oracle pricing — deferred
- * to a future phase. Phase 4 logs SPL sends but does not gate them via spend limits.
+ * On governance rejection: logs rejected tx with rejection_reason, notifies operator,
+ * returns { success: false }.
+ * On post-submission error: updates status to 'failed'.
  *
  * NOTE on ATA creation: getOrCreateAssociatedTokenAccount may create an ATA if the
  * destination has never held this token (~0.002 SOL rent-exempt cost). This cost is
@@ -226,6 +229,36 @@ export async function sendSplToken(
   amount: string,
   purpose: string,
 ): Promise<SendResult> {
+  // --- Step 0: Governance check ---
+  const governanceResult = await checkSpendLimits(db, BigInt(amount), mintAddress);
+  if (!governanceResult.allowed) {
+    const reason = governanceResult.reason ?? 'Spend limit check rejected transaction';
+
+    // Log rejected transaction to DB
+    const rejectedRows = await db
+      .insert(walletTransactions)
+      .values({
+        tokenMint: mintAddress,
+        destinationAddress: destination,
+        amountLamports: amount,
+        purpose,
+        status: 'rejected',
+        rejectionReason: reason,
+      })
+      .returning({ id: walletTransactions.id });
+
+    const transactionId = rejectedRows[0]?.id ?? 0;
+
+    // Non-blocking operator breach notification (fire and forget)
+    notifySpendLimitBreach(reason, BigInt(amount), purpose).catch((err: unknown) => {
+      process.stderr.write(
+        `[wallet/send] Breach notification error: ${err instanceof Error ? err.message : String(err)}\n`,
+      );
+    });
+
+    return { success: false, error: reason, transactionId };
+  }
+
   const rpcUrl = await getRequiredWalletConfig(db, WalletConfigKeys.RPC_URL);
   const publicKeyStr = await getRequiredWalletConfig(db, WalletConfigKeys.WALLET_PUBLIC_KEY);
 
