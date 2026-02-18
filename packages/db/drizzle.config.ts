@@ -11,6 +11,8 @@ export default defineConfig({
     './src/schema/operating-costs.ts',
     './src/schema/revenue.ts',
     './src/schema/kill-switch-audit.ts',
+    './src/schema/goals.ts',
+    './src/schema/sub-goals.ts',
   ],
   out: './drizzle',
   dialect: 'postgresql',

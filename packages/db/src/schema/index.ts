@@ -8,3 +8,5 @@ export * from './operating-costs.js';
 export * from './revenue.js';
 export * from './kill-switch-audit.js';
 export * from './pnl-view.js';
+export * from './goals.js';
+export * from './sub-goals.js';
