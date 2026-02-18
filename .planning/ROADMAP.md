@@ -12,7 +12,7 @@ Jarvis is built in eight phases that follow a strict dependency chain: infrastru
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Infrastructure** - Tool primitives, persistent storage, and structured logging
+- [x] **Phase 1: Infrastructure** - Tool primitives, persistent storage, and structured logging (completed 2026-02-18)
 - [ ] **Phase 2: AI Backbone and Safety** - Multi-model routing, kill switch, cost tracking
 - [ ] **Phase 3: Autonomous Loop** - Goal-planner cycle, task queue, crash recovery
 - [ ] **Phase 4: Wallet and Financial Governance** - Solana integration with signing service and spend limits
@@ -33,7 +33,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Agent state written to Postgres survives a process restart and is readable on recovery
   4. Redis contains session-level memory that is distinct from Postgres long-term storage
   5. Every tool invocation appears in the structured JSON log with timestamp, inputs, outputs, duration, and success/failure status
-**Plans:** 4 plans
+**Plans:** 4/4 plans complete
 
 Plans:
 - [x] 01-01-PLAN.md — Monorepo scaffold + @jarvis/db schemas + Docker Compose
@@ -167,7 +167,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Infrastructure | 4/4 | Complete | 2026-02-18 |
+| 1. Infrastructure | 4/4 | Complete    | 2026-02-18 |
 | 2. AI Backbone and Safety | 0/0 | Not started | - |
 | 3. Autonomous Loop | 0/0 | Not started | - |
 | 4. Wallet and Financial Governance | 0/0 | Not started | - |
