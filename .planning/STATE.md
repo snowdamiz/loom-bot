@@ -39,6 +39,8 @@ Progress: [████████░░] 40%
 | Phase 02-ai-backbone-and-safety P02 | 4 | 2 tasks | 11 files |
 | Phase 03-autonomous-loop P01 | 3 | 3 tasks | 8 files |
 | Phase 03-autonomous-loop P04 | 3 | 2 tasks | 3 files |
+| Phase 03-autonomous-loop P02 | 6 | 2 tasks | 6 files |
+| Phase 03-autonomous-loop P03 | 6 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -81,9 +83,16 @@ Recent decisions affecting current work:
 - [Phase 03-01]: zodToJsonSchema manual converter in @jarvis/ai — no zod-to-json-schema package, handles all tool Zod types
 - [Phase 03-01]: ToolRegistryLike duck-typed interface in tool-schema.ts — @jarvis/ai does not depend on @jarvis/tools
 - [Phase 03-01]: completeWithTools does NOT throw on content===null — valid response format for finish_reason=tool_calls
+- [Phase 03-03]: zod added as direct dep to apps/agent — pnpm strict isolation prevents transitive zod access from @jarvis/tools
+- [Phase 03-03]: ChatCompletionMessageParam sourced via ToolCompletionRequest['messages'][number] — established pattern from agent-loop.ts, avoids direct openai dep
+- [Phase 03-03]: removeOnFail omitted (not false) in WorkerOptions — BullMQ v5 WorkerOptions.removeOnFail is KeepJobs|undefined, not boolean; omitting preserves DLQ jobs
+- [Phase 03-03]: Sub-agents use 'mid' tier not 'strong' — focused scoped tasks don't require frontier reasoning capability
 - [Phase 03-04]: BullMQ WorkerOptions does not accept defaultJobOptions or removeOnFail: false (boolean) — retry options set per-job via createRetryJobOptions(); worker omits removeOnFail (BullMQ default keeps all failed jobs)
 - [Phase 03-04]: isTransientError() is conservative — unknown errors return false (no retry) to prevent infinite retry loops on unexpected failures
 - [Phase 03-04]: upsertJobScheduler() is idempotent — same schedulerId updates schedule in place, safe to call at every agent startup
+- [Phase 03-autonomous-loop]: ChatCompletionMessageParam extracted from ToolCompletionRequest['messages'][number] — avoids direct openai import in @jarvis/agent under pnpm strict isolation
+- [Phase 03-autonomous-loop]: GoalManager.decomposeGoal uses 2-pass insert for dependsOn resolution — insert all rows first, then patch resolved IDs
+- [Phase 03-autonomous-loop]: Evaluator and Replanner defined as interface stubs in Plan 02 — concrete implementations wired in Plan 05
 
 ### Pending Todos
 
@@ -99,5 +108,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed 03-04 (BullMQ retry config, DLQ, exponential backoff, cron scheduler)
+Stopped at: Completed 03-03 (spawn-agent/await-agent/cancel-agent tools, agent-tasks BullMQ worker) and 03-04 (BullMQ retry config, DLQ, exponential backoff, cron scheduler)
 Resume file: .planning/phases/03-autonomous-loop/03-05-PLAN.md

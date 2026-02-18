@@ -70,7 +70,7 @@ Plans:
   5. After a simulated crash (process kill), the agent restarts, replays its journal, and resumes from the last checkpoint without re-executing completed steps
   6. Main agent spawns a sub-agent for a specific task, the sub-agent executes with its own LLM context, and the main agent receives the structured result
   7. Main agent can run multiple sub-agents concurrently and aggregate their results
-**Plans:** 1/6 plans executed
+**Plans:** 4/6 plans executed
 
 Plans:
 - [ ] 03-01-PLAN.md — DB schema (goals + sub_goals) + AiProvider tool-calling protocol extension
@@ -172,7 +172,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 |-------|----------------|--------|-----------|
 | 1. Infrastructure | 4/4 | Complete    | 2026-02-18 |
 | 2. AI Backbone and Safety | 0/3 | Complete    | 2026-02-18 |
-| 3. Autonomous Loop | 1/6 | In Progress|  |
+| 3. Autonomous Loop | 4/6 | In Progress|  |
 | 4. Wallet and Financial Governance | 0/0 | Not started | - |
 | 5. Web Dashboard | 0/0 | Not started | - |
 | 6. Browser, Identity, and Bootstrapping | 0/0 | Not started | - |
