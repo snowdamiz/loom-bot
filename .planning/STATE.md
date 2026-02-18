@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** The agent must be able to autonomously reason about opportunities, acquire the tools and accounts it needs, and execute money-making strategies without human intervention.
-**Current focus:** Phase 3: Autonomous Loop — Complete (6/6 plans complete)
+**Current focus:** Phase 4: Wallet and Financial Governance — In Progress (1/3 plans complete)
 
 ## Current Position
 
-Phase: 3 of 8 (Autonomous Loop)
-Plan: 6 of 6 in current phase (03-06 complete — PHASE 3 COMPLETE)
-Status: Phase 3 Complete
-Last activity: 2026-02-18 — Completed 03-06 (Journal checkpointing, startup crash recovery, full autonomous loop wired)
+Phase: 4 of 8 (Wallet and Financial Governance)
+Plan: 1 of 3 in current phase (04-01 complete — DB schemas + IPC signing co-process)
+Status: In Progress
+Last activity: 2026-02-18 — Completed 04-01 (Wallet DB schemas, @jarvis/wallet IPC signing co-process)
 
 Progress: [██████████] 50%
 
@@ -43,6 +43,7 @@ Progress: [██████████] 50%
 | Phase 03-autonomous-loop P03 | 6 | 2 tasks | 3 files |
 | Phase 03-autonomous-loop P05 | 4 | 2 tasks | 5 files |
 | Phase 03-autonomous-loop P06 | 4 | 3 tasks | 5 files |
+| Phase 04-wallet-and-financial-governance P01 | 8 | 2 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -103,6 +104,9 @@ Recent decisions affecting current work:
 - [Phase 03-06]: clearJournal called on goal completion to prevent stale journal affecting future recovery runs
 - [Phase 03-06]: LOG-05 two-row pattern applied to interrupted planning cycles — insert interrupted row, never update original active row
 - [Phase 03-06]: ShutdownSupervisor duck-typed interface in shutdown.ts — avoids importing concrete Supervisor class, keeps shutdown.ts decoupled
+- [Phase 04-01]: signBytes (raw byte signing) used instead of @solana/kit transaction object API — signer stays format-agnostic, returns 64-byte Ed25519 signature as base64; callers embed signature into transaction structure themselves
+- [Phase 04-01]: Sub-goals co-located in goals.ts — cross-file .js imports break drizzle-kit CJS bundler (esbuild-register); sub-goals.ts becomes a re-export shim for backward compat
+- [Phase 04-01]: process.send('ready') guarded by if (process.send) — allows signer to run both standalone and via child_process.fork() without IPC
 
 ### Pending Todos
 
@@ -110,7 +114,6 @@ None.
 
 ### Blockers/Concerns
 
-- Research flags Phase 4 (Wallet) signing service architecture as needing deeper research during planning
 - Research flags Phase 7 (Strategy Engine) as LOW confidence frontier territory
 - Research flags Phase 8 (Self-Extension) code sandbox safety as needing research
 - REQUIREMENTS.md states 82 total requirements but actual count is 91; traceability table corrected
@@ -118,5 +121,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-wallet-and-financial-governance/04-CONTEXT.md
+Stopped at: Completed 04-01-PLAN.md (Wallet DB schemas + IPC signing co-process)
+Resume file: .planning/phases/04-wallet-and-financial-governance/04-01-SUMMARY.md

@@ -71,9 +71,9 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **WALLET-01**: Agent can read its wallet balance (SOL and SPL tokens)
 - [ ] **WALLET-02**: Agent can send SOL and SPL tokens to specified addresses
 - [ ] **WALLET-03**: Agent can receive SOL and SPL tokens
-- [ ] **WALLET-04**: Private key never appears in LLM context, logs, or tool outputs
+- [x] **WALLET-04**: Private key never appears in LLM context, logs, or tool outputs
 - [ ] **WALLET-05**: Signing service enforces per-transaction and daily aggregate spending limits
-- [ ] **WALLET-06**: All transactions are logged with destination, amount, and stated purpose
+- [x] **WALLET-06**: All transactions are logged with destination, amount, and stated purpose
 
 ### Operating Cost Tracking
 
@@ -247,9 +247,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WALLET-01 | Phase 4 | Pending |
 | WALLET-02 | Phase 4 | Pending |
 | WALLET-03 | Phase 4 | Pending |
-| WALLET-04 | Phase 4 | Pending |
+| WALLET-04 | Phase 4 | Complete |
 | WALLET-05 | Phase 4 | Pending |
-| WALLET-06 | Phase 4 | Pending |
+| WALLET-06 | Phase 4 | Complete |
 | DASH-01 | Phase 5 | Pending |
 | DASH-02 | Phase 5 | Pending |
 | DASH-03 | Phase 5 | Pending |
