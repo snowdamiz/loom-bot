@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** The agent must be able to autonomously reason about opportunities, acquire the tools and accounts it needs, and execute money-making strategies without human intervention.
-**Current focus:** Phase 4: Wallet and Financial Governance — COMPLETE (3/3 plans done)
+**Current focus:** Phase 4: Wallet and Financial Governance — COMPLETE (4/4 plans done)
 
 ## Current Position
 
 Phase: 4 of 8 (Wallet and Financial Governance) — COMPLETE
-Plan: 3 of 3 in current phase (04-03 complete — Send pipeline, wallet tools, agent integration)
+Plan: 4 of 4 in current phase (04-04 complete — SPL token governance gate)
 Status: Phase Complete — ready to begin Phase 5 (Strategy Engine)
-Last activity: 2026-02-18 — Completed 04-03 (SOL/SPL send pipeline, inbound monitoring, 4 wallet tools, signer lifecycle)
+Last activity: 2026-02-18 — Completed 04-04 (SPL governance gate in sendSplToken, WALLET-05 satisfied)
 
-Progress: [████████████] 62%
+Progress: [█████████████] 65%
 
 ## Performance Metrics
 
@@ -30,11 +30,11 @@ Progress: [████████████] 62%
 | 01-infrastructure | 4/4 | 26 min | 6.5 min |
 | 02-ai-backbone-and-safety | 3/3 | 9 min | 3 min |
 | 03-autonomous-loop | 6/6 | 20 min | 3.3 min |
-| 04-wallet-and-financial-governance | 3/3 | 26 min | 8.7 min |
+| 04-wallet-and-financial-governance | 4/4 | 28 min | 7 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-05 (4 min), 03-06 (4 min), 04-01 (8 min), 04-02 (4 min), 04-03 (14 min)
-- Trend: Phase 4 plans heavier than Phase 3 (Solana deps, more complex integrations)
+- Last 5 plans: 04-01 (8 min), 04-02 (4 min), 04-03 (14 min), 04-04 (2 min)
+- Trend: Phase 4 complete; small gap-closure plans execute quickly
 
 *Updated after each plan completion*
 | Phase 02-ai-backbone-and-safety P02 | 4 | 2 tasks | 11 files |
@@ -47,6 +47,7 @@ Progress: [████████████] 62%
 | Phase 04-wallet-and-financial-governance P01 | 8 | 2 tasks | 13 files |
 | Phase 04-wallet-and-financial-governance P02 | 4 | 2 tasks | 6 files |
 | Phase 04-wallet-and-financial-governance P03 | 14 | 2 tasks | 12 files |
+| Phase 04-wallet-and-financial-governance P04 | 2 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -117,6 +118,7 @@ Recent decisions affecting current work:
 - [Phase 04-03]: SPL token governance skipped in Phase 4 — base units not lamports; USD governance requires oracle pricing, deferred to future phase
 - [Phase 04-03]: createRequire(import.meta.url).resolve() for signer path — ESM-compatible, resolves @jarvis/wallet/dist/signer/server.js from node_modules
 - [Phase 04-03]: ShutdownSignerProcess.kill() accepts number|NodeJS.Signals|string — matches ChildProcess.kill() while staying pnpm-isolated
+- [Phase 04-04]: SPL governance uses raw token base units vs lamport ceilings — coarse safety net preventing unbounded SPL sends; USD-denominated per-token limits require oracle pricing, deferred to future phase
 
 ### Pending Todos
 
@@ -131,5 +133,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed 04-03-PLAN.md (SOL/SPL send pipeline, inbound monitoring, wallet tools, agent wiring)
-Resume file: .planning/phases/04-wallet-and-financial-governance/04-03-SUMMARY.md
+Stopped at: Completed 04-04-PLAN.md (SPL token governance gate, WALLET-05 satisfied, Phase 4 complete)
+Resume file: .planning/phases/04-wallet-and-financial-governance/04-04-SUMMARY.md
