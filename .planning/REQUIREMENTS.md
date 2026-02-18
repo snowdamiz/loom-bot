@@ -60,11 +60,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Task Queue
 
-- [ ] **QUEUE-01**: External calls retry with exponential backoff on transient failures
-- [ ] **QUEUE-02**: Exhausted retries move tasks to dead-letter queue for operator review
-- [ ] **QUEUE-03**: Task context is fully preserved across retries for deterministic replay
-- [ ] **QUEUE-04**: Scheduled and recurring tasks can be enqueued with cron-like timing
-- [ ] **QUEUE-05**: Long-running tasks (browser automation, web research) execute asynchronously
+- [x] **QUEUE-01**: External calls retry with exponential backoff on transient failures
+- [x] **QUEUE-02**: Exhausted retries move tasks to dead-letter queue for operator review
+- [x] **QUEUE-03**: Task context is fully preserved across retries for deterministic replay
+- [x] **QUEUE-04**: Scheduled and recurring tasks can be enqueued with cron-like timing
+- [x] **QUEUE-05**: Long-running tasks (browser automation, web research) execute asynchronously
 
 ### Solana Wallet
 
@@ -235,11 +235,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LOOP-03 | Phase 3 | Pending |
 | LOOP-04 | Phase 3 | Pending |
 | LOOP-05 | Phase 3 | Pending |
-| QUEUE-01 | Phase 3 | Pending |
-| QUEUE-02 | Phase 3 | Pending |
-| QUEUE-03 | Phase 3 | Pending |
-| QUEUE-04 | Phase 3 | Pending |
-| QUEUE-05 | Phase 3 | Pending |
+| QUEUE-01 | Phase 3 | Complete |
+| QUEUE-02 | Phase 3 | Complete |
+| QUEUE-03 | Phase 3 | Complete |
+| QUEUE-04 | Phase 3 | Complete |
+| QUEUE-05 | Phase 3 | Complete |
 | RECOV-01 | Phase 3 | Pending |
 | RECOV-02 | Phase 3 | Pending |
 | RECOV-03 | Phase 3 | Pending |
