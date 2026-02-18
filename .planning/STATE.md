@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** The agent must be able to autonomously reason about opportunities, acquire the tools and accounts it needs, and execute money-making strategies without human intervention.
-**Current focus:** Phase 3: Autonomous Loop — In Progress (5/6 plans complete)
+**Current focus:** Phase 3: Autonomous Loop — Complete (6/6 plans complete)
 
 ## Current Position
 
 Phase: 3 of 8 (Autonomous Loop)
-Plan: 5 of 6 in current phase (03-05 complete)
-Status: Phase 3 In Progress
-Last activity: 2026-02-18 — Completed 03-05 (Evaluator, Replanner, Supervisor, ResultCollector)
+Plan: 6 of 6 in current phase (03-06 complete — PHASE 3 COMPLETE)
+Status: Phase 3 Complete
+Last activity: 2026-02-18 — Completed 03-06 (Journal checkpointing, startup crash recovery, full autonomous loop wired)
 
-Progress: [█████████░] 45%
+Progress: [██████████] 50%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
+- Total plans completed: 11
 - Average duration: 3.4 min
-- Total execution time: 0.59 hours
+- Total execution time: 0.62 hours
 
 **By Phase:**
 
@@ -29,10 +29,10 @@ Progress: [█████████░] 45%
 |-------|-------|-------|----------|
 | 01-infrastructure | 4/4 | 26 min | 6.5 min |
 | 02-ai-backbone-and-safety | 3/3 | 9 min | 3 min |
-| 03-autonomous-loop | 5/6 | 16 min | 3.2 min |
+| 03-autonomous-loop | 6/6 | 20 min | 3.3 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-01 (3 min), 02-02 (3 min), 03-01 (3 min), 03-04 (3 min), 03-05 (4 min)
+- Last 5 plans: 03-01 (3 min), 03-04 (3 min), 03-05 (4 min), 03-06 (4 min)
 - Trend: stable
 
 *Updated after each plan completion*
@@ -42,6 +42,7 @@ Progress: [█████████░] 45%
 | Phase 03-autonomous-loop P02 | 6 | 2 tasks | 6 files |
 | Phase 03-autonomous-loop P03 | 6 | 2 tasks | 3 files |
 | Phase 03-autonomous-loop P05 | 4 | 2 tasks | 5 files |
+| Phase 03-autonomous-loop P06 | 4 | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -98,6 +99,10 @@ Recent decisions affecting current work:
 - [Phase 03-05]: shouldReplan accumulation — any major triggers immediately; >2 minor accumulate; >50% divergent (min 4 samples) triggers
 - [Phase 03-05]: Supervisor does not decide spawn-vs-inline — LLM makes that decision via tool description (MULTI-06 fulfilled at prompt level)
 - [Phase 03-05]: Discord DM for operator alerts reads DISCORD_TOKEN/DISCORD_OPERATOR_USER_ID from env vars — non-fatal if missing
+- [Phase 03-06]: Journal checkpoint must succeed before next sub-goal — 3 retries then halt (not silent skip) to prevent duplicate execution on recovery
+- [Phase 03-06]: clearJournal called on goal completion to prevent stale journal affecting future recovery runs
+- [Phase 03-06]: LOG-05 two-row pattern applied to interrupted planning cycles — insert interrupted row, never update original active row
+- [Phase 03-06]: ShutdownSupervisor duck-typed interface in shutdown.ts — avoids importing concrete Supervisor class, keeps shutdown.ts decoupled
 
 ### Pending Todos
 
@@ -113,5 +118,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed 03-05 (Evaluator, Replanner, Supervisor, ResultCollector — autonomous loop intelligence complete)
-Resume file: .planning/phases/03-autonomous-loop/03-06-PLAN.md
+Stopped at: Completed 03-06 (Journal checkpointing, startup crash recovery, full autonomous loop wired — PHASE 3 COMPLETE)
+Resume file: .planning/phases/04-wallet/04-01-PLAN.md

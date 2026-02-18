@@ -44,10 +44,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Crash Recovery
 
-- [ ] **RECOV-01**: Agent journals each task step result before proceeding to the next step
-- [ ] **RECOV-02**: On restart, agent replays journal to resume from last checkpoint
-- [ ] **RECOV-03**: Agent survives Fly.io machine restarts without losing in-flight work
-- [ ] **RECOV-04**: Incomplete planning cycles are detected and replanned on recovery
+- [x] **RECOV-01**: Agent journals each task step result before proceeding to the next step
+- [x] **RECOV-02**: On restart, agent replays journal to resume from last checkpoint
+- [x] **RECOV-03**: Agent survives Fly.io machine restarts without losing in-flight work
+- [x] **RECOV-04**: Incomplete planning cycles are detected and replanned on recovery
 
 ### Persistent Memory
 
@@ -240,10 +240,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | QUEUE-03 | Phase 3 | Complete |
 | QUEUE-04 | Phase 3 | Complete |
 | QUEUE-05 | Phase 3 | Complete |
-| RECOV-01 | Phase 3 | Pending |
-| RECOV-02 | Phase 3 | Pending |
-| RECOV-03 | Phase 3 | Pending |
-| RECOV-04 | Phase 3 | Pending |
+| RECOV-01 | Phase 3 | Complete |
+| RECOV-02 | Phase 3 | Complete |
+| RECOV-03 | Phase 3 | Complete |
+| RECOV-04 | Phase 3 | Complete |
 | WALLET-01 | Phase 4 | Pending |
 | WALLET-02 | Phase 4 | Pending |
 | WALLET-03 | Phase 4 | Pending |
