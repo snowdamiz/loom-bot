@@ -16,7 +16,8 @@
     "@jarvis/logging": "workspace:*",
     "@jarvis/tools": "workspace:*",
     "bullmq": "^5.34.8",
-    "dotenv": "^16.4.7"
+    "dotenv": "^16.4.7",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@jarvis/typescript-config": "workspace:*",
