@@ -22,7 +22,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **MULTI-03**: Sub-agents report structured results back to the main agent on completion or failure
 - [x] **MULTI-04**: Main agent can monitor sub-agent status and cancel running sub-agents
 - [x] **MULTI-05**: Sub-agents share the same tool layer and database but have independent LLM sessions
-- [ ] **MULTI-06**: Main agent decides when to spawn a sub-agent vs execute inline based on task complexity and parallelism opportunity
+- [x] **MULTI-06**: Main agent decides when to spawn a sub-agent vs execute inline based on task complexity and parallelism opportunity
 
 ### Tool Execution
 
@@ -229,7 +229,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MULTI-03 | Phase 3 | Complete |
 | MULTI-04 | Phase 3 | Complete |
 | MULTI-05 | Phase 3 | Complete |
-| MULTI-06 | Phase 3 | Pending |
+| MULTI-06 | Phase 3 | Complete |
 | LOOP-01 | Phase 3 | Complete |
 | LOOP-02 | Phase 3 | Complete |
 | LOOP-03 | Phase 3 | Complete |

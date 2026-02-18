@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** The agent must be able to autonomously reason about opportunities, acquire the tools and accounts it needs, and execute money-making strategies without human intervention.
-**Current focus:** Phase 3: Autonomous Loop — In Progress (4/6 plans complete)
+**Current focus:** Phase 3: Autonomous Loop — In Progress (5/6 plans complete)
 
 ## Current Position
 
 Phase: 3 of 8 (Autonomous Loop)
-Plan: 4 of 6 in current phase (03-04 complete)
+Plan: 5 of 6 in current phase (03-05 complete)
 Status: Phase 3 In Progress
-Last activity: 2026-02-18 — Completed 03-04 (BullMQ retry config, DLQ, exponential backoff, cron scheduler)
+Last activity: 2026-02-18 — Completed 03-05 (Evaluator, Replanner, Supervisor, ResultCollector)
 
-Progress: [████████░░] 40%
+Progress: [█████████░] 45%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
+- Total plans completed: 10
 - Average duration: 3.4 min
-- Total execution time: 0.52 hours
+- Total execution time: 0.59 hours
 
 **By Phase:**
 
@@ -29,10 +29,10 @@ Progress: [████████░░] 40%
 |-------|-------|-------|----------|
 | 01-infrastructure | 4/4 | 26 min | 6.5 min |
 | 02-ai-backbone-and-safety | 3/3 | 9 min | 3 min |
-| 03-autonomous-loop | 4/6 | 12 min | 3 min |
+| 03-autonomous-loop | 5/6 | 16 min | 3.2 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-01 (3 min), 02-02 (3 min), 03-01 (3 min), 03-04 (3 min)
+- Last 5 plans: 02-01 (3 min), 02-02 (3 min), 03-01 (3 min), 03-04 (3 min), 03-05 (4 min)
 - Trend: stable
 
 *Updated after each plan completion*
@@ -41,6 +41,7 @@ Progress: [████████░░] 40%
 | Phase 03-autonomous-loop P04 | 3 | 2 tasks | 3 files |
 | Phase 03-autonomous-loop P02 | 6 | 2 tasks | 6 files |
 | Phase 03-autonomous-loop P03 | 6 | 2 tasks | 3 files |
+| Phase 03-autonomous-loop P05 | 4 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,10 @@ Recent decisions affecting current work:
 - [Phase 03-autonomous-loop]: ChatCompletionMessageParam extracted from ToolCompletionRequest['messages'][number] — avoids direct openai import in @jarvis/agent under pnpm strict isolation
 - [Phase 03-autonomous-loop]: GoalManager.decomposeGoal uses 2-pass insert for dependsOn resolution — insert all rows first, then patch resolved IDs
 - [Phase 03-autonomous-loop]: Evaluator and Replanner defined as interface stubs in Plan 02 — concrete implementations wired in Plan 05
+- [Phase 03-05]: EvaluatorImpl uses metric-before-LLM evaluation — fast failure/cost triggers first, cheap LLM only if metrics pass
+- [Phase 03-05]: shouldReplan accumulation — any major triggers immediately; >2 minor accumulate; >50% divergent (min 4 samples) triggers
+- [Phase 03-05]: Supervisor does not decide spawn-vs-inline — LLM makes that decision via tool description (MULTI-06 fulfilled at prompt level)
+- [Phase 03-05]: Discord DM for operator alerts reads DISCORD_TOKEN/DISCORD_OPERATOR_USER_ID from env vars — non-fatal if missing
 
 ### Pending Todos
 
@@ -108,5 +113,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed 03-03 (spawn-agent/await-agent/cancel-agent tools, agent-tasks BullMQ worker) and 03-04 (BullMQ retry config, DLQ, exponential backoff, cron scheduler)
-Resume file: .planning/phases/03-autonomous-loop/03-05-PLAN.md
+Stopped at: Completed 03-05 (Evaluator, Replanner, Supervisor, ResultCollector — autonomous loop intelligence complete)
+Resume file: .planning/phases/03-autonomous-loop/03-06-PLAN.md
