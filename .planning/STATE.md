@@ -35,6 +35,7 @@ Progress: [██████░░░░] 25%
 - Trend: stable
 
 *Updated after each plan completion*
+| Phase 02-ai-backbone-and-safety P02 | 4 | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -70,6 +71,9 @@ Recent decisions affecting current work:
 - [02-03]: P&L as query functions not SQL views — drizzle db:push does not manage Postgres views; query functions equally type-safe
 - [02-03]: coalesce(sum(...), '0') pattern — returns '0' string on empty tables, parsed to 0 number; avoids null arithmetic in getPnl
 - [02-03]: getAiSpendSummary() queries ai_calls directly — no need to bridge to operating_costs since ai_calls stores per-call cost data
+- [Phase 02-ai-backbone-and-safety]: CLI commands use activateKillSwitch/deactivateKillSwitch helpers from @jarvis/ai — DRY and centralizes the upsert+audit logic
+- [Phase 02-02]: KillCheckable duck-typed interface in invoke-safe.ts — @jarvis/tools does not depend on @jarvis/ai, keeps dep graph clean (tools->db, not tools->ai->db)
+- [Phase 02-02]: Worker creates KillSwitchGuard at module level — 1s cache shared across all 5 concurrent BullMQ jobs avoids redundant DB queries under load
 
 ### Pending Todos
 

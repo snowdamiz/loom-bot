@@ -31,7 +31,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **TOOL-03**: Agent can read and write files on the host filesystem
 - [x] **TOOL-04**: Agent can query and modify the Postgres database via Drizzle ORM
 - [x] **TOOL-05**: Every tool call is logged before execution with input parameters
-- [ ] **TOOL-06**: Every tool call is checked against kill switch before execution
+- [x] **TOOL-06**: Every tool call is checked against kill switch before execution
 - [x] **TOOL-07**: Every tool call has a configurable timeout with graceful failure
 
 ### Multi-Model AI Routing
@@ -85,9 +85,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Kill Switch
 
-- [ ] **KILL-01**: Operator can activate kill switch via dashboard or direct database flag
+- [x] **KILL-01**: Operator can activate kill switch via dashboard or direct database flag
 - [x] **KILL-02**: Agent checks kill switch at the start of each planning cycle
-- [ ] **KILL-03**: When kill switch is active, agent halts all tool execution immediately
+- [x] **KILL-03**: When kill switch is active, agent halts all tool execution immediately
 - [x] **KILL-04**: Kill switch state persists across agent restarts
 
 ### Activity Logging
@@ -197,7 +197,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TOOL-03 | Phase 1 | Complete |
 | TOOL-04 | Phase 1 | Complete |
 | TOOL-05 | Phase 1 | Complete |
-| TOOL-06 | Phase 2 | Pending |
+| TOOL-06 | Phase 2 | Complete |
 | TOOL-07 | Phase 1 | Complete |
 | DATA-01 | Phase 1 | Complete |
 | DATA-02 | Phase 1 | Complete |
@@ -215,9 +215,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MODL-03 | Phase 2 | Complete |
 | MODL-04 | Phase 2 | Complete |
 | MODL-05 | Phase 2 | Complete |
-| KILL-01 | Phase 2 | Pending |
+| KILL-01 | Phase 2 | Complete |
 | KILL-02 | Phase 2 | Complete |
-| KILL-03 | Phase 2 | Pending |
+| KILL-03 | Phase 2 | Complete |
 | KILL-04 | Phase 2 | Complete |
 | COST-01 | Phase 2 | Complete |
 | COST-02 | Phase 2 | Complete |
