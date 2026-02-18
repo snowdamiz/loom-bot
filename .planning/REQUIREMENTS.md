@@ -10,17 +10,17 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Agent Core Loop
 
 - [x] **LOOP-01**: Agent sets high-level goals and decomposes them into sub-goals with dependencies
-- [ ] **LOOP-02**: Agent executes sub-goals by invoking tools and recording outcomes
-- [ ] **LOOP-03**: Agent evaluates outcomes against expectations and triggers replanning when divergent
-- [ ] **LOOP-04**: Agent runs continuous planning cycles without human intervention
-- [ ] **LOOP-05**: Agent prioritizes sub-goals based on expected value and current capabilities
+- [x] **LOOP-02**: Agent executes sub-goals by invoking tools and recording outcomes
+- [x] **LOOP-03**: Agent evaluates outcomes against expectations and triggers replanning when divergent
+- [x] **LOOP-04**: Agent runs continuous planning cycles without human intervention
+- [x] **LOOP-05**: Agent prioritizes sub-goals based on expected value and current capabilities
 
 ### Multi-Agent Execution
 
-- [ ] **MULTI-01**: Main agent can spawn sub-agents to handle specific tasks concurrently
-- [ ] **MULTI-02**: Sub-agents have isolated LLM context focused on their assigned task
-- [ ] **MULTI-03**: Sub-agents report structured results back to the main agent on completion or failure
-- [ ] **MULTI-04**: Main agent can monitor sub-agent status and cancel running sub-agents
+- [x] **MULTI-01**: Main agent can spawn sub-agents to handle specific tasks concurrently
+- [x] **MULTI-02**: Sub-agents have isolated LLM context focused on their assigned task
+- [x] **MULTI-03**: Sub-agents report structured results back to the main agent on completion or failure
+- [x] **MULTI-04**: Main agent can monitor sub-agent status and cancel running sub-agents
 - [x] **MULTI-05**: Sub-agents share the same tool layer and database but have independent LLM sessions
 - [ ] **MULTI-06**: Main agent decides when to spawn a sub-agent vs execute inline based on task complexity and parallelism opportunity
 
@@ -224,17 +224,17 @@ Which phases cover which requirements. Updated during roadmap creation.
 | COST-03 | Phase 2 | Complete |
 | COST-04 | Phase 2 | Complete |
 | COST-05 | Phase 2 | Complete |
-| MULTI-01 | Phase 3 | Pending |
-| MULTI-02 | Phase 3 | Pending |
-| MULTI-03 | Phase 3 | Pending |
-| MULTI-04 | Phase 3 | Pending |
+| MULTI-01 | Phase 3 | Complete |
+| MULTI-02 | Phase 3 | Complete |
+| MULTI-03 | Phase 3 | Complete |
+| MULTI-04 | Phase 3 | Complete |
 | MULTI-05 | Phase 3 | Complete |
 | MULTI-06 | Phase 3 | Pending |
 | LOOP-01 | Phase 3 | Complete |
-| LOOP-02 | Phase 3 | Pending |
-| LOOP-03 | Phase 3 | Pending |
-| LOOP-04 | Phase 3 | Pending |
-| LOOP-05 | Phase 3 | Pending |
+| LOOP-02 | Phase 3 | Complete |
+| LOOP-03 | Phase 3 | Complete |
+| LOOP-04 | Phase 3 | Complete |
+| LOOP-05 | Phase 3 | Complete |
 | QUEUE-01 | Phase 3 | Complete |
 | QUEUE-02 | Phase 3 | Complete |
 | QUEUE-03 | Phase 3 | Complete |

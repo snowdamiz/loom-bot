@@ -17,6 +17,7 @@ The agent must be able to autonomously reason about opportunities, acquire the t
 ### Active
 
 - [ ] Goal-planner agent loop (set goals → decompose → execute → evaluate → replan)
+- [ ] Multi-agent execution (main agent spawns sub-agents for parallel task execution)
 - [ ] Multi-model AI backbone (route tasks to Claude, GPT, or other models)
 - [ ] Solana wallet integration (read balance, send/receive SOL, interact with DeFi)
 - [ ] Tool primitive system (shell, HTTP, filesystem, database access)
@@ -50,7 +51,7 @@ The agent should be able to write its own code, deploy it, set up databases, man
 - **Database**: Postgres — bootstrapped by operator, extended by agent
 - **AI Models**: Multi-model routing — Claude, GPT, and others as the agent sees fit
 - **Starting capital**: Solana wallet with SOL
-- **Architecture**: Goal-planner loop — not reactive, but deliberate goal-setting and decomposition
+- **Architecture**: Hierarchical multi-agent — main orchestrator spawns sub-agents for task execution, not a flat swarm
 
 ## Key Decisions
 
@@ -58,6 +59,7 @@ The agent should be able to write its own code, deploy it, set up databases, man
 |----------|-----------|---------|
 | TypeScript for core | Strong AI SDK ecosystem, good async story, Fly.io native support | — Pending |
 | Goal-planner over ReAct | Agent needs long-horizon planning, not just reactive tool use | — Pending |
+| Hierarchical multi-agent | Main agent spawns focused sub-agents instead of doing everything in one context | — Pending |
 | Multi-model routing | Different tasks have different cost/quality tradeoffs | — Pending |
 | No guardrails | Maximizes agent autonomy and opportunity space | — Pending |
 | Postgres bootstrapped by operator | Agent needs reliable storage from minute one, can extend schema itself | — Pending |
