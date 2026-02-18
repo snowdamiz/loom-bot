@@ -39,7 +39,7 @@ Plans:
 - [x] 01-01-PLAN.md — Monorepo scaffold + @jarvis/db schemas + Docker Compose
 - [x] 01-02-PLAN.md — @jarvis/logging audit trail + Redis session memory
 - [x] 01-03-PLAN.md — Tool registry + shell/HTTP/file/DB tool implementations
-- [ ] 01-04-PLAN.md — Agent process wiring + BullMQ worker + memory consolidation
+- [x] 01-04-PLAN.md — Agent process wiring + BullMQ worker + memory consolidation
 
 ### Phase 2: AI Backbone and Safety
 **Goal**: The agent can think using multiple AI models routed by task type, every action is gated by the kill switch, and all operating costs are tracked from the first API call
@@ -51,12 +51,12 @@ Plans:
   3. Kill switch state persists across process restarts -- a restarted agent with active kill switch remains halted
   4. Every AI model call is logged with model name, token counts, and estimated cost, and these costs are queryable as aggregate totals
   5. Adding a new model provider does not require changes to the core routing logic
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
-- [ ] 02-03: TBD
+- [ ] 02-01-PLAN.md — DB schemas (ai_calls, operating_costs, revenue, kill_switch_audit) + @jarvis/ai package (provider, router, kill switch, config)
+- [ ] 02-02-PLAN.md — Kill switch CLI (jarvis kill/resume) + TOOL-06 gate + agent process wiring
+- [ ] 02-03-PLAN.md — Credit balance monitoring + Discord DM alerts + P&L query functions
 
 ### Phase 3: Autonomous Loop
 **Goal**: The agent runs as a continuous goal-planner -- setting goals, decomposing them, dispatching work through the task queue, evaluating outcomes, replanning when needed, and surviving crashes without losing progress. The main agent can spawn focused sub-agents for parallel task execution.
@@ -168,7 +168,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Infrastructure | 4/4 | Complete    | 2026-02-18 |
-| 2. AI Backbone and Safety | 0/0 | Not started | - |
+| 2. AI Backbone and Safety | 0/3 | Planning complete | - |
 | 3. Autonomous Loop | 0/0 | Not started | - |
 | 4. Wallet and Financial Governance | 0/0 | Not started | - |
 | 5. Web Dashboard | 0/0 | Not started | - |
