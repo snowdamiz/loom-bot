@@ -183,103 +183,103 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| LOOP-01 | — | Pending |
-| LOOP-02 | — | Pending |
-| LOOP-03 | — | Pending |
-| LOOP-04 | — | Pending |
-| LOOP-05 | — | Pending |
-| TOOL-01 | — | Pending |
-| TOOL-02 | — | Pending |
-| TOOL-03 | — | Pending |
-| TOOL-04 | — | Pending |
-| TOOL-05 | — | Pending |
-| TOOL-06 | — | Pending |
-| TOOL-07 | — | Pending |
-| MODL-01 | — | Pending |
-| MODL-02 | — | Pending |
-| MODL-03 | — | Pending |
-| MODL-04 | — | Pending |
-| MODL-05 | — | Pending |
-| RECOV-01 | — | Pending |
-| RECOV-02 | — | Pending |
-| RECOV-03 | — | Pending |
-| RECOV-04 | — | Pending |
-| DATA-01 | — | Pending |
-| DATA-02 | — | Pending |
-| DATA-03 | — | Pending |
-| DATA-04 | — | Pending |
-| DATA-05 | — | Pending |
-| DATA-06 | — | Pending |
-| QUEUE-01 | — | Pending |
-| QUEUE-02 | — | Pending |
-| QUEUE-03 | — | Pending |
-| QUEUE-04 | — | Pending |
-| QUEUE-05 | — | Pending |
-| WALLET-01 | — | Pending |
-| WALLET-02 | — | Pending |
-| WALLET-03 | — | Pending |
-| WALLET-04 | — | Pending |
-| WALLET-05 | — | Pending |
-| WALLET-06 | — | Pending |
-| COST-01 | — | Pending |
-| COST-02 | — | Pending |
-| COST-03 | — | Pending |
-| COST-04 | — | Pending |
-| COST-05 | — | Pending |
-| KILL-01 | — | Pending |
-| KILL-02 | — | Pending |
-| KILL-03 | — | Pending |
-| KILL-04 | — | Pending |
-| LOG-01 | — | Pending |
-| LOG-02 | — | Pending |
-| LOG-03 | — | Pending |
-| LOG-04 | — | Pending |
-| LOG-05 | — | Pending |
-| DASH-01 | — | Pending |
-| DASH-02 | — | Pending |
-| DASH-03 | — | Pending |
-| DASH-04 | — | Pending |
-| DASH-05 | — | Pending |
-| DASH-06 | — | Pending |
-| DASH-07 | — | Pending |
-| BOOT-01 | — | Pending |
-| BOOT-02 | — | Pending |
-| BOOT-03 | — | Pending |
-| BOOT-04 | — | Pending |
-| BROWSER-01 | — | Pending |
-| BROWSER-02 | — | Pending |
-| BROWSER-03 | — | Pending |
-| BROWSER-04 | — | Pending |
-| BROWSER-05 | — | Pending |
-| IDENT-01 | — | Pending |
-| IDENT-02 | — | Pending |
-| IDENT-03 | — | Pending |
-| IDENT-04 | — | Pending |
-| IDENT-05 | — | Pending |
-| IDENT-06 | — | Pending |
-| STRAT-01 | — | Pending |
-| STRAT-02 | — | Pending |
-| STRAT-03 | — | Pending |
-| STRAT-04 | — | Pending |
-| STRAT-05 | — | Pending |
-| STRAT-06 | — | Pending |
-| STRAT-07 | — | Pending |
-| STRAT-08 | — | Pending |
-| EXTEND-01 | — | Pending |
-| EXTEND-02 | — | Pending |
-| EXTEND-03 | — | Pending |
-| EXTEND-04 | — | Pending |
-| EXTEND-05 | — | Pending |
-| AGENT-01 | — | Pending |
-| AGENT-02 | — | Pending |
-| AGENT-03 | — | Pending |
-| AGENT-04 | — | Pending |
+| TOOL-01 | Phase 1 | Pending |
+| TOOL-02 | Phase 1 | Pending |
+| TOOL-03 | Phase 1 | Pending |
+| TOOL-04 | Phase 1 | Pending |
+| TOOL-05 | Phase 1 | Pending |
+| TOOL-06 | Phase 2 | Pending |
+| TOOL-07 | Phase 1 | Pending |
+| DATA-01 | Phase 1 | Pending |
+| DATA-02 | Phase 1 | Pending |
+| DATA-03 | Phase 1 | Pending |
+| DATA-04 | Phase 1 | Pending |
+| DATA-05 | Phase 1 | Pending |
+| DATA-06 | Phase 1 | Pending |
+| LOG-01 | Phase 1 | Pending |
+| LOG-02 | Phase 1 | Pending |
+| LOG-03 | Phase 1 | Pending |
+| LOG-04 | Phase 1 | Pending |
+| LOG-05 | Phase 1 | Pending |
+| MODL-01 | Phase 2 | Pending |
+| MODL-02 | Phase 2 | Pending |
+| MODL-03 | Phase 2 | Pending |
+| MODL-04 | Phase 2 | Pending |
+| MODL-05 | Phase 2 | Pending |
+| KILL-01 | Phase 2 | Pending |
+| KILL-02 | Phase 2 | Pending |
+| KILL-03 | Phase 2 | Pending |
+| KILL-04 | Phase 2 | Pending |
+| COST-01 | Phase 2 | Pending |
+| COST-02 | Phase 2 | Pending |
+| COST-03 | Phase 2 | Pending |
+| COST-04 | Phase 2 | Pending |
+| COST-05 | Phase 2 | Pending |
+| LOOP-01 | Phase 3 | Pending |
+| LOOP-02 | Phase 3 | Pending |
+| LOOP-03 | Phase 3 | Pending |
+| LOOP-04 | Phase 3 | Pending |
+| LOOP-05 | Phase 3 | Pending |
+| QUEUE-01 | Phase 3 | Pending |
+| QUEUE-02 | Phase 3 | Pending |
+| QUEUE-03 | Phase 3 | Pending |
+| QUEUE-04 | Phase 3 | Pending |
+| QUEUE-05 | Phase 3 | Pending |
+| RECOV-01 | Phase 3 | Pending |
+| RECOV-02 | Phase 3 | Pending |
+| RECOV-03 | Phase 3 | Pending |
+| RECOV-04 | Phase 3 | Pending |
+| WALLET-01 | Phase 4 | Pending |
+| WALLET-02 | Phase 4 | Pending |
+| WALLET-03 | Phase 4 | Pending |
+| WALLET-04 | Phase 4 | Pending |
+| WALLET-05 | Phase 4 | Pending |
+| WALLET-06 | Phase 4 | Pending |
+| DASH-01 | Phase 5 | Pending |
+| DASH-02 | Phase 5 | Pending |
+| DASH-03 | Phase 5 | Pending |
+| DASH-04 | Phase 5 | Pending |
+| DASH-05 | Phase 5 | Pending |
+| DASH-06 | Phase 5 | Pending |
+| DASH-07 | Phase 5 | Pending |
+| BROWSER-01 | Phase 6 | Pending |
+| BROWSER-02 | Phase 6 | Pending |
+| BROWSER-03 | Phase 6 | Pending |
+| BROWSER-04 | Phase 6 | Pending |
+| BROWSER-05 | Phase 6 | Pending |
+| IDENT-01 | Phase 6 | Pending |
+| IDENT-02 | Phase 6 | Pending |
+| IDENT-03 | Phase 6 | Pending |
+| IDENT-04 | Phase 6 | Pending |
+| IDENT-05 | Phase 6 | Pending |
+| IDENT-06 | Phase 6 | Pending |
+| BOOT-01 | Phase 6 | Pending |
+| BOOT-02 | Phase 6 | Pending |
+| BOOT-03 | Phase 6 | Pending |
+| BOOT-04 | Phase 6 | Pending |
+| STRAT-01 | Phase 7 | Pending |
+| STRAT-02 | Phase 7 | Pending |
+| STRAT-03 | Phase 7 | Pending |
+| STRAT-04 | Phase 7 | Pending |
+| STRAT-05 | Phase 7 | Pending |
+| STRAT-06 | Phase 7 | Pending |
+| STRAT-07 | Phase 7 | Pending |
+| STRAT-08 | Phase 7 | Pending |
+| EXTEND-01 | Phase 8 | Pending |
+| EXTEND-02 | Phase 8 | Pending |
+| EXTEND-03 | Phase 8 | Pending |
+| EXTEND-04 | Phase 8 | Pending |
+| EXTEND-05 | Phase 8 | Pending |
+| AGENT-01 | Phase 8 | Pending |
+| AGENT-02 | Phase 8 | Pending |
+| AGENT-03 | Phase 8 | Pending |
+| AGENT-04 | Phase 8 | Pending |
 
 **Coverage:**
-- v1 requirements: 82 total
-- Mapped to phases: 0
-- Unmapped: 82 (pending roadmap creation)
+- v1 requirements: 91 total
+- Mapped to phases: 91
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-18*
-*Last updated: 2026-02-18 after initial definition*
+*Last updated: 2026-02-18 after roadmap creation*
