@@ -16,6 +16,7 @@
   "dependencies": {
     "@jarvis/db": "workspace:*",
     "@jarvis/logging": "workspace:*",
+    "@jarvis/wallet": "workspace:*",
     "got": "^14.4.5",
     "ioredis": "^5.6.0",
     "tough-cookie": "^5.1.2",

@@ -26,6 +26,9 @@ importers:
       '@jarvis/tools':
         specifier: workspace:*
         version: link:../../packages/tools
+      '@jarvis/wallet':
+        specifier: workspace:*
+        version: link:../../packages/wallet
       bullmq:
         specifier: ^5.34.8
         version: 5.69.3
@@ -142,6 +145,9 @@ importers:
       '@jarvis/logging':
         specifier: workspace:*
         version: link:../logging
+      '@jarvis/wallet':
+        specifier: workspace:*
+        version: link:../wallet
       got:
         specifier: ^14.4.5
         version: 14.6.6

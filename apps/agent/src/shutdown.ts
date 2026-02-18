@@ -3,14 +3,16 @@ import type { Worker } from 'bullmq';
 /**
  * Graceful shutdown handler for all service connections.
  *
- * Listens for SIGTERM and SIGINT signals and shuts down:
- * 1. Memory consolidation interval (if provided)
- * 2. Supervisor: stop all active main agent loops (Phase 3)
- * 3. Agent worker: close BullMQ worker for sub-agent jobs (Phase 3)
- * 4. Agent-tasks queue: close BullMQ queue for sub-agent dispatch (Phase 3)
- * 5. BullMQ worker (if provided)
- * 6. Redis client
- * 7. Postgres connection pool
+ * Listens for SIGTERM and SIGINT signals and shuts down in order:
+ * 1. Memory consolidation interval (prevents new DB writes)
+ * 2. Wallet subscription (stops inbound monitoring)
+ * 3. Supervisor: stop all active main agent loops (Phase 3)
+ * 4. Agent worker: close BullMQ worker for sub-agent jobs (Phase 3)
+ * 5. Agent-tasks queue: close BullMQ queue for sub-agent dispatch (Phase 3)
+ * 6. BullMQ worker (if provided)
+ * 7. Signer process: kill SIGTERM to signer co-process (Phase 4)
+ * 8. Redis client
+ * 9. Postgres connection pool
  *
  * Per research anti-pattern guidance: ALWAYS call pool.end() to prevent connection leaks.
  * A 10-second force-kill timeout ensures the process exits even if graceful shutdown hangs.
@@ -35,6 +37,18 @@ export interface ShutdownSupervisor {
   getActiveGoalIds(): number[];
 }
 
+/**
+ * Duck-typed interface for the signer child process.
+ * Avoids importing child_process types directly (pnpm strict isolation).
+ * Only needs kill() and pid for shutdown purposes.
+ *
+ * kill() accepts number | NodeJS.Signals | string to match ChildProcess.kill() signature.
+ */
+export interface ShutdownSignerProcess {
+  kill(signal?: number | NodeJS.Signals | string): boolean;
+  pid?: number;
+}
+
 export interface ShutdownResources {
   pool: ShutdownPool;
   redis: ShutdownRedis;
@@ -46,10 +60,24 @@ export interface ShutdownResources {
   agentWorker?: Worker;
   /** Phase 3: BullMQ queue for sub-agent job dispatch */
   agentTasksQueue?: { close(): Promise<void> };
+  /** Phase 4: Signer co-process (child_process.fork) */
+  signerProcess?: ShutdownSignerProcess;
+  /** Phase 4: Wallet WebSocket subscription */
+  walletSubscription?: { stop: () => void };
 }
 
 export function registerShutdownHandlers(resources: ShutdownResources): void {
-  const { pool, redis, worker, consolidation, supervisor, agentWorker, agentTasksQueue } = resources;
+  const {
+    pool,
+    redis,
+    worker,
+    consolidation,
+    supervisor,
+    agentWorker,
+    agentTasksQueue,
+    signerProcess,
+    walletSubscription,
+  } = resources;
 
   async function gracefulShutdown(signal: string): Promise<void> {
     process.stderr.write(`[shutdown] Received ${signal}. Shutting down...\n`);
@@ -70,7 +98,13 @@ export function registerShutdownHandlers(resources: ShutdownResources): void {
         process.stderr.write('[shutdown] Memory consolidation stopped.\n');
       }
 
-      // 2. Stop all active main agent loops via supervisor
+      // 2. Stop wallet subscription (inbound monitoring) before stopping supervisor
+      if (walletSubscription !== undefined) {
+        walletSubscription.stop();
+        process.stderr.write('[shutdown] Wallet subscription stopped.\n');
+      }
+
+      // 3. Stop all active main agent loops via supervisor
       if (supervisor !== undefined) {
         const activeGoalIds = supervisor.getActiveGoalIds();
         for (const goalId of activeGoalIds) {
@@ -79,29 +113,35 @@ export function registerShutdownHandlers(resources: ShutdownResources): void {
         process.stderr.write(`[shutdown] Stopped ${activeGoalIds.length} main agent loops.\n`);
       }
 
-      // 3. Close sub-agent worker (stop accepting new jobs, drain in-flight)
+      // 4. Close sub-agent worker (stop accepting new jobs, drain in-flight)
       if (agentWorker !== undefined) {
         await agentWorker.close();
         process.stderr.write('[shutdown] Sub-agent worker closed.\n');
       }
 
-      // 4. Close agent-tasks queue
+      // 5. Close agent-tasks queue
       if (agentTasksQueue !== undefined) {
         await agentTasksQueue.close();
         process.stderr.write('[shutdown] Agent-tasks queue closed.\n');
       }
 
-      // 5. Close BullMQ worker (stop accepting new jobs, drain in-flight)
+      // 6. Close BullMQ worker (stop accepting new jobs, drain in-flight)
       if (worker !== undefined) {
         await worker.close();
         process.stderr.write('[shutdown] BullMQ worker closed.\n');
       }
 
-      // 6. Quit Redis (sends QUIT command, waits for acknowledgment)
+      // 7. Kill signer co-process (after queues closed — no more signing needed)
+      if (signerProcess !== undefined) {
+        signerProcess.kill('SIGTERM');
+        process.stderr.write(`[shutdown] Signer process (pid ${signerProcess.pid ?? 'unknown'}) sent SIGTERM.\n`);
+      }
+
+      // 8. Quit Redis (sends QUIT command, waits for acknowledgment)
       await redis.quit();
       process.stderr.write('[shutdown] Redis disconnected.\n');
 
-      // 7. End Postgres pool (drains in-flight queries, prevents connection leaks)
+      // 9. End Postgres pool (drains in-flight queries, prevents connection leaks)
       await pool.end();
       process.stderr.write('[shutdown] Postgres pool closed.\n');
 

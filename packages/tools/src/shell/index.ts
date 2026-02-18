@@ -72,8 +72,8 @@ export const shellTool: ToolDefinition<ShellInput, ShellOutput> = {
 
       child.on('close', (code: number | null, _signal: NodeJS.Signals | null) => {
         resolve({
-          stdout: Buffer.concat(stdoutChunks).toString('utf-8'),
-          stderr: Buffer.concat(stderrChunks).toString('utf-8'),
+          stdout: Buffer.concat(stdoutChunks as unknown as Uint8Array[]).toString('utf-8'),
+          stderr: Buffer.concat(stderrChunks as unknown as Uint8Array[]).toString('utf-8'),
           exitCode: code,
         });
       });

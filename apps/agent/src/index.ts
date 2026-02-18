@@ -1,10 +1,14 @@
 import 'dotenv/config';
+import { fork } from 'node:child_process';
+import { createRequire } from 'node:module';
 import { db, pool, agentState, eq } from '@jarvis/db';
-import { createDefaultRegistry, redis } from '@jarvis/tools';
+import { createDefaultRegistry, redis, createWalletTools } from '@jarvis/tools';
 import { createRouter, KillSwitchGuard, loadModelConfig, toolDefinitionsToOpenAI } from '@jarvis/ai';
+import { SignerClient, subscribeToWallet } from '@jarvis/wallet';
 import { Queue } from 'bullmq';
 import { startConsolidation } from './memory-consolidation.js';
 import { registerShutdownHandlers } from './shutdown.js';
+import type { ShutdownSignerProcess } from './shutdown.js';
 import { GoalManager } from './loop/goal-manager.js';
 import { AgentLoop } from './loop/agent-loop.js';
 import { EvaluatorImpl } from './loop/evaluator.js';
@@ -24,17 +28,24 @@ void AgentLoop;
  * 1. Create tool registry with all 4 default tools
  * 2. Create BullMQ Queue for dispatching jobs to worker processes
  * 3. Start memory consolidation periodic job
- * 4. Register graceful shutdown handlers (SIGTERM/SIGINT)
  * 5. Wire KillSwitchGuard and ModelRouter (Phase 2)
  * 6. Log startup to stderr
  * 7. Write system status to agent_state (DATA-01)
  * 8. Phase 3: Register sub-agent tools, create autonomous loop components,
  *    run startup recovery, start supervisor loop
+ * 9. Phase 4: Start signer co-process, create SignerClient, register wallet tools,
+ *    start inbound wallet monitoring
  *
  * RECOV-03: Postgres-backed journal + BullMQ Redis survive Fly.io restarts.
  * The Fly.io `restart: always` policy ensures this process relaunches on crash.
  * On relaunch, detectCrashRecovery() reads active goals from Postgres and
  * performStartupRecovery() resumes them via the Supervisor's staggeredRestart().
+ *
+ * Phase 4 wallet features degrade gracefully if SOLANA_PRIVATE_KEY is not set:
+ * - Signer co-process is not started
+ * - Wallet tools are not registered
+ * - Inbound monitoring is not started
+ * - The agent continues running without wallet capabilities
  */
 
 async function main(): Promise<void> {
@@ -107,7 +118,7 @@ async function main(): Promise<void> {
   registry.register(createCancelAgentTool(agentTasksQueue));
 
   // Convert tool registry to OpenAI format for LLM consumption
-  const openAITools = toolDefinitionsToOpenAI(registry);
+  let openAITools = toolDefinitionsToOpenAI(registry);
 
   // Create Phase 3 components: GoalManager, Evaluator, Replanner, Supervisor
   const goalManager = new GoalManager(db, router);
@@ -136,7 +147,115 @@ async function main(): Promise<void> {
     tools: openAITools,
   });
 
-  // 4. Register graceful shutdown handlers with all Phase 3 resources
+  // === Phase 4: Wallet Integration ===
+
+  // Wallet features are optional — only enabled if SOLANA_PRIVATE_KEY is set.
+  // If the key is not configured, the agent runs without wallet capabilities.
+  const SOLANA_PRIVATE_KEY = process.env.SOLANA_PRIVATE_KEY;
+  const SIGNER_SOCKET_PATH = process.env.SIGNER_SOCKET_PATH ?? '/tmp/jarvis-signer.sock';
+  const SIGNER_SHARED_SECRET = process.env.SIGNER_SHARED_SECRET;
+
+  let signerProcess: ShutdownSignerProcess | undefined;
+  let walletSubscription: { stop: () => void } | undefined;
+
+  if (!SOLANA_PRIVATE_KEY) {
+    process.stderr.write(
+      '[agent] SOLANA_PRIVATE_KEY not set — skipping wallet initialization. Wallet tools will not be available.\n',
+    );
+  } else if (!SIGNER_SHARED_SECRET) {
+    process.stderr.write(
+      '[agent] SIGNER_SHARED_SECRET not set — skipping wallet initialization. Set both SOLANA_PRIVATE_KEY and SIGNER_SHARED_SECRET to enable wallet.\n',
+    );
+  } else {
+    // --- Step 1: Start signer co-process ---
+    // Resolve signer server path from @jarvis/wallet package installed in node_modules.
+    // createRequire resolves relative to the current module's URL.
+    const require = createRequire(import.meta.url);
+    const signerServerPath = require.resolve('@jarvis/wallet/dist/signer/server.js');
+
+    const signerChild = fork(signerServerPath, [], {
+      env: {
+        ...process.env,
+        SIGNER_SOCKET_PATH,
+        SIGNER_SHARED_SECRET,
+        SOLANA_PRIVATE_KEY,
+      },
+      stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
+    });
+
+    signerProcess = signerChild;
+
+    // Pipe signer stdout/stderr to agent's stderr with [signer] prefix
+    if (signerChild.stdout) {
+      signerChild.stdout.on('data', (chunk: Buffer) => {
+        process.stderr.write(`[signer] ${chunk.toString('utf8')}`);
+      });
+    }
+    if (signerChild.stderr) {
+      signerChild.stderr.on('data', (chunk: Buffer) => {
+        process.stderr.write(`[signer] ${chunk.toString('utf8')}`);
+      });
+    }
+
+    // Wait for signer 'ready' message (sent via process.send() from server.ts)
+    await new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('Signer co-process did not send ready message within 10s'));
+      }, 10_000);
+
+      signerChild.on('message', (msg) => {
+        if (msg === 'ready') {
+          clearTimeout(timeout);
+          resolve();
+        }
+      });
+
+      signerChild.on('error', (err) => {
+        clearTimeout(timeout);
+        reject(err);
+      });
+
+      signerChild.on('exit', (code) => {
+        clearTimeout(timeout);
+        reject(new Error(`Signer co-process exited with code ${String(code)} before sending ready`));
+      });
+    });
+
+    process.stderr.write(`[agent] Signer co-process ready (pid: ${signerChild.pid ?? 'unknown'}).\n`);
+
+    // --- Step 2: Create SignerClient ---
+    const signerClient = new SignerClient(SIGNER_SOCKET_PATH, SIGNER_SHARED_SECRET);
+    const pingResult = await signerClient.ping();
+    process.stderr.write(
+      `[agent] SignerClient ping: ${pingResult ? 'SUCCESS' : 'FAILED — signer may not be accepting connections'}\n`,
+    );
+
+    // --- Step 3: Create and register wallet tools ---
+    const walletTools = createWalletTools(db, signerClient);
+    walletTools.forEach((t) => registry.register(t));
+    process.stderr.write(
+      `[agent] Wallet tools registered: ${walletTools.map((t) => t.name).join(', ')}\n`,
+    );
+
+    // Re-derive openAITools after wallet tool registration so the LLM sees all tools
+    openAITools = toolDefinitionsToOpenAI(registry);
+
+    // --- Step 4: Start inbound wallet monitoring ---
+    // Best-effort: if wss_url is not configured in wallet_config, catch and log (don't crash)
+    try {
+      walletSubscription = await subscribeToWallet(db, (event) => {
+        process.stderr.write(`[wallet] Inbound: ${JSON.stringify(event)}\n`);
+      });
+      process.stderr.write('[agent] Wallet inbound monitoring active.\n');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      process.stderr.write(
+        `[agent] Wallet subscription failed (non-fatal — wss_url may not be configured): ${msg}\n`,
+      );
+    }
+  }
+
+  // 4. Register graceful shutdown handlers with all Phase 3 + 4 resources
   registerShutdownHandlers({
     pool,
     redis,
@@ -144,6 +263,8 @@ async function main(): Promise<void> {
     supervisor,
     agentWorker,
     agentTasksQueue,
+    signerProcess,
+    walletSubscription,
   });
 
   // Run startup recovery if needed (RECOV-02: resume from last journal checkpoint)
@@ -160,7 +281,7 @@ async function main(): Promise<void> {
   await supervisor.startSupervisorLoop();
   process.stderr.write('[agent] Autonomous loop started. Supervisor active.\n');
 
-  process.stderr.write(`[agent] Phase 3 ready. Tools: ${registry.count()}. Goals: supervisor managed.\n`);
+  process.stderr.write(`[agent] Phase 4 ready. Tools: ${registry.count()}. Goals: supervisor managed.\n`);
 
   // The process stays alive — shutdown is handled by registerShutdownHandlers on SIGTERM/SIGINT.
 }
