@@ -5,32 +5,33 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** The agent must be able to autonomously reason about opportunities, acquire the tools and accounts it needs, and execute money-making strategies without human intervention.
-**Current focus:** Phase 1: Infrastructure — COMPLETE. Ready for Phase 2.
+**Current focus:** Phase 2: AI Backbone and Safety — In Progress (1/3 plans complete)
 
 ## Current Position
 
-Phase: 1 of 8 (Infrastructure)
-Plan: 4 of 4 in current phase (PHASE COMPLETE)
-Status: Phase 1 Complete
-Last activity: 2026-02-18 — Completed 01-04 (@jarvis/agent main process, worker, memory consolidation, graceful shutdown)
+Phase: 2 of 8 (AI Backbone and Safety)
+Plan: 1 of 3 in current phase (02-01 complete)
+Status: Phase 2 In Progress
+Last activity: 2026-02-18 — Completed 02-01 (@jarvis/ai package: AiProvider, OpenRouterProvider, ModelRouter, KillSwitchGuard, 4 DB tables)
 
-Progress: [████░░░░░░] 13%
+Progress: [████░░░░░░] 15%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
-- Average duration: 6.5 min
-- Total execution time: 0.43 hours
+- Total plans completed: 5
+- Average duration: 5.8 min
+- Total execution time: 0.46 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-infrastructure | 4/4 | 26 min | 6.5 min |
+| 02-ai-backbone-and-safety | 1/3 | 3 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (6 min), 01-02 (7 min), 01-03 (8 min), 01-04 (5 min)
+- Last 5 plans: 01-01 (6 min), 01-02 (7 min), 01-03 (8 min), 01-04 (5 min), 02-01 (3 min)
 - Trend: stable
 
 *Updated after each plan completion*
@@ -59,6 +60,11 @@ Recent decisions affecting current work:
 - [01-04]: drizzle-orm operators (eq, and, gt, etc.) re-exported from @jarvis/db — extends the sql re-export pattern from 01-01 for full operator access under pnpm isolation
 - [01-04]: Memory consolidation joins success rows to parent started rows via parentId to get actual tool names (two-row pattern stores toolName='completion' on success rows)
 - [01-04]: consolidate() runs immediately at startup before setInterval to process results from previous agent runs without waiting 5 minutes
+- [02-01]: OpenRouter via openai SDK with baseURL='https://openrouter.ai/api/v1' — compatible with OpenAI wire protocol, no custom HTTP client needed
+- [02-01]: Model defaults: strong=anthropic/claude-opus-4.6, mid=anthropic/claude-sonnet-4.5, cheap=x-ai/grok-4.1-fast per Phase 2 research
+- [02-01]: Env-var model config (JARVIS_MODEL_STRONG/MID/CHEAP) over DB storage — models swappable without redeploy
+- [02-01]: OpenRouter cost field accessed via cast (usage as unknown as { cost?: number }) — non-SDK extension
+- [02-01]: cost_category as pgEnum (not text constraint) — enforced at DB level; costUsd uses numeric(12,8) not float for financial precision
 
 ### Pending Todos
 
@@ -74,5 +80,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-ai-backbone-and-safety/02-CONTEXT.md
+Stopped at: Completed 02-01 (@jarvis/ai package: AiProvider, OpenRouterProvider, ModelRouter, KillSwitchGuard, 4 DB tables)
+Resume file: .planning/phases/02-ai-backbone-and-safety/02-02-PLAN.md

@@ -36,11 +36,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Multi-Model AI Routing
 
-- [ ] **MODL-01**: Agent routes LLM calls to different models based on task type
-- [ ] **MODL-02**: Each model call logs model used, input tokens, output tokens, and estimated cost
-- [ ] **MODL-03**: Complex reasoning tasks route to high-capability models (Claude Opus/Sonnet)
-- [ ] **MODL-04**: Simple classification and formatting tasks route to cheap models (Haiku/GPT-4o-mini)
-- [ ] **MODL-05**: Router supports adding new model providers without core changes
+- [x] **MODL-01**: Agent routes LLM calls to different models based on task type
+- [x] **MODL-02**: Each model call logs model used, input tokens, output tokens, and estimated cost
+- [x] **MODL-03**: Complex reasoning tasks route to high-capability models (Claude Opus/Sonnet)
+- [x] **MODL-04**: Simple classification and formatting tasks route to cheap models (Haiku/GPT-4o-mini)
+- [x] **MODL-05**: Router supports adding new model providers without core changes
 
 ### Crash Recovery
 
@@ -77,7 +77,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Operating Cost Tracking
 
-- [ ] **COST-01**: AI model API spend is tracked per call with model, tokens, and cost
+- [x] **COST-01**: AI model API spend is tracked per call with model, tokens, and cost
 - [ ] **COST-02**: Total operating costs (VM, API, services) are aggregated and queryable
 - [ ] **COST-03**: Revenue is tracked per strategy with source attribution
 - [ ] **COST-04**: P&L (revenue minus costs) is computed and available via dashboard
@@ -86,9 +86,9 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Kill Switch
 
 - [ ] **KILL-01**: Operator can activate kill switch via dashboard or direct database flag
-- [ ] **KILL-02**: Agent checks kill switch at the start of each planning cycle
+- [x] **KILL-02**: Agent checks kill switch at the start of each planning cycle
 - [ ] **KILL-03**: When kill switch is active, agent halts all tool execution immediately
-- [ ] **KILL-04**: Kill switch state persists across agent restarts
+- [x] **KILL-04**: Kill switch state persists across agent restarts
 
 ### Activity Logging
 
@@ -210,16 +210,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LOG-03 | Phase 1 | Complete |
 | LOG-04 | Phase 1 | Complete |
 | LOG-05 | Phase 1 | Complete |
-| MODL-01 | Phase 2 | Pending |
-| MODL-02 | Phase 2 | Pending |
-| MODL-03 | Phase 2 | Pending |
-| MODL-04 | Phase 2 | Pending |
-| MODL-05 | Phase 2 | Pending |
+| MODL-01 | Phase 2 | Complete |
+| MODL-02 | Phase 2 | Complete |
+| MODL-03 | Phase 2 | Complete |
+| MODL-04 | Phase 2 | Complete |
+| MODL-05 | Phase 2 | Complete |
 | KILL-01 | Phase 2 | Pending |
-| KILL-02 | Phase 2 | Pending |
+| KILL-02 | Phase 2 | Complete |
 | KILL-03 | Phase 2 | Pending |
-| KILL-04 | Phase 2 | Pending |
-| COST-01 | Phase 2 | Pending |
+| KILL-04 | Phase 2 | Complete |
+| COST-01 | Phase 2 | Complete |
 | COST-02 | Phase 2 | Pending |
 | COST-03 | Phase 2 | Pending |
 | COST-04 | Phase 2 | Pending |
