@@ -1,0 +1,19 @@
+{
+  "name": "jarvis",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "db:push": "pnpm --filter @jarvis/db run db:push",
+    "db:generate": "pnpm --filter @jarvis/db run db:generate",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.3"
+  },
+  "packageManager": "pnpm@9.15.4"
+}
