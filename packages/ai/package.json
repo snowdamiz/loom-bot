@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@jarvis/db": "workspace:*",
+    "discord.js": "^14.x",
     "openai": "^4.x",
     "zod": "^3.24.x"
   },

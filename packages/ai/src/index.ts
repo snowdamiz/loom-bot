@@ -3,6 +3,8 @@ export * from './openrouter.js';
 export * from './config.js';
 export * from './kill-switch.js';
 export * from './router.js';
+export * from './discord.js';
+export * from './cost-monitor.js';
 
 // Convenience factory — wires all components together
 import type { DbClient } from '@jarvis/db';
