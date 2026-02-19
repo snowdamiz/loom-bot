@@ -50,7 +50,7 @@ browser            (standalone — Playwright lifecycle, stealth, CAPTCHA)
 
 **Strategy engine.** A domain-agnostic lifecycle state machine (`discovery → evaluation → execution → monitoring`) manages named strategies. The agent uses this to track long-running money-making approaches across restarts, without coupling the core loop to any specific domain.
 
-**Self-extension.** The agent writes its own TypeScript tools at runtime using `tool_write`, compiles them with esbuild in a sandbox harness, and registers them immediately. Schema extensions via `schema_extend` let the agent add new Postgres tables when its built-in schema is insufficient. Authored tools persist across restarts and reload on boot.
+**Self-extension.** The agent writes its own TypeScript tools at runtime using `tool_write`, compiles them with esbuild in a sandbox harness, and registers them immediately. Built-in/core modifications now run through a deterministic GitHub branch/commit/PR flow with machine-readable commit metadata, sandbox evidence status (`jarvis/sandbox`), and status-gated promotion before merge. Schema extensions via `schema_extend` let the agent add new Postgres tables when its built-in schema is insufficient. Authored tools persist across restarts and reload on boot.
 
 **Kill switch.** The agent starts OFF on first boot — a kill switch record is written to the `agent_state` table before the supervisor loop begins. The operator activates the agent via the dashboard or by direct DB update. The kill switch state persists across restarts; the agent will not execute tool calls while it is active.
 
@@ -145,6 +145,25 @@ Security notes:
 - OAuth tokens are stored in encrypted credentials storage (same vault model as other secrets).
 - OAuth callback and setup APIs never return plaintext token values.
 
+## Builtin Self-Modification Promotion Flow
+
+When `tool_write` runs with `builtinModify=true`, Jarvis uses a repository-backed promotion lifecycle:
+
+1. Compile candidate TypeScript source and run sandbox verification.
+2. Build deterministic branch identity from execution context + change fingerprint.
+3. Commit candidate change with machine-readable `Jarvis-Meta` payload.
+4. Create/update a pull request for the deterministic branch and attach sandbox evidence summary.
+5. Publish commit status context `jarvis/sandbox` on the candidate SHA.
+6. Evaluate merge gate requirements before promotion; merge is blocked unless required contexts are green.
+7. Merge with head-SHA guard and clean up the short-lived branch only after successful promotion.
+
+If promotion is blocked, `tool_write` returns structured fields such as `promotionBlocked`, `blockReasons`, and `mergeError` so operators and agent reasoning can diagnose state without guessing.
+
+Common blocked states:
+- Missing status context: required context (for example `jarvis/sandbox`) is absent on candidate SHA.
+- Failed sandbox evidence: sandbox verification reported a failing status.
+- Stale head mismatch: merge head SHA guard rejected promotion because PR head changed after evaluation.
+
 ## Environment Variables
 
 | Variable | Required | Description | Example |
@@ -207,7 +226,7 @@ The agent starts with 20 tools registered. Domain-specific tools (wallet integra
 - `tool_discover` — Scan the tool registry and report what is currently available
 
 **Self-extension (3)**
-- `tool_write` — Write a new TypeScript tool, compile it with esbuild, and register it immediately
+- `tool_write` — Write/update tools; builtinModify routes through deterministic branch/PR/status-gated promotion flow
 - `tool_delete` — Remove an agent-authored tool from disk and the registry
 - `schema_extend` — Add new tables or columns to the Postgres schema at runtime
 
