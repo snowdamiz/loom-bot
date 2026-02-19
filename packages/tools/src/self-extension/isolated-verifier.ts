@@ -164,6 +164,27 @@ function hydrateWorktreeNodeModules(opts: {
   }
 }
 
+function resolveStageExecutionCommand(stagePlan: {
+  name: string;
+  command: string;
+  args: string[];
+  timeoutMs: number;
+}): { command: string; args: string[]; timeoutMs: number } {
+  if (stagePlan.name !== 'startupSmoke') {
+    return {
+      command: stagePlan.command,
+      args: stagePlan.args,
+      timeoutMs: stagePlan.timeoutMs,
+    };
+  }
+
+  return {
+    command: 'pnpm',
+    args: ['--filter', '@jarvis/agent', 'run', 'startup:smoke'],
+    timeoutMs: Math.max(stagePlan.timeoutMs, 90_000),
+  };
+}
+
 function ensureRequiredStages(stages: VerificationStageResult[]): void {
   for (const stageName of REQUIRED_VERIFICATION_STAGES) {
     const stage = stages.find((candidate) => candidate.name === stageName);
@@ -213,7 +234,8 @@ export async function runIsolatedVerification(
 
     const packageNames = new Set<string>();
     for (const stagePlan of verificationPlan.stages) {
-      const packageName = extractFilterPackage(stagePlan.args);
+      const stageCommand = resolveStageExecutionCommand(stagePlan);
+      const packageName = extractFilterPackage(stageCommand.args);
       if (packageName) {
         packageNames.add(packageName);
       }
@@ -225,12 +247,13 @@ export async function runIsolatedVerification(
     });
 
     for (const stagePlan of verificationPlan.stages) {
+      const stageCommand = resolveStageExecutionCommand(stagePlan);
       const stageStartedAt = new Date();
       const boundedResult = await runBoundedCommand({
-        command: stagePlan.command,
-        args: stagePlan.args,
+        command: stageCommand.command,
+        args: stageCommand.args,
         cwd: stagePlan.cwd,
-        timeoutMs: stagePlan.timeoutMs,
+        timeoutMs: stageCommand.timeoutMs,
         maxOutputBytes: stagePlan.maxOutputBytes,
         nodeMaxOldSpaceSizeMb: stagePlan.nodeMaxOldSpaceSizeMb,
         env: process.env,

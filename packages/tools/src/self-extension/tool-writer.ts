@@ -168,6 +168,12 @@ export function createToolWriteTool(
               promotionBlocked: result.promotionBlocked,
               blockReasons: result.blockReasons,
               mergeError: result.mergeError ?? null,
+              verificationSummary: result.verificationSummary ?? null,
+              verificationOverallStatus: result.verificationOverallStatus ?? null,
+              verificationFailedStage: result.verificationFailedStage ?? null,
+              verificationFailureCategory: result.verificationFailureCategory ?? null,
+              verificationFailureReason: result.verificationFailureReason ?? null,
+              verificationDiagnostics: result.verificationDiagnostics ?? null,
               message:
                 'Built-in tool modified and promoted via trusted GitHub pipeline with status-gated merge checks.',
             };
@@ -187,6 +193,12 @@ export function createToolWriteTool(
               promotionBlocked: result.promotionBlocked,
               blockReasons: result.blockReasons,
               mergeError: result.mergeError ?? null,
+              verificationSummary: result.verificationSummary ?? null,
+              verificationOverallStatus: result.verificationOverallStatus ?? null,
+              verificationFailedStage: result.verificationFailedStage ?? null,
+              verificationFailureCategory: result.verificationFailureCategory ?? null,
+              verificationFailureReason: result.verificationFailureReason ?? null,
+              verificationDiagnostics: result.verificationDiagnostics ?? null,
             };
           }
         }

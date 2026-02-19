@@ -23,6 +23,10 @@ export interface StageBuiltinChangeResult {
   mergeError?: string;
   verificationSummary?: string;
   verificationDiagnostics?: VerificationRunResult;
+  verificationOverallStatus?: VerificationRunResult['overallStatus'];
+  verificationFailedStage?: string | null;
+  verificationFailureCategory?: string | null;
+  verificationFailureReason?: string | null;
 }
 
 function summarizeVerificationFailure(diagnostics: VerificationRunResult): string {
@@ -32,6 +36,28 @@ function summarizeVerificationFailure(diagnostics: VerificationRunResult): strin
   const reason = failedStage?.failureReason ?? diagnostics.failure?.reason ?? 'unknown verification failure';
   const stage = failedStage?.name ?? diagnostics.failure?.stage ?? 'unknown-stage';
   return `${stage}: ${reason}`;
+}
+
+function extractVerificationOutcome(
+  diagnostics: VerificationRunResult,
+): {
+  verificationOverallStatus: VerificationRunResult['overallStatus'];
+  verificationFailedStage: string | null;
+  verificationFailureCategory: string | null;
+  verificationFailureReason: string | null;
+} {
+  const failedStage = diagnostics.stages.find(
+    (stage) => stage.status !== 'pass' && stage.status !== 'skipped',
+  );
+
+  return {
+    verificationOverallStatus: diagnostics.overallStatus,
+    verificationFailedStage: failedStage?.name ?? diagnostics.failure?.stage ?? null,
+    verificationFailureCategory:
+      failedStage?.failureCategory ?? diagnostics.failure?.category ?? null,
+    verificationFailureReason:
+      failedStage?.failureReason ?? diagnostics.failure?.reason ?? null,
+  };
 }
 
 /**
@@ -75,6 +101,7 @@ export async function stageBuiltinChange(opts: {
   });
 
   if (!verification.passed) {
+    const verificationOutcome = extractVerificationOutcome(verification.diagnostics);
     return {
       success: false,
       error: `Isolated verification failed: ${summarizeVerificationFailure(verification.diagnostics)}`,
@@ -86,8 +113,14 @@ export async function stageBuiltinChange(opts: {
       blockReasons: ['isolated-verification-failed'],
       verificationSummary: verification.evidence.summary,
       verificationDiagnostics: verification.diagnostics,
+      verificationOverallStatus: verificationOutcome.verificationOverallStatus,
+      verificationFailedStage: verificationOutcome.verificationFailedStage,
+      verificationFailureCategory: verificationOutcome.verificationFailureCategory,
+      verificationFailureReason: verificationOutcome.verificationFailureReason,
     };
   }
+
+  const verificationOutcome = extractVerificationOutcome(verification.diagnostics);
 
   const pipelineResult = await runGitHubSelfExtensionPipeline({
     db: opts.db,
@@ -119,6 +152,10 @@ export async function stageBuiltinChange(opts: {
       mergeError: pipelineResult.mergeError,
       verificationSummary: verification.evidence.summary,
       verificationDiagnostics: verification.diagnostics,
+      verificationOverallStatus: verificationOutcome.verificationOverallStatus,
+      verificationFailedStage: verificationOutcome.verificationFailedStage,
+      verificationFailureCategory: verificationOutcome.verificationFailureCategory,
+      verificationFailureReason: verificationOutcome.verificationFailureReason,
     };
   }
 
@@ -137,5 +174,9 @@ export async function stageBuiltinChange(opts: {
     mergeError: pipelineResult.mergeError,
     verificationSummary: verification.evidence.summary,
     verificationDiagnostics: verification.diagnostics,
+    verificationOverallStatus: verificationOutcome.verificationOverallStatus,
+    verificationFailedStage: verificationOutcome.verificationFailedStage,
+    verificationFailureCategory: verificationOutcome.verificationFailureCategory,
+    verificationFailureReason: verificationOutcome.verificationFailureReason,
   };
 }
