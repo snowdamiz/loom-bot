@@ -15,7 +15,7 @@ Success criteria:
 2. Repository binding is persisted and validated before self-modification runs.
 3. Built-in modification path is rejected when GitHub connection/binding is missing.
 
-- [ ] **Phase 11: Version-Controlled Self-Modification Pipeline**
+- [x] **Phase 11: Version-Controlled Self-Modification Pipeline** (completed 2026-02-19)
 Goal: Route every core self-change through branch/commit/PR flow in the connected repository.
 Requirements: SEXT-05, SEXT-06, SEXT-07, SEXT-08
 Success criteria:
@@ -120,7 +120,7 @@ Plans: 0/0 planned
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 10. GitHub Identity and Repo Trust | v1.1 | Complete    | 2026-02-19 | — |
-| 11. Version-Controlled Self-Modification Pipeline | v1.1 | 3/3 | In Progress | — |
+| 11. Version-Controlled Self-Modification Pipeline | v1.1 | Complete    | 2026-02-19 | — |
 | 12. Isolated Sandbox Verification | v1.1 | 0/0 | Planned | — |
 | 13. Promotion Guardrails, Rollback, and Visibility | v1.1 | 0/0 | Planned | — |
 | 1-9. v1.0 phases | v1.0 | 31/31 | Complete | 2026-02-19 |
