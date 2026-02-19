@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 Phase: 9 of 9 — ALL COMPLETE
 Plan: All plans complete
 Status: v1.0 MVP shipped 2026-02-19
-Last activity: 2026-02-19 — Milestone v1.0 archived
+Last activity: 2026-02-19 - Completed quick task 1: Ensure app follows login, setup wizard, dashboard with sidebar chat, and seed agent flow
 
 Progress: [█████████████████████████] 100% (v1.0 shipped)
 
@@ -33,7 +33,9 @@ None — v1.0 shipped.
 
 ### Quick Tasks Completed
 
-- quick-1 (2026-02-19): Login->Setup Wizard->Dashboard with Sidebar Chat — agent stripped to 12 essential tools, starts OFF with paused seed goal
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 1 | Ensure app follows login, setup wizard, dashboard with sidebar chat, and seed agent flow | 2026-02-19 | 84f838b | [1-ensure-app-follows-login-setup-wizard-da](./quick/1-ensure-app-follows-login-setup-wizard-da/) |
 
 ## Session Continuity
 
