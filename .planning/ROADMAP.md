@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Wallet and Financial Governance** - Solana integration with signing service and spend limits (completed 2026-02-18)
 - [ ] **Phase 5: Web Dashboard** - Operator visibility into agent decisions, status, and P&L
 - [x] **Phase 6: Browser, Identity, and Bootstrapping** - Web interaction, credential vault, self-provisioning (completed 2026-02-19)
-- [ ] **Phase 7: Strategy Engine** - Opportunity discovery, hypothesis testing, portfolio management
+- [x] **Phase 7: Strategy Engine** - Opportunity discovery, hypothesis testing, portfolio management (completed 2026-02-19)
 - [ ] **Phase 8: Self-Extension and Agent Economics** - Code generation, tool registry, x402 protocol
 
 ## Phase Details
@@ -142,7 +142,7 @@ Plans:
   3. An underperforming strategy is automatically killed (no new capital allocated) based on its tracked P&L falling below threshold
   4. Multiple strategies run in parallel as independent goal trees, each with its own P&L tracked separately
   5. Agent dynamically reallocates capital from underperforming strategies to outperforming ones based on comparative performance
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 07-01-PLAN.md — Strategy schema, attribution FKs, P&L extension, StrategyManager
@@ -178,5 +178,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 4. Wallet and Financial Governance | 4/4 | Complete | 2026-02-18 |
 | 5. Web Dashboard | 2/3 | In Progress|  |
 | 6. Browser, Identity, and Bootstrapping | 4/4 | Complete   | 2026-02-19 |
-| 7. Strategy Engine | 1/2 | In Progress|  |
+| 7. Strategy Engine | 2/2 | Complete   | 2026-02-19 |
 | 8. Self-Extension and Agent Economics | 0/0 | Not started | - |

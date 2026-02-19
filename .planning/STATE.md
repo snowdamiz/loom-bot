@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** The agent must be able to autonomously reason about opportunities, acquire the tools and accounts it needs, and execute money-making strategies without human intervention.
-**Current focus:** Phase 7: Strategy Engine — IN PROGRESS (1/2 plans done)
+**Current focus:** Phase 7: Strategy Engine — COMPLETE (2/2 plans done)
 
 ## Current Position
 
-Phase: 7 of 8 (Strategy Engine) — IN PROGRESS
-Plan: 1 of 2 in current phase (07-01 complete — strategies table, StrategyManager)
-Status: Phase 7 plan 1 complete — ready for plan 2
-Last activity: 2026-02-19 — Completed 07-01 (strategies table schema, StrategyManager domain-agnostic CRUD)
+Phase: 7 of 8 (Strategy Engine) — COMPLETE
+Plan: 2 of 2 in current phase (07-02 complete — strategy engine integration)
+Status: Phase 7 complete — all 2 plans done; ready for Phase 8
+Last activity: 2026-02-19 — Completed 07-02 (portfolio prompt builder, supervisor wiring, dashboard API)
 
-Progress: [██████████████████████░░░] 88%
+Progress: [████████████████████████░] 96%
 
 ## Performance Metrics
 
@@ -58,6 +58,7 @@ Progress: [██████████████████████░
 | Phase 06 P02 | 5 | 2 tasks | 8 files |
 | Phase 06-browser-identity-and-bootstrapping P04 | 3 | 2 tasks | 9 files |
 | Phase 07-strategy-engine P01 | 3 | 2 tasks | 5 files |
+| Phase 07-strategy-engine P02 | 3 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -155,6 +156,10 @@ Recent decisions affecting current work:
 - [Phase 07-01]: strategies table co-located in goals.ts: drizzle-kit CJS bundler cannot resolve cross-file .js imports — strategies.ts becomes re-export shim (sub-goals.ts pattern)
 - [Phase 07-01]: sql template for != and NOT IN operators — not/notInArray not re-exported from @jarvis/db; sql template avoids pnpm strict isolation constraint
 - [Phase 07-01]: metadata jsonb merge via coalesce+|| pattern — non-destructive, preserves prior agent context across multiple updateMetadata calls
+- [Phase 07-02]: systemParts array replaces static join for executeSubGoal system prompt — enables conditional strategy context block between SUB-GOAL and CONSTRAINTS
+- [Phase 07-02]: Supervisor resolves strategy context per-goal (not globally) — only strategy-backed goals receive portfolio context; plain goals unaffected
+- [Phase 07-02]: buildPortfolioContextPrompt is domain-agnostic: status + hypothesis only, lastTransitionReason shown only for paused/killed strategies
+- [Phase 07-02]: Dashboard api.ts uses direct db inserts (not GoalManager) — avoids cross-app dependency; follows existing dashboard route pattern
 
 ### Pending Todos
 
@@ -169,5 +174,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 07-01-PLAN.md (strategies table schema, StrategyManager domain-agnostic CRUD)
-Resume file: .planning/phases/07-strategy-engine/07-02-PLAN.md
+Stopped at: Completed 07-02-PLAN.md (portfolio prompt builder, supervisor wiring, dashboard API)
+Resume file: .planning/phases/08-self-extension/08-01-PLAN.md
