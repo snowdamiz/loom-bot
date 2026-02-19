@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { db, pool, agentState, goals, eq } from '@jarvis/db';
-import { createDefaultRegistry, redis, createBootstrapTools, createSelfExtensionTools, loadPersistedTools } from '@jarvis/tools';
+import { createDefaultRegistry, redis, createBootstrapTools, createSelfExtensionTools, loadPersistedTools, createBrowserTools } from '@jarvis/tools';
+import { BrowserManager } from '@jarvis/browser';
 import { createRouter, KillSwitchGuard, loadModelConfig, toolDefinitionsToOpenAI, CreditMonitor, activateKillSwitch } from '@jarvis/ai';
 import { Queue } from 'bullmq';
 import { startConsolidation } from './memory-consolidation.js';
@@ -22,12 +23,14 @@ void AgentLoop;
  * Main agent process entry point.
  *
  * Startup sequence:
- * 1. Create tool registry with essential tools only (no wallet/browser/identity)
+ * 1. Create tool registry with essential tools (primitives + multi-agent + bootstrap + self-extension + browser)
  *    Registered: shell, http, file, db (4 primitives)
  *               spawn_agent, await_agent, cancel_agent (3 multi-agent)
  *               package_install, tool_discover (2 bootstrap)
  *               tool_write, tool_delete, schema_extend (3 self-extension)
- *    Total: 12 tools
+ *               browser_session_open/close/save, browser_navigate, browser_click,
+ *               browser_fill, browser_extract, browser_screenshot (8 browser)
+ *    Total: 20 tools
  * 2. Create BullMQ Queue for dispatching jobs to worker processes
  * 3. Start memory consolidation periodic job
  * 4. Wire KillSwitchGuard and ModelRouter
@@ -35,7 +38,7 @@ void AgentLoop;
  * 6. Seed a paused self-evolution goal if goals table is empty
  * 7. Start supervisor loop
  *
- * Domain-specific tools (wallet, browser, identity) are NOT registered at startup.
+ * Domain-specific tools (wallet, identity) are NOT registered at startup.
  * The agent can build or discover them later via tool_write/package_install if needed.
  *
  * RECOV-03: Postgres-backed journal + BullMQ Redis survive restarts.
@@ -46,6 +49,9 @@ void AgentLoop;
 async function main(): Promise<void> {
   // 1. Create tool registry with 4 primitive tools (shell, http, file, db)
   const registry = createDefaultRegistry(db);
+
+  // Browser automation — BrowserManager manages Chromium lifecycle
+  const browserManager = new BrowserManager();
 
   // 2. Create BullMQ Queue for dispatching tool execution to worker processes
   const queue = new Queue('tool-execution', {
@@ -160,9 +166,13 @@ async function main(): Promise<void> {
   const selfExtensionTools = createSelfExtensionTools(registry, onToolChange);
   selfExtensionTools.forEach((t) => registry.register(t));
 
+  // Register browser tools (8 tools: session open/close/save, navigate, click, fill, extract, screenshot)
+  const browserTools = createBrowserTools(browserManager);
+  browserTools.forEach((t) => registry.register(t));
+
   process.stderr.write(
-    `[agent] Essential tools registered. Bootstrap: ${bootstrapTools.length}, Self-extension: ${selfExtensionTools.length}. ` +
-      `Persisted: ${loadResult.loaded.length} loaded. Total: ${registry.count()}\n`,
+    `[agent] Essential tools registered. Bootstrap: ${bootstrapTools.length}, Self-extension: ${selfExtensionTools.length}, ` +
+      `Browser: ${browserTools.length}. Persisted: ${loadResult.loaded.length} loaded. Total: ${registry.count()}\n`,
   );
 
   // Convert tool registry to OpenAI format for LLM consumption
@@ -258,6 +268,7 @@ async function main(): Promise<void> {
     agentTasksQueue,
     reloadToolsQueue,
     creditMonitor,
+    browserManager,
   });
 
   // Run startup recovery if needed (RECOV-02: resume from last journal checkpoint)
