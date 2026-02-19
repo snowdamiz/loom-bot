@@ -1,16 +1,16 @@
 import { Worker } from 'bullmq';
 import type { ModelRouter, ToolCompletionRequest } from '@jarvis/ai';
+import { toolDefinitionsToOpenAI } from '@jarvis/ai';
 import type { ToolRegistry } from '@jarvis/tools';
 import { invokeWithKillCheck } from '@jarvis/tools';
 import type { DbClient } from '@jarvis/db';
 
 /**
- * Re-use the ChatCompletionMessageParam and ChatCompletionTool types from @jarvis/ai's
- * ToolCompletionRequest. @jarvis/agent does not have a direct openai dependency —
+ * Re-use the ChatCompletionMessageParam type from @jarvis/ai's ToolCompletionRequest.
+ * @jarvis/agent does not have a direct openai dependency —
  * types are accessed via @jarvis/ai (same pattern as agent-loop.ts).
  */
 type ChatCompletionMessageParam = ToolCompletionRequest['messages'][number];
-type ChatCompletionTool = ToolCompletionRequest['tools'][number];
 
 /**
  * Duck-typed kill switch interface (same pattern as invoke-safe.ts).
@@ -57,14 +57,18 @@ export function createAgentWorker(deps: {
   registry: ToolRegistry;
   killSwitch: KillCheckable;
   db: DbClient;
-  tools: ChatCompletionTool[];
   concurrency?: number;
 }): Worker {
-  const { redisUrl, router, registry, killSwitch, db, tools, concurrency = 3 } = deps;
+  const { redisUrl, router, registry, killSwitch, db, concurrency = 3 } = deps;
 
   return new Worker(
     'agent-tasks',
     async (job) => {
+      // MULTI-02: Derive fresh tool snapshot from registry at job start.
+      // Captures all tools registered at startup (Phase 1-8) plus any
+      // tools added by tool_write at runtime since last job.
+      const tools = toolDefinitionsToOpenAI(registry);
+
       const { task, context } = job.data as {
         task: string;
         context: Record<string, unknown>;

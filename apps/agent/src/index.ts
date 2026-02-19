@@ -143,29 +143,6 @@ async function main(): Promise<void> {
   const strategyManager = new StrategyManager(db, goalManager);
   process.stderr.write('[agent] StrategyManager wired into Supervisor.\n');
 
-  // Supervisor manages multiple independent main agent loops (one per active goal)
-  const supervisor = new Supervisor(
-    db,
-    router,
-    registry,
-    killSwitch,
-    goalManager,
-    evaluator,
-    replanner,
-    openAITools,
-    strategyManager,
-  );
-
-  // Create agent-tasks worker (processes sub-agent BullMQ jobs)
-  const agentWorker = createAgentWorker({
-    redisUrl: process.env.REDIS_URL!,
-    router,
-    registry,
-    killSwitch,
-    db,
-    tools: openAITools,
-  });
-
   // === Phase 4: Wallet Integration ===
 
   // Wallet features are optional — only enabled if SOLANA_PRIVATE_KEY is set.
@@ -346,6 +323,34 @@ async function main(): Promise<void> {
       `Persisted: ${loadResult.loaded.length} loaded, ${loadResult.failed.length} failed. ` +
       `Total: ${registry.count()}\n`,
   );
+
+  // === Phase 9: Supervisor + Worker positioned after all tool registrations ===
+
+  // Supervisor manages multiple independent main agent loops (one per active goal).
+  // Constructed here (after Phase 4/6/8 tool registrations) so openAITools includes
+  // all 30+ tools, not just the Phase 1+3 snapshot.
+  const supervisor = new Supervisor(
+    db,
+    router,
+    registry,
+    killSwitch,
+    goalManager,
+    evaluator,
+    replanner,
+    openAITools,
+    strategyManager,
+  );
+
+  // Create agent-tasks worker (processes sub-agent BullMQ jobs).
+  // tools param removed — worker derives fresh tools from registry per job,
+  // so tool_write additions are visible to the next sub-agent spawn.
+  const agentWorker = createAgentWorker({
+    redisUrl: process.env.REDIS_URL!,
+    router,
+    registry,
+    killSwitch,
+    db,
+  });
 
   // 4. Register graceful shutdown handlers with all Phase 3, 4, 6 + 8 resources
   registerShutdownHandlers({
