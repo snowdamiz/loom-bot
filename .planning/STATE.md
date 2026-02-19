@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** The agent must be able to autonomously reason about opportunities, acquire the tools and accounts it needs, and execute money-making strategies without human intervention.
-**Current focus:** Phase 8: Self-Extension and Agent Economics — IN PROGRESS (1/4 plans done)
+**Current focus:** Phase 8: Self-Extension and Agent Economics — IN PROGRESS (2/4 plans done)
 
 ## Current Position
 
 Phase: 8 of 8 (Self-Extension and Agent Economics) — IN PROGRESS
-Plan: 1 of 4 in current phase (08-01 complete — self-extension foundation infrastructure)
-Status: Phase 8 in progress — 1/4 plans done
-Last activity: 2026-02-19 — Completed 08-01 (agent_migrations schema, TS compiler, sandbox runner, tool loader)
+Plan: 2 of 4 in current phase (08-02 complete — schema_extend tool with validateDdl, applyAgentMigration)
+Status: Phase 8 in progress — 2/4 plans done
+Last activity: 2026-02-19 — Completed 08-02 (schema_extend tool, DDL validation, transactional migration application)
 
 Progress: [█████████████████████████] 100%
 
@@ -59,6 +59,7 @@ Progress: [███████████████████████
 | Phase 06-browser-identity-and-bootstrapping P04 | 3 | 2 tasks | 9 files |
 | Phase 07-strategy-engine P01 | 3 | 2 tasks | 5 files |
 | Phase 07-strategy-engine P02 | 3 | 2 tasks | 6 files |
+| Phase 08 P02 | 2 | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -164,6 +165,8 @@ Recent decisions affecting current work:
 - [Phase 08-01]: Sandbox harness generated as inline .mjs string (generateHarnessScript) written to temp file — avoids needing harness.ts separately compiled/resolved at runtime
 - [Phase 08-01]: runInSandbox() never throws — all outcomes (success, failure, timeout, process error) returned as SandboxResult
 - [Phase 08-01]: loadPersistedTools() loads only .mjs (compiled) not .ts (source); cache-busting query param on dynamic import for hot-swap
+- [Phase 08-02]: validateDdl uses case-insensitive regex on original SQL — agent_* namespace boundary enforces full DDL control inside prefix, ADD COLUMN only on core tables
+- [Phase 08-02]: applyAgentMigration never throws — all outcomes expressed as structured return value (applied, alreadyApplied, error) per locked Phase 8 decision
 
 ### Pending Todos
 
@@ -178,5 +181,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 08-01-PLAN.md (agent_migrations schema, esbuild compiler, sandbox runner, tool loader)
-Resume file: .planning/phases/08-self-extension-and-agent-economics/08-02-PLAN.md
+Stopped at: Completed 08-02-PLAN.md (schema_extend tool with validateDdl, applyAgentMigration, createSchemaExtendTool)
+Resume file: .planning/phases/08-self-extension-and-agent-economics/08-03-PLAN.md
