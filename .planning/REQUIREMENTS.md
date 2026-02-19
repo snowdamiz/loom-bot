@@ -100,13 +100,13 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Web Dashboard
 
-- [ ] **DASH-01**: Dashboard displays real-time agent status (alive, current goal, active strategy)
-- [ ] **DASH-02**: Dashboard shows paginated activity feed (decisions, tool calls, outcomes)
-- [ ] **DASH-03**: Dashboard shows P&L data with revenue, costs, and net over time
-- [ ] **DASH-04**: Dashboard shows active and historical strategies with per-strategy P&L
-- [ ] **DASH-05**: Dashboard includes kill switch control button
-- [ ] **DASH-06**: Dashboard streams real-time updates via WebSocket connection
-- [ ] **DASH-07**: Dashboard shows decision log with LLM reasoning for each major decision
+- [x] **DASH-01**: Dashboard displays real-time agent status (alive, current goal, active strategy)
+- [x] **DASH-02**: Dashboard shows paginated activity feed (decisions, tool calls, outcomes)
+- [x] **DASH-03**: Dashboard shows P&L data with revenue, costs, and net over time
+- [x] **DASH-04**: Dashboard shows active and historical strategies with per-strategy P&L
+- [x] **DASH-05**: Dashboard includes kill switch control button
+- [x] **DASH-06**: Dashboard streams real-time updates via WebSocket connection
+- [x] **DASH-07**: Dashboard shows decision log with LLM reasoning for each major decision
 
 ### Self-Bootstrapping
 
@@ -250,13 +250,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WALLET-04 | Phase 4 | Complete |
 | WALLET-05 | Phase 4 | Complete |
 | WALLET-06 | Phase 4 | Complete |
-| DASH-01 | Phase 5 | Pending |
-| DASH-02 | Phase 5 | Pending |
-| DASH-03 | Phase 5 | Pending |
-| DASH-04 | Phase 5 | Pending |
-| DASH-05 | Phase 5 | Pending |
-| DASH-06 | Phase 5 | Pending |
-| DASH-07 | Phase 5 | Pending |
+| DASH-01 | Phase 5 | Complete (05-01) |
+| DASH-02 | Phase 5 | Complete (05-01) |
+| DASH-03 | Phase 5 | Complete (05-01) |
+| DASH-04 | Phase 5 | Complete (05-01) |
+| DASH-05 | Phase 5 | Complete (05-01) |
+| DASH-06 | Phase 5 | Complete (05-01) |
+| DASH-07 | Phase 5 | Complete (05-01) |
 | BROWSER-01 | Phase 6 | Pending |
 | BROWSER-02 | Phase 6 | Pending |
 | BROWSER-03 | Phase 6 | Pending |

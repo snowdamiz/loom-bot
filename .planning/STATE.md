@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** The agent must be able to autonomously reason about opportunities, acquire the tools and accounts it needs, and execute money-making strategies without human intervention.
-**Current focus:** Phase 4: Wallet and Financial Governance — COMPLETE (4/4 plans done)
+**Current focus:** Phase 5: Web Dashboard — IN PROGRESS (1/2 plans done)
 
 ## Current Position
 
-Phase: 4 of 8 (Wallet and Financial Governance) — COMPLETE
-Plan: 4 of 4 in current phase (04-04 complete — SPL token governance gate)
-Status: Phase Complete — ready to begin Phase 5 (Strategy Engine)
-Last activity: 2026-02-18 — Completed 04-04 (SPL governance gate in sendSplToken, WALLET-05 satisfied)
+Phase: 5 of 8 (Web Dashboard) — IN PROGRESS
+Plan: 1 of 2 in current phase (05-01 complete — Hono API server with auth, REST endpoints, SSE)
+Status: In Progress — ready to begin Phase 5 Plan 2 (Dashboard Frontend)
+Last activity: 2026-02-19 — Completed 05-01 (Hono API server: status, kill-switch, activity, pnl, sse endpoints)
 
-Progress: [█████████████] 65%
+Progress: [██████████████] 69%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
+- Total plans completed: 13
 - Average duration: 3.7 min
-- Total execution time: 0.69 hours
+- Total execution time: 0.76 hours
 
 **By Phase:**
 
@@ -31,10 +31,11 @@ Progress: [█████████████] 65%
 | 02-ai-backbone-and-safety | 3/3 | 9 min | 3 min |
 | 03-autonomous-loop | 6/6 | 20 min | 3.3 min |
 | 04-wallet-and-financial-governance | 4/4 | 28 min | 7 min |
+| 05-web-dashboard | 1/2 | 4 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-01 (8 min), 04-02 (4 min), 04-03 (14 min), 04-04 (2 min)
-- Trend: Phase 4 complete; small gap-closure plans execute quickly
+- Last 5 plans: 04-02 (4 min), 04-03 (14 min), 04-04 (2 min), 05-01 (4 min)
+- Trend: Phase 5 web dashboard underway; API backend complete in 4 min
 
 *Updated after each plan completion*
 | Phase 02-ai-backbone-and-safety P02 | 4 | 2 tasks | 11 files |
@@ -48,6 +49,7 @@ Progress: [█████████████] 65%
 | Phase 04-wallet-and-financial-governance P02 | 4 | 2 tasks | 6 files |
 | Phase 04-wallet-and-financial-governance P03 | 14 | 2 tasks | 12 files |
 | Phase 04-wallet-and-financial-governance P04 | 2 | 1 tasks | 1 files |
+| Phase 05-web-dashboard P01 | 4 | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -119,6 +121,11 @@ Recent decisions affecting current work:
 - [Phase 04-03]: createRequire(import.meta.url).resolve() for signer path — ESM-compatible, resolves @jarvis/wallet/dist/signer/server.js from node_modules
 - [Phase 04-03]: ShutdownSignerProcess.kill() accepts number|NodeJS.Signals|string — matches ChildProcess.kill() while staying pnpm-isolated
 - [Phase 04-04]: SPL governance uses raw token base units vs lamport ceilings — coarse safety net preventing unbounded SPL sends; USD-denominated per-token limits require oracle pricing, deferred to future phase
+- [Phase 05-01]: Hono app factory in app.ts, server lifecycle in index.ts — clean separation of app definition vs startup
+- [Phase 05-01]: serveStatic mounted AFTER API routes — prevents /api/* requests being caught by static file handler
+- [Phase 05-01]: SSE heartbeat uses event:heartbeat with empty data (not comment field) — Hono SSEMessage type has no comment field
+- [Phase 05-01]: broadcaster.ts EventEmitter singleton with maxListeners=100 — central fan-out for SSE; poller emits, SSE route subscribes
+- [Phase 05-01]: Poller starts immediately at startup then runs on interval — processes state from prior runs without waiting first interval
 
 ### Pending Todos
 
@@ -132,6 +139,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-18
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-web-dashboard/05-CONTEXT.md
+Last session: 2026-02-19
+Stopped at: Completed 05-01 (Hono API server for dashboard — all 5 endpoints + SSE)
+Resume file: .planning/phases/05-web-dashboard/05-01-SUMMARY.md
