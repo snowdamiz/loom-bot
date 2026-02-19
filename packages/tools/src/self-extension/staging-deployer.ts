@@ -1,7 +1,8 @@
 import type { DbClient } from '@jarvis/db';
 import { compileTypeScript } from './compiler.js';
-import { runInSandbox } from './sandbox-runner.js';
 import { runGitHubSelfExtensionPipeline } from './github-pipeline.js';
+import { runIsolatedVerification } from './isolated-verifier.js';
+import type { VerificationRunResult } from './verification-diagnostics.js';
 import type { SelfExtensionExecutionContext } from './pipeline-context.js';
 
 const SANDBOX_STATUS_CONTEXT = 'jarvis/sandbox';
@@ -20,14 +21,17 @@ export interface StageBuiltinChangeResult {
   promotionBlocked: boolean;
   blockReasons: string[];
   mergeError?: string;
+  verificationSummary?: string;
+  verificationDiagnostics?: VerificationRunResult;
 }
 
-function summarizeSandboxOutput(value: unknown): string {
-  const serialized = typeof value === 'string' ? value : JSON.stringify(value);
-  if (!serialized) {
-    return 'No sandbox output was produced.';
-  }
-  return serialized.slice(0, 400);
+function summarizeVerificationFailure(diagnostics: VerificationRunResult): string {
+  const failedStage = diagnostics.stages.find(
+    (stage) => stage.status !== 'pass' && stage.status !== 'skipped',
+  );
+  const reason = failedStage?.failureReason ?? diagnostics.failure?.reason ?? 'unknown verification failure';
+  const stage = failedStage?.name ?? diagnostics.failure?.stage ?? 'unknown-stage';
+  return `${stage}: ${reason}`;
 }
 
 /**
@@ -36,7 +40,7 @@ function summarizeSandboxOutput(value: unknown): string {
  *
  * Safety ordering is preserved:
  * 1) compile candidate code
- * 2) run sandbox verification
+ * 2) run isolated verification policy (compile + targetedTests + startupSmoke)
  * 3) execute repository branch/commit/PR pipeline
  */
 export async function stageBuiltinChange(opts: {
@@ -47,10 +51,8 @@ export async function stageBuiltinChange(opts: {
   testInput: unknown;
   executionContext?: SelfExtensionExecutionContext;
 }): Promise<StageBuiltinChangeResult> {
-  let compiledCode: string;
   try {
-    const compiled = await compileTypeScript(opts.newContent);
-    compiledCode = compiled.code;
+    await compileTypeScript(opts.newContent);
   } catch (err) {
     return {
       success: false,
@@ -64,9 +66,28 @@ export async function stageBuiltinChange(opts: {
     };
   }
 
-  const sandboxStart = Date.now();
-  const sandboxResult = await runInSandbox(compiledCode, opts.toolName, opts.testInput, 30_000);
-  const sandboxDurationMs = Date.now() - sandboxStart;
+  const verification = await runIsolatedVerification({
+    repoRoot: process.cwd(),
+    candidateFilePath: opts.filePath,
+    candidateContent: opts.newContent,
+    baseRef: 'HEAD',
+    runId: `builtin-${opts.toolName}-${Date.now()}`,
+  });
+
+  if (!verification.passed) {
+    return {
+      success: false,
+      error: `Isolated verification failed: ${summarizeVerificationFailure(verification.diagnostics)}`,
+      evidenceStatusContext: SANDBOX_STATUS_CONTEXT,
+      evidenceState: 'failure',
+      promotionAttempted: false,
+      promotionSucceeded: false,
+      promotionBlocked: true,
+      blockReasons: ['isolated-verification-failed'],
+      verificationSummary: verification.evidence.summary,
+      verificationDiagnostics: verification.diagnostics,
+    };
+  }
 
   const pipelineResult = await runGitHubSelfExtensionPipeline({
     db: opts.db,
@@ -75,11 +96,9 @@ export async function stageBuiltinChange(opts: {
     newContent: opts.newContent,
     executionContext: opts.executionContext,
     sandboxEvidence: {
-      passed: sandboxResult.passed,
-      durationMs: sandboxDurationMs,
-      summary: sandboxResult.passed
-        ? `Sandbox passed in ${sandboxDurationMs}ms`
-        : summarizeSandboxOutput(sandboxResult.error ?? sandboxResult.output),
+      passed: verification.evidence.passed,
+      durationMs: verification.evidence.durationMs,
+      summary: verification.evidence.summary,
     },
   });
 
@@ -98,24 +117,8 @@ export async function stageBuiltinChange(opts: {
       promotionBlocked: pipelineResult.promotionBlocked,
       blockReasons: pipelineResult.blockReasons,
       mergeError: pipelineResult.mergeError,
-    };
-  }
-
-  if (!sandboxResult.passed) {
-    return {
-      success: false,
-      error: `Sandbox test failed: ${sandboxResult.error ?? 'unknown sandbox error'}`,
-      branchName: pipelineResult.branchName,
-      headSha: pipelineResult.headSha,
-      pullRequestUrl: pipelineResult.pullRequestUrl,
-      pullRequestNumber: pipelineResult.pullRequestNumber,
-      evidenceStatusContext: pipelineResult.evidenceStatusContext,
-      evidenceState: pipelineResult.evidenceState,
-      promotionAttempted: pipelineResult.promotionAttempted,
-      promotionSucceeded: pipelineResult.promotionSucceeded,
-      promotionBlocked: pipelineResult.promotionBlocked,
-      blockReasons: pipelineResult.blockReasons,
-      mergeError: pipelineResult.mergeError,
+      verificationSummary: verification.evidence.summary,
+      verificationDiagnostics: verification.diagnostics,
     };
   }
 
@@ -132,5 +135,7 @@ export async function stageBuiltinChange(opts: {
     promotionBlocked: pipelineResult.promotionBlocked,
     blockReasons: pipelineResult.blockReasons,
     mergeError: pipelineResult.mergeError,
+    verificationSummary: verification.evidence.summary,
+    verificationDiagnostics: verification.diagnostics,
   };
 }
