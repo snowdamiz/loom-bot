@@ -12,6 +12,44 @@
 export { compileTypeScript } from './compiler.js';
 export { runInSandbox } from './sandbox-runner.js';
 export type { SandboxResult } from './sandbox-runner.js';
+export { runBoundedCommand } from './bounded-command.js';
+export type {
+  RunBoundedCommandInput,
+  BoundedCommandResult,
+  BoundedCommandStatus,
+} from './bounded-command.js';
+export {
+  createIsolatedWorktree,
+  cleanupIsolatedWorktree,
+  WorktreeIsolationError,
+} from './workspace-isolation.js';
+export type {
+  CreateIsolatedWorktreeInput,
+  IsolatedWorktreeHandle,
+  CleanupIsolatedWorktreeInput,
+  CleanupIsolatedWorktreeResult,
+  WorktreeIsolationFailureCategory,
+  WorktreeIsolationOperation,
+  WorktreeIsolationErrorDetails,
+} from './workspace-isolation.js';
+export {
+  boundedStatusToVerificationStatus,
+  inferFailureCategoryFromStage,
+  buildVerificationStageResultFromCommand,
+  deriveVerificationRunStatus,
+  buildVerificationRunResult,
+} from './verification-diagnostics.js';
+export type {
+  VerificationStageStatus,
+  VerificationRunStatus,
+  VerificationFailureCategory,
+  VerificationWorkspaceSummary,
+  VerificationFailureSummary,
+  VerificationStageCommand,
+  VerificationStageResourceSummary,
+  VerificationStageResult,
+  VerificationRunResult,
+} from './verification-diagnostics.js';
 export { loadPersistedTools, AGENT_TOOLS_DIR } from './tool-loader.js';
 export { createToolWriteTool, createToolDeleteTool } from './tool-writer.js';
 export { createSchemaExtendTool } from './schema-extend.js';
