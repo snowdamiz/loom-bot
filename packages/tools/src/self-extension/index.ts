@@ -17,6 +17,16 @@ export { createToolWriteTool, createToolDeleteTool } from './tool-writer.js';
 export { createSchemaExtendTool } from './schema-extend.js';
 export { stageBuiltinChange } from './staging-deployer.js';
 export { assertGitHubTrustForBuiltinModify } from './github-trust-guard.js';
+export {
+  buildCommitMetadata,
+  stableSerialize,
+} from './pipeline-context.js';
+export type {
+  SelfExtensionExecutionContext,
+  CommitMetadataPayload,
+  CommitMetadataEnvelope,
+} from './pipeline-context.js';
+export { buildSelfExtensionBranchName } from './branch-naming.js';
 
 import type { DbClient } from '@jarvis/db';
 import type { ToolRegistry } from '../registry.js';
