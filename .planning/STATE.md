@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** The agent must be able to autonomously reason about opportunities, acquire the tools and accounts it needs, and execute money-making strategies without human intervention.
-**Current focus:** Phase 8: Self-Extension and Agent Economics — IN PROGRESS (3/4 plans done)
+**Current focus:** Phase 8: Self-Extension and Agent Economics — COMPLETE (4/4 plans done)
 
 ## Current Position
 
-Phase: 8 of 8 (Self-Extension and Agent Economics) — IN PROGRESS
-Plan: 3 of 4 in current phase (08-03 complete — tool_write, tool_delete, createSelfExtensionTools factory, stageBuiltinChange)
-Status: Phase 8 in progress — 3/4 plans done
-Last activity: 2026-02-19 — Completed 08-03 (tool_write ToolDefinition, tool_delete ToolDefinition, git branch staging for built-in mods, createSelfExtensionTools factory)
+Phase: 8 of 8 (Self-Extension and Agent Economics) — COMPLETE
+Plan: 4 of 4 in current phase (08-04 complete — agent+worker Phase 8 wiring, loadPersistedTools, self-extension tools registered, reload-tools BullMQ sync)
+Status: Phase 8 complete — 4/4 plans done. All 8 phases complete.
+Last activity: 2026-02-19 — Completed 08-04 (agent loads persisted tools on startup, registers self-extension tools, worker syncs via BullMQ reload-tools)
 
 Progress: [█████████████████████████] 100%
 
@@ -61,6 +61,7 @@ Progress: [███████████████████████
 | Phase 07-strategy-engine P02 | 3 | 2 tasks | 6 files |
 | Phase 08 P02 | 2 | 2 tasks | 1 files |
 | Phase 08 P03 | 2 | 2 tasks | 4 files |
+| Phase 08 P04 | 2 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -172,6 +173,9 @@ Recent decisions affecting current work:
 - [Phase 08-03]: createToolWriteTool/createToolDeleteTool capture built-in tool names at factory creation time as Set<string> snapshot — stable across all invocations within process lifetime
 - [Phase 08-03]: Built-in modification gate uses builtinToolNames Set checked at execute() entry; builtinModify=true required to modify Phase 1-7 tools via git branch staging
 - [Phase 08-03]: stageBuiltinChange captures originalBranch via git.revparse before staging branch creation — never assumes 'main' branch name
+- [Phase 08-04]: onToolChange optional callback on createSelfExtensionTools — backward compatible, keeps @jarvis/tools free of bullmq dependency; callers inject enqueue function from outside
+- [Phase 08-04]: reload-tools BullMQ Worker in worker.ts: concurrency 1, removeOnComplete age 60s — transient notifications, not tool execution jobs needing DLQ
+- [Phase 08-04]: loadPersistedTools in worker.ts uses non-blocking .then()/.catch() — worker accepts jobs immediately while persisted tools load in parallel
 
 ### Pending Todos
 
@@ -186,5 +190,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 08-03-PLAN.md (tool_write, tool_delete, stageBuiltinChange, createSelfExtensionTools factory)
-Resume file: .planning/phases/08-self-extension-and-agent-economics/08-04-PLAN.md
+Stopped at: Completed 08-04-PLAN.md (Phase 8 complete: agent+worker wiring, loadPersistedTools, self-extension tools, reload-tools BullMQ sync)
+Resume file: All 8 phases complete — no further plans to execute
