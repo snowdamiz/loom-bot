@@ -31,8 +31,12 @@ None.
 
 None — v1.0 shipped.
 
+### Quick Tasks Completed
+
+- quick-1 (2026-02-19): Login->Setup Wizard->Dashboard with Sidebar Chat — agent stripped to 12 essential tools, starts OFF with paused seed goal
+
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: v1.0 milestone completion — all 9 phases archived
+Stopped at: Completed quick task 1 — app flow restructure (Login->Setup Wizard->Dashboard)
 Resume file: Use `/gsd:new-milestone` to start next milestone
