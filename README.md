@@ -1,12 +1,12 @@
 # Jarvis
 
-A fully autonomous money-making agent that runs 24/7. Given a Solana wallet, a database, and multi-model AI access, it bootstraps everything else.
+A fully autonomous money-making agent that runs 24/7. Given a database and multi-model AI access, it bootstraps everything else — including acquiring the tools, accounts, and integrations it needs.
 
 ## What This Is
 
 Jarvis is an autonomous agent that reasons about opportunities, acquires tools and accounts, and executes strategies without human intervention. It operates as a persistent process that maintains its own goals, evaluates outcomes, and replans when strategies fail. There are no human approval gates in the normal execution path — the operator sets the kill switch and monitors via a dashboard.
 
-The codebase is 12,700+ lines of TypeScript across 133 files organized as a Turborepo monorepo with 9 packages. Every subsystem is purpose-built: a goal-planner agent loop with multi-agent parallelism, a Solana wallet with IPC signing and spend governance, Playwright browser automation with stealth and CAPTCHA solving, an encrypted identity vault for acquired credentials, a strategy lifecycle engine, a self-extending tool system, and a real-time operator dashboard.
+The codebase is a Turborepo monorepo. Every subsystem is purpose-built: a goal-planner agent loop with multi-agent parallelism, Playwright browser automation with stealth and CAPTCHA solving, a strategy lifecycle engine, a self-extending tool system, and a real-time operator dashboard. An encrypted identity vault stores acquired credentials.
 
 Version 1.0 satisfies all 93 v1 requirements and represents a complete MVP. The agent starts in an OFF state on first boot, requiring the operator to activate it via the dashboard after reviewing the seeded self-evolution goal.
 
@@ -21,9 +21,8 @@ jarvis/
   packages/
     db/          — Postgres via Drizzle ORM (22 schema tables)
     ai/          — Multi-model routing via OpenRouter (Claude/GPT/Grok tiers), cost monitoring
-    wallet/      — Solana wallet (SOL+SPL), IPC signer co-process, spend governance
     browser/     — Playwright with stealth plugin, CAPTCHA solving (2captcha)
-    tools/       — 20 agent tools (shell, HTTP, file, DB, browser, identity, wallet, self-extension)
+    tools/       — Agent tools (shell, HTTP, file, DB, browser, identity, self-extension)
     logging/     — Structured logging to Postgres
     typescript-config/ — Shared tsconfig
 ```
@@ -36,8 +35,6 @@ typescript-config  (no deps)
      db            (base layer — schema, pool, Drizzle client)
     / \
 logging  ai        (logging: writes events to DB; ai: model routing, cost tracking)
-          |
-        wallet     (Solana signing; depends on ai+db for strategy context)
 browser            (standalone — Playwright lifecycle, stealth, CAPTCHA)
      \   |
       tools        (aggregates all packages into callable tool definitions)
@@ -64,7 +61,6 @@ browser            (standalone — Playwright lifecycle, stealth, CAPTCHA)
 - Node.js >= 22
 - pnpm 9.15.4 (managed via corepack)
 - Docker (for Postgres 16 and Redis 7)
-- Solana wallet with SOL (for on-chain operations)
 - OpenRouter API key (for AI model access)
 
 ## Quick Start
@@ -104,10 +100,8 @@ On first boot the agent writes the kill switch to Postgres and inserts a paused 
 |----------|----------|-------------|---------|
 | `DATABASE_URL` | Yes | Postgres connection string | `postgres://jarvis:jarvis@localhost:5433/jarvis` |
 | `REDIS_URL` | Yes | Redis connection string | `redis://localhost:6379` |
-| `OPENROUTER_API_KEY` | Yes | OpenRouter API key for AI model access | `sk-or-...` |
-| `SOLANA_PRIVATE_KEY` | Yes | Solana wallet private key (base58) | — |
-| `SIGNER_SHARED_SECRET` | Yes | HMAC secret for IPC signer authentication | `openssl rand -hex 32` |
-| `CREDENTIAL_ENCRYPTION_KEY` | Yes | AES key for identity credential vault | `openssl rand -hex 32` |
+| `OPENROUTER_API_KEY` | No | Fallback — prefer configuring via dashboard setup wizard | `sk-or-...` |
+| `CREDENTIAL_ENCRYPTION_KEY` | No | AES key for identity credential vault | `openssl rand -hex 32` |
 | `JARVIS_MODEL_STRONG` | No | Strong tier model override | `anthropic/claude-opus-4.6` |
 | `JARVIS_MODEL_MID` | No | Mid tier model override | `anthropic/claude-sonnet-4.5` |
 | `JARVIS_MODEL_CHEAP` | No | Cheap tier model override | `x-ai/grok-4.1-fast` |
@@ -115,9 +109,7 @@ On first boot the agent writes the kill switch to Postgres and inserts a paused 
 | `DISCORD_OPERATOR_USER_ID` | No | Discord user ID to receive DM alerts | — |
 | `TWO_CAPTCHA_API_KEY` | No | 2captcha API key for CAPTCHA solving | — |
 | `DASHBOARD_PORT` | No | Dashboard server port (default: 3001) | `3001` |
-| `DASHBOARD_TOKEN` | No | Bearer token for dashboard API authentication | — |
-| `SIGNER_SOCKET_PATH` | No | Unix socket path for IPC signer (default: `/tmp/jarvis-signer.sock`) | `/tmp/jarvis-signer.sock` |
-
+| `DASHBOARD_TOKEN` | Dashboard | Bearer token for dashboard API authentication | — |
 Generate secrets with: `openssl rand -hex 32`
 
 ## Development
@@ -171,15 +163,11 @@ The agent starts with 20 tools registered. Domain-specific tools (wallet integra
 
 ## Security Model
 
-**IPC signing.** The Solana private key never appears in the LLM's context or tool call arguments. A separate co-process holds the key and exposes a Unix socket (`SIGNER_SOCKET_PATH`). All signing requests are authenticated with HMAC-SHA256 using `SIGNER_SHARED_SECRET`. The main agent process cannot extract the key even if compromised.
-
-**Spend governance.** Wallet transactions are subject to configurable per-transaction and rolling limits. The agent cannot move funds beyond the operator-defined thresholds without explicit override.
-
 **Credential vault.** Service credentials acquired by the agent (API keys, account passwords) are encrypted with AES using `CREDENTIAL_ENCRYPTION_KEY` before being written to Postgres. The agent reads and writes credentials through the vault API; plaintext is never persisted.
 
 **Kill switch.** The operator can halt all agent activity by activating the kill switch via the dashboard or a direct DB update to `agent_state` where `key = 'kill_switch'`. The `KillSwitchGuard` checks this state before every tool execution and before each agent loop tick. State persists across restarts.
 
-**No approval gates by design.** Jarvis is built for full autonomy. The safety model is: kill switch for emergency stop, spend governance for financial limits, and the dashboard for observability. There are no interactive approval prompts in the execution path.
+**No approval gates by design.** Jarvis is built for full autonomy. The safety model is: kill switch for emergency stop and the dashboard for observability. There are no interactive approval prompts in the execution path.
 
 ## Tech Stack
 
@@ -192,7 +180,6 @@ The agent starts with 20 tools registered. Domain-specific tools (wallet integra
 | AI | OpenRouter (Claude, GPT, Grok) |
 | HTTP | Hono |
 | Browser | Playwright + stealth plugin |
-| Blockchain | @solana/web3.js |
 | Build | esbuild (tool compilation), tsc (package builds) |
 | Deployment | Docker Compose / Fly.io |
 

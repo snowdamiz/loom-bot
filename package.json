@@ -5,6 +5,7 @@
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
+    "dev:landing": "pnpm --filter @jarvis/dashboard-client dev",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
     "db:push": "pnpm --filter @jarvis/db run db:push",

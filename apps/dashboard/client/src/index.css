@@ -1,0 +1,68 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Sora:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 216 25% 98%;
+    --foreground: 220 28% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 28% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 28% 12%;
+    --primary: 220 82% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 12 88% 58%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 216 20% 95%;
+    --muted-foreground: 220 15% 42%;
+    --accent: 40 95% 52%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 20% 88%;
+    --input: 220 20% 85%;
+    --ring: 220 82% 50%;
+    --radius: 1.1rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  html,
+  body,
+  #root {
+    min-height: 100%;
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+    text-rendering: optimizeLegibility;
+    background-attachment: fixed;
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.25);
+    color: hsl(var(--foreground));
+  }
+}
+
+@layer utilities {
+  .surface-grid {
+    background-image:
+      linear-gradient(to right, hsl(var(--border) / 0.42) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--border) / 0.42) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}

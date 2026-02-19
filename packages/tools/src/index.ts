@@ -17,9 +17,6 @@ export { httpTool } from './http/index.js';
 export { fileTool } from './file/index.js';
 export { createDbTool, dbTool } from './db-tool/index.js';
 
-// Wallet tools (Plan 04-03)
-export { createWalletTools } from './wallet/index.js';
-
 // Browser tools (Phase 06)
 export { createBrowserTools } from './browser/index.js';
 

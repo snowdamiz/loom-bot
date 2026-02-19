@@ -66,12 +66,32 @@ async function main(): Promise<void> {
   // 4. Wire Phase 2 components: KillSwitchGuard and ModelRouter
   const killSwitch = new KillSwitchGuard(db);
   const modelConfig = loadModelConfig();
-  const router = createRouter(db, process.env.OPENROUTER_API_KEY!);
+
+  // Resolve OpenRouter API key: DB (set via dashboard wizard) takes priority, env var is fallback
+  const openrouterKeyRow = await db
+    .select()
+    .from(agentState)
+    .where(eq(agentState.key, 'config:openrouter_api_key'))
+    .limit(1);
+
+  const openrouterApiKey =
+    (openrouterKeyRow[0]?.value as { apiKey?: string } | undefined)?.apiKey ??
+    process.env.OPENROUTER_API_KEY;
+
+  if (!openrouterApiKey) {
+    process.stderr.write(
+      '[agent] OPENROUTER_API_KEY not configured. ' +
+      'Set it via the dashboard setup wizard or the OPENROUTER_API_KEY environment variable.\n',
+    );
+    process.exit(1);
+  }
+
+  const router = createRouter(db, openrouterApiKey);
 
   // CreditMonitor — polls OpenRouter balance, Discord DM on low credits
   const creditMonitor = new CreditMonitor(
     {
-      apiKey: process.env.OPENROUTER_API_KEY!,
+      apiKey: openrouterApiKey,
       discordBotToken: process.env.DISCORD_BOT_TOKEN,
       discordOperatorUserId: process.env.DISCORD_OPERATOR_USER_ID,
     },

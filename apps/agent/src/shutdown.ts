@@ -5,15 +5,15 @@ import type { Worker } from 'bullmq';
  *
  * Listens for SIGTERM and SIGINT signals and shuts down in order:
  * 1.   Memory consolidation interval (prevents new DB writes)
- * 2.   Wallet subscription (stops inbound monitoring)
- * 2.5. Browser close (kills Chromium child process — prevents zombie, Phase 6)
+ * 1.5. CreditMonitor polling interval (Phase 9)
+ * 2.   Browser close (kills Chromium child process — prevents zombie, Phase 6)
  * 3.   Supervisor: stop all active main agent loops (Phase 3)
  * 4.   Agent worker: close BullMQ worker for sub-agent jobs (Phase 3)
  * 5.   Agent-tasks queue: close BullMQ queue for sub-agent dispatch (Phase 3)
+ * 5.5. Reload-tools queue (Phase 8)
  * 6.   BullMQ worker (if provided)
- * 7.   Signer process: kill SIGTERM to signer co-process (Phase 4)
- * 8.   Redis client
- * 9.   Postgres connection pool
+ * 7.   Redis client
+ * 8.   Postgres connection pool
  *
  * Per research anti-pattern guidance: ALWAYS call pool.end() to prevent connection leaks.
  * A 10-second force-kill timeout ensures the process exits even if graceful shutdown hangs.
@@ -39,18 +39,6 @@ export interface ShutdownSupervisor {
 }
 
 /**
- * Duck-typed interface for the signer child process.
- * Avoids importing child_process types directly (pnpm strict isolation).
- * Only needs kill() and pid for shutdown purposes.
- *
- * kill() accepts number | NodeJS.Signals | string to match ChildProcess.kill() signature.
- */
-export interface ShutdownSignerProcess {
-  kill(signal?: number | NodeJS.Signals | string): boolean;
-  pid?: number;
-}
-
-/**
  * Minimal interface for BrowserManager shutdown — avoids importing the concrete
  * BrowserManager class in shutdown.ts, keeping it decoupled per pnpm strict isolation.
  * Matches the BrowserManager API from @jarvis/browser.
@@ -71,10 +59,6 @@ export interface ShutdownResources {
   agentWorker?: Worker;
   /** Phase 3: BullMQ queue for sub-agent job dispatch */
   agentTasksQueue?: { close(): Promise<void> };
-  /** Phase 4: Signer co-process (child_process.fork) */
-  signerProcess?: ShutdownSignerProcess;
-  /** Phase 4: Wallet WebSocket subscription */
-  walletSubscription?: { stop: () => void };
   /** Phase 6: Browser manager (Chromium child process — must close to prevent zombie) */
   browserManager?: ShutdownBrowserManager;
   /** Phase 8: BullMQ queue for reload-tools dispatch */
@@ -92,8 +76,6 @@ export function registerShutdownHandlers(resources: ShutdownResources): void {
     supervisor,
     agentWorker,
     agentTasksQueue,
-    signerProcess,
-    walletSubscription,
     browserManager,
     reloadToolsQueue,
     creditMonitor,
@@ -124,13 +106,7 @@ export function registerShutdownHandlers(resources: ShutdownResources): void {
         process.stderr.write('[shutdown] CreditMonitor stopped.\n');
       }
 
-      // 2. Stop wallet subscription (inbound monitoring) before stopping supervisor
-      if (walletSubscription !== undefined) {
-        walletSubscription.stop();
-        process.stderr.write('[shutdown] Wallet subscription stopped.\n');
-      }
-
-      // 2.5. Close browser (kills Chromium child process — prevents zombie per research Pitfall 6)
+      // 2. Close browser (kills Chromium child process — prevents zombie per research Pitfall 6)
       if (browserManager !== undefined && browserManager.isRunning()) {
         await browserManager.close();
         process.stderr.write('[shutdown] Browser closed.\n');
@@ -169,17 +145,11 @@ export function registerShutdownHandlers(resources: ShutdownResources): void {
         process.stderr.write('[shutdown] BullMQ worker closed.\n');
       }
 
-      // 7. Kill signer co-process (after queues closed — no more signing needed)
-      if (signerProcess !== undefined) {
-        signerProcess.kill('SIGTERM');
-        process.stderr.write(`[shutdown] Signer process (pid ${signerProcess.pid ?? 'unknown'}) sent SIGTERM.\n`);
-      }
-
-      // 8. Quit Redis (sends QUIT command, waits for acknowledgment)
+      // 7. Quit Redis (sends QUIT command, waits for acknowledgment)
       await redis.quit();
       process.stderr.write('[shutdown] Redis disconnected.\n');
 
-      // 9. End Postgres pool (drains in-flight queries, prevents connection leaks)
+      // 8. End Postgres pool (drains in-flight queries, prevents connection leaks)
       await pool.end();
       process.stderr.write('[shutdown] Postgres pool closed.\n');
 

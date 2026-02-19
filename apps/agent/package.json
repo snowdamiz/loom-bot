@@ -16,7 +16,6 @@
     "@jarvis/db": "workspace:*",
     "@jarvis/logging": "workspace:*",
     "@jarvis/tools": "workspace:*",
-    "@jarvis/wallet": "workspace:*",
     "bullmq": "^5.34.8",
     "dotenv": "^16.4.7",
     "zod": "^3.25.76"
