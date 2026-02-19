@@ -28,7 +28,7 @@ This milestone only covers hardening self-extension. Existing v1.0 capabilities 
 
 - [x] **SEXT-09**: Candidate code must be tested in an isolated sandbox workspace, not directly against live running source files.
 - [x] **SEXT-10**: Sandbox execution must enforce timeout and resource limits so failed tests cannot wedge the main agent loop.
-- [ ] **SEXT-11**: Verification must include at least: TypeScript compile, targeted tests for changed modules, and a startup smoke check.
+- [x] **SEXT-11**: Verification must include at least: TypeScript compile, targeted tests for changed modules, and a startup smoke check.
 - [x] **SEXT-12**: Failed sandbox runs must return structured diagnostics that are logged and visible in operator tooling.
 
 ### Rollback, Recovery, and Observability

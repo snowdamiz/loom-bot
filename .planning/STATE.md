@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 ## Current Position
 
 Phase: 12-isolated-sandbox-verification
-Plan: 01 completed (next: 02)
-Status: Completed Phase 12 Plan 01 isolated sandbox primitives; ready to execute Plan 02 verifier orchestration
-Last activity: 2026-02-19 - Completed 12-01 implementation, summary, and requirements tracking
+Plan: 02 completed (next: 03)
+Status: Completed Phase 12 Plan 02 isolated verifier orchestration; ready to execute Plan 03 startup smoke/diagnostics surfacing
+Last activity: 2026-02-19 - Completed 12-02 implementation, summary, and requirements tracking
 
-Progress: [████████░░░░░░░░░░░░░░░░] 33% (phase 12 execution)
+Progress: [████████████████░░░░░░░░] 67% (phase 12 execution)
 
 ## Accumulated Context
 
@@ -40,10 +40,12 @@ All v1.0 decisions reviewed and outcomes recorded at milestone completion.
 - [Phase 12]: Worktree lifecycle failures are encoded as typed WorktreeIsolationError metadata categories. — Verifier orchestration needs deterministic classification of setup/infra/cleanup failures for safe promotion gating and operator diagnostics.
 - [Phase 12]: All isolation shell-outs use runBoundedCommand with timeout, kill escalation, and bounded output capture. — SEXT-10 requires deterministic runtime bounds and prevents verifier subprocesses from wedging the main agent loop.
 - [Phase 12]: Verification diagnostics are normalized from bounded command telemetry into typed stage and run contracts. — SEXT-12 requires machine-readable failure data for downstream staging decisions and operator visibility.
+- [Phase 12]: Verification policy now emits fixed required stages compile, targetedTests, and startupSmoke for every builtin candidate run. — SEXT-11 requires deterministic required-stage enforcement; unknown paths must fail closed instead of skipping checks.
+- [Phase 12]: Isolated verifier hydrates required node_modules links into ephemeral worktrees before executing policy stages. — Ensures isolated stage commands can execute toolchain binaries without mutating the live checkout and prevents false failures from missing dependencies.
+- [Phase 12]: stageBuiltinChange now returns before pipeline invocation whenever isolated verifier does not pass. — Promotion safety requires fail-closed behavior so repository branch/PR operations never run on unverified candidates.
 
 ### Pending Todos
 
-- Execute Phase 12 Plan 02 (isolated verifier orchestration + staging integration).
 - Execute Phase 12 Plan 03 (startup smoke mode + structured diagnostic surfacing).
 
 ### Blockers/Concerns
@@ -66,9 +68,10 @@ All v1.0 decisions reviewed and outcomes recorded at milestone completion.
 | 11 | 02 | 3 min | 3 | 5 |
 | 11 | 03 | 2 min | 3 | 6 |
 | 12 | 01 | 3 min | 3 | 4 |
+| 12 | 02 | 4 min | 3 | 4 |
 
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 12-01-PLAN.md
-Resume file: .planning/phases/12-isolated-sandbox-verification/12-01-SUMMARY.md
+Stopped at: Completed 12-02-PLAN.md
+Resume file: .planning/phases/12-isolated-sandbox-verification/12-02-SUMMARY.md
