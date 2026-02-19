@@ -151,13 +151,6 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **EXTEND-04**: Agent can extend its own database schema as its needs evolve
 - [x] **EXTEND-05**: Failed code deployments are rolled back without affecting the core agent loop
 
-### Agent-to-Agent Economics
-
-- [x] **AGENT-01**: Agent can discover services available via x402 protocol
-- [x] **AGENT-02**: Agent can make micropayments to other agents/services for data or compute
-- [x] **AGENT-03**: Agent can offer its own capabilities as paid services via x402
-- [x] **AGENT-04**: All x402 transactions are logged and tracked in P&L
-
 ## v2 Requirements
 
 Deferred to future release. Tracked but not in current roadmap.
@@ -185,6 +178,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | On-Chain Agent Logic | Smart contract execution is expensive and exposes strategy. Reasoning stays off-chain. |
 | Complex Confidence Scoring | Adds latency to every decision. Binary action criteria instead. |
 | External Content Filters | Project is explicitly unconstrained. Structural limits (kill switch, budget caps) instead. |
+| Agent-to-Agent Economics (x402) | Removed from v1 — bot pivoted to domain-agnostic. Agent can build x402 tools via self-extension if its strategy requires them. |
 
 ## Traceability
 
@@ -285,16 +279,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EXTEND-03 | Phase 8 | Complete |
 | EXTEND-04 | Phase 8 | Complete |
 | EXTEND-05 | Phase 8 | Complete |
-| AGENT-01 | Phase 8 | Complete |
-| AGENT-02 | Phase 8 | Complete |
-| AGENT-03 | Phase 8 | Complete |
-| AGENT-04 | Phase 8 | Complete |
 
 **Coverage:**
-- v1 requirements: 97 total
-- Mapped to phases: 97
+- v1 requirements: 93 total
+- Mapped to phases: 93
 - Unmapped: 0
+- Removed from v1: 4 (AGENT-01-04, moved to Out of Scope)
 
 ---
 *Requirements defined: 2026-02-18*
-*Last updated: 2026-02-18 after roadmap creation*
+*Last updated: 2026-02-19 — removed AGENT-01-04 (x402 economics) from v1 scope*
