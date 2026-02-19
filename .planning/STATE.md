@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 ## Current Position
 
 Phase: 12-isolated-sandbox-verification
-Plan: Not started
-Status: Phase 11 verification passed and phase completion recorded; ready to discuss/plan Phase 12
-Last activity: 2026-02-19 - Completed phase 11 verification and milestone tracking updates
+Plan: 01 completed (next: 02)
+Status: Completed Phase 12 Plan 01 isolated sandbox primitives; ready to execute Plan 02 verifier orchestration
+Last activity: 2026-02-19 - Completed 12-01 implementation, summary, and requirements tracking
 
-Progress: [░░░░░░░░░░░░░░░░░░░░░░░] 0% (phase 12 execution)
+Progress: [████████░░░░░░░░░░░░░░░░] 33% (phase 12 execution)
 
 ## Accumulated Context
 
@@ -37,11 +37,14 @@ All v1.0 decisions reviewed and outcomes recorded at milestone completion.
 - [Phase 11]: Promotion gate defaults to required context jarvis/sandbox and blocks merge on missing/pending/failing states. — SEXT-08 requires fail-closed promotion behavior tied to repository status truth.
 - [Phase 11]: Promotion merge uses expected head SHA guard and only cleans branch after successful merge. — Prevents stale-head merges and ensures short-lived branch artifacts are cleaned up only when promotion is truly complete.
 - [Phase 11]: Builtin modify payload now exposes promotionBlocked, blockReasons, and mergeError diagnostics. — Operators and autonomous planning need deterministic machine-readable failure reasons to recover safely.
+- [Phase 12]: Worktree lifecycle failures are encoded as typed WorktreeIsolationError metadata categories. — Verifier orchestration needs deterministic classification of setup/infra/cleanup failures for safe promotion gating and operator diagnostics.
+- [Phase 12]: All isolation shell-outs use runBoundedCommand with timeout, kill escalation, and bounded output capture. — SEXT-10 requires deterministic runtime bounds and prevents verifier subprocesses from wedging the main agent loop.
+- [Phase 12]: Verification diagnostics are normalized from bounded command telemetry into typed stage and run contracts. — SEXT-12 requires machine-readable failure data for downstream staging decisions and operator visibility.
 
 ### Pending Todos
 
-- Discuss Phase 12 implementation approach and assumptions.
-- Create and execute Phase 12 plans for isolated sandbox verification requirements (SEXT-09..SEXT-12).
+- Execute Phase 12 Plan 02 (isolated verifier orchestration + staging integration).
+- Execute Phase 12 Plan 03 (startup smoke mode + structured diagnostic surfacing).
 
 ### Blockers/Concerns
 
@@ -62,9 +65,10 @@ All v1.0 decisions reviewed and outcomes recorded at milestone completion.
 | 11 | 01 | 4 min | 3 | 8 |
 | 11 | 02 | 3 min | 3 | 5 |
 | 11 | 03 | 2 min | 3 | 6 |
+| 12 | 01 | 3 min | 3 | 4 |
 
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed phase-11 verification and execution workflow
-Resume file: .planning/phases/11-version-controlled-self-modification-pipeline/11-VERIFICATION.md
+Stopped at: Completed 12-01-PLAN.md
+Resume file: .planning/phases/12-isolated-sandbox-verification/12-01-SUMMARY.md
