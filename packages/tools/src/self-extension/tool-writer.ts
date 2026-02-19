@@ -5,6 +5,8 @@ import { compileTypeScript } from './compiler.js';
 import { runInSandbox } from './sandbox-runner.js';
 import { AGENT_TOOLS_DIR } from './tool-loader.js';
 import { stageBuiltinChange } from './staging-deployer.js';
+import { assertGitHubTrustForBuiltinModify } from './github-trust-guard.js';
+import type { DbClient } from '@jarvis/db';
 import type { ToolRegistry } from '../registry.js';
 import type { ToolDefinition } from '../types.js';
 
@@ -76,9 +78,14 @@ type ToolDeleteInput = z.infer<typeof toolDeleteInput>;
  * These are the "built-in" tools. Agent-authored tools are anything NOT in this set.
  *
  * @param registry - The live ToolRegistry (by reference) for hot-swap registration
+ * @param db - DB client used for builtin trust precondition checks
  * @param onToolChange - Optional callback invoked after a tool is written/updated (fire-and-forget)
  */
-export function createToolWriteTool(registry: ToolRegistry, onToolChange?: () => void): ToolDefinition {
+export function createToolWriteTool(
+  registry: ToolRegistry,
+  db: DbClient,
+  onToolChange?: () => void,
+): ToolDefinition {
   // Capture built-in tool names at factory creation time
   const builtinToolNames = new Set<string>(registry.list().map((t) => t.name));
 
@@ -119,6 +126,15 @@ export function createToolWriteTool(registry: ToolRegistry, onToolChange?: () =>
               success: false,
               error:
                 'builtinFilePath is required when builtinModify is true. Provide the file path relative to the project root.',
+            };
+          }
+
+          try {
+            await assertGitHubTrustForBuiltinModify(db);
+          } catch (err) {
+            return {
+              success: false,
+              error: err instanceof Error ? err.message : String(err),
             };
           }
 

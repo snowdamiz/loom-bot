@@ -15,9 +15,73 @@ import { createSpawnAgentTool, createAwaitAgentTool, createCancelAgentTool } fro
 import { createAgentWorker } from './multi-agent/agent-worker.js';
 import { detectCrashRecovery, performStartupRecovery } from './recovery/startup-recovery.js';
 import { StrategyManager } from './strategy/strategy-manager.js';
+import { startOperatorChatRelay } from './chat/operator-chat-relay.js';
 
 // Suppress unused import warning — AgentLoop is a transitive dependency of Supervisor
 void AgentLoop;
+
+const OPENROUTER_KEY_POLL_MS = 5000;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Resolve OpenRouter API key with DB-first precedence.
+ *
+ * Behavior:
+ * - If DB key is present (configured by dashboard setup wizard), use it.
+ * - Else if OPENROUTER_API_KEY env var is present, use it as fallback.
+ * - Else wait and poll until the wizard writes the key.
+ */
+async function waitForOpenRouterApiKey(): Promise<string> {
+  let warnedMissingKey = false;
+  let warnedDbUnavailable = false;
+
+  for (;;) {
+    try {
+      const openrouterKeyRow = await db
+        .select()
+        .from(agentState)
+        .where(eq(agentState.key, 'config:openrouter_api_key'))
+        .limit(1);
+
+      const dbKey = (openrouterKeyRow[0]?.value as { apiKey?: string } | undefined)?.apiKey?.trim();
+      const envKey = process.env.OPENROUTER_API_KEY?.trim();
+
+      if (dbKey) {
+        if (warnedMissingKey || warnedDbUnavailable) {
+          process.stderr.write('[agent] OpenRouter API key detected from dashboard setup. Continuing startup.\n');
+        }
+        return dbKey;
+      }
+
+      if (envKey) {
+        if (warnedMissingKey || warnedDbUnavailable) {
+          process.stderr.write('[agent] OpenRouter API key detected from environment fallback. Continuing startup.\n');
+        }
+        return envKey;
+      }
+
+      if (!warnedMissingKey) {
+        process.stderr.write(
+          '[agent] OpenRouter API key not configured yet. Complete the dashboard setup wizard; retrying every 5s.\n',
+        );
+        warnedMissingKey = true;
+      }
+    } catch (err) {
+      if (!warnedDbUnavailable) {
+        const message = err instanceof Error ? err.message : String(err);
+        process.stderr.write(
+          `[agent] Waiting for database readiness before OpenRouter key check: ${message}. Retrying every 5s.\n`,
+        );
+        warnedDbUnavailable = true;
+      }
+    }
+
+    await sleep(OPENROUTER_KEY_POLL_MS);
+  }
+}
 
 /**
  * Main agent process entry point.
@@ -67,24 +131,9 @@ async function main(): Promise<void> {
   const killSwitch = new KillSwitchGuard(db);
   const modelConfig = loadModelConfig();
 
-  // Resolve OpenRouter API key: DB (set via dashboard wizard) takes priority, env var is fallback
-  const openrouterKeyRow = await db
-    .select()
-    .from(agentState)
-    .where(eq(agentState.key, 'config:openrouter_api_key'))
-    .limit(1);
-
-  const openrouterApiKey =
-    (openrouterKeyRow[0]?.value as { apiKey?: string } | undefined)?.apiKey ??
-    process.env.OPENROUTER_API_KEY;
-
-  if (!openrouterApiKey) {
-    process.stderr.write(
-      '[agent] OPENROUTER_API_KEY not configured. ' +
-      'Set it via the dashboard setup wizard or the OPENROUTER_API_KEY environment variable.\n',
-    );
-    process.exit(1);
-  }
+  // Resolve OpenRouter API key: DB (setup wizard) takes priority, env var is fallback.
+  // If neither exists yet, wait until setup is completed.
+  const openrouterApiKey = await waitForOpenRouterApiKey();
 
   const router = createRouter(db, openrouterApiKey);
 
@@ -183,7 +232,7 @@ async function main(): Promise<void> {
   };
 
   // Register self-extension tools (3 tools: tool_write, tool_delete, schema_extend)
-  const selfExtensionTools = createSelfExtensionTools(registry, onToolChange);
+  const selfExtensionTools = createSelfExtensionTools(registry, db, onToolChange);
   selfExtensionTools.forEach((t) => registry.register(t));
 
   // Register browser tools (8 tools: session open/close/save, navigate, click, fill, extract, screenshot)
@@ -278,11 +327,20 @@ async function main(): Promise<void> {
     db,
   });
 
+  // Start operator chat relay (dashboard /api/chat -> live agent tools/LLM loop).
+  const chatRelay = startOperatorChatRelay({
+    db,
+    router,
+    registry,
+    killSwitch,
+  });
+
   // Register graceful shutdown handlers
   registerShutdownHandlers({
     pool,
     redis,
     consolidation,
+    chatRelay,
     supervisor,
     agentWorker,
     agentTasksQueue,
