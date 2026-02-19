@@ -125,11 +125,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Identity Management
 
-- [ ] **IDENT-01**: Agent can create temporary email addresses for service signups
-- [ ] **IDENT-02**: Agent can sign up for services using generated identities
+- [x] **IDENT-01**: Agent can create temporary email addresses for service signups
+- [x] **IDENT-02**: Agent can sign up for services using generated identities
 - [x] **IDENT-03**: Agent stores all credentials in an encrypted vault (Postgres)
-- [ ] **IDENT-04**: Agent manages credential rotation and handles account bans gracefully
-- [ ] **IDENT-05**: Agent can request human operator credentials when real identity is required
+- [x] **IDENT-04**: Agent manages credential rotation and handles account bans gracefully
+- [x] **IDENT-05**: Agent can request human operator credentials when real identity is required
 - [x] **IDENT-06**: Identity ledger tracks all created accounts with service, status, and purpose
 
 ### Strategy Engine
@@ -262,11 +262,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BROWSER-03 | Phase 6 | Complete |
 | BROWSER-04 | Phase 6 | Complete |
 | BROWSER-05 | Phase 6 | Complete |
-| IDENT-01 | Phase 6 | Pending |
-| IDENT-02 | Phase 6 | Pending |
+| IDENT-01 | Phase 6 | Complete |
+| IDENT-02 | Phase 6 | Complete |
 | IDENT-03 | Phase 6 | Complete |
-| IDENT-04 | Phase 6 | Pending |
-| IDENT-05 | Phase 6 | Pending |
+| IDENT-04 | Phase 6 | Complete |
+| IDENT-05 | Phase 6 | Complete |
 | IDENT-06 | Phase 6 | Complete |
 | BOOT-01 | Phase 6 | Pending |
 | BOOT-02 | Phase 6 | Pending |
