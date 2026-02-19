@@ -60,6 +60,12 @@ export type {
   VerificationStageName,
   VerificationStageCommandPlan,
 } from './verification-policy.js';
+export { runIsolatedVerification } from './isolated-verifier.js';
+export type {
+  RunIsolatedVerificationInput,
+  IsolatedVerificationEvidence,
+  IsolatedVerificationResult,
+} from './isolated-verifier.js';
 export { loadPersistedTools, AGENT_TOOLS_DIR } from './tool-loader.js';
 export { createToolWriteTool, createToolDeleteTool } from './tool-writer.js';
 export { createSchemaExtendTool } from './schema-extend.js';
