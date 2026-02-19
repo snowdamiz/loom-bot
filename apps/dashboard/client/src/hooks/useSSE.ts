@@ -22,21 +22,33 @@ interface UseSSEOptions {
   token: string;
   onStatus: (status: AgentStatus) => void;
   onActivity: (activity: ActivityEntry) => void;
+  /** Called when SSE reconnects after a disconnect — use to clear stale live entries */
+  onReconnect?: () => void;
 }
 
 /**
  * SSE hook using @microsoft/fetch-event-source for auth header support.
  * Native EventSource cannot send Authorization headers.
  */
-export function useSSE({ token, onStatus, onActivity }: UseSSEOptions): void {
+export function useSSE({ token, onStatus, onActivity, onReconnect }: UseSSEOptions): void {
   useEffect(() => {
     const controller = new AbortController();
+    let connected = false;
 
     fetchEventSource('/api/sse', {
       headers: {
         Authorization: `Bearer ${token}`,
       },
       signal: controller.signal,
+      onopen: async (response) => {
+        if (response.ok) {
+          if (connected && onReconnect) {
+            // This is a reconnect (was connected before, now re-established)
+            onReconnect();
+          }
+          connected = true;
+        }
+      },
       onmessage(ev) {
         if (!ev.data || ev.event === 'heartbeat') return;
         try {
@@ -56,6 +68,7 @@ export function useSSE({ token, onStatus, onActivity }: UseSSEOptions): void {
           throw err;
         }
         // For other errors, let fetchEventSource handle automatic reconnect
+        // onReconnect will be called in onopen when the reconnection succeeds
       },
     }).catch(() => {
       // Swallow error on abort or token clear
@@ -64,5 +77,5 @@ export function useSSE({ token, onStatus, onActivity }: UseSSEOptions): void {
     return () => {
       controller.abort();
     };
-  }, [token, onStatus, onActivity]);
+  }, [token, onStatus, onActivity, onReconnect]);
 }
