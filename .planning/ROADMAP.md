@@ -73,7 +73,7 @@ Plans: 3 plans
 
 Plans:
 - [x] 11-01-PLAN.md — Execution context propagation + deterministic branch and metadata primitives (completed 2026-02-19)
-- [ ] 11-02-PLAN.md — GitHub branch/commit/PR upsert pipeline with sandbox evidence status
+- [x] 11-02-PLAN.md — GitHub branch/commit/PR upsert pipeline with sandbox evidence status (completed 2026-02-19)
 - [ ] 11-03-PLAN.md — Promotion gate with status-based merge blocking and cleanup
 
 ### Phase 12: Isolated Sandbox Verification
@@ -120,7 +120,7 @@ Plans: 0/0 planned
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 10. GitHub Identity and Repo Trust | v1.1 | Complete    | 2026-02-19 | — |
-| 11. Version-Controlled Self-Modification Pipeline | v1.1 | 1/3 | In Progress | — |
+| 11. Version-Controlled Self-Modification Pipeline | v1.1 | 2/3 | In Progress | — |
 | 12. Isolated Sandbox Verification | v1.1 | 0/0 | Planned | — |
 | 13. Promotion Guardrails, Rollback, and Visibility | v1.1 | 0/0 | Planned | — |
 | 1-9. v1.0 phases | v1.0 | 31/31 | Complete | 2026-02-19 |

@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 ## Current Position
 
 Phase: 11-version-controlled-self-modification-pipeline
-Plan: In Progress (11-01 complete, 11-02 next)
-Status: Phase 11 execution in progress; deterministic context and branch identity primitives landed
-Last activity: 2026-02-19 - Completed 11-01 execution-context propagation and deterministic branch metadata helpers
+Plan: In Progress (11-02 complete, 11-03 next)
+Status: Phase 11 execution in progress; GitHub branch/commit/PR pipeline with sandbox status evidence is live
+Last activity: 2026-02-19 - Completed 11-02 repository-backed self-modification pipeline integration
 
-Progress: [████████░░░░░░░░░░░░░░░░░] 33% (phase 11 execution)
+Progress: [█████████████████░░░░░░░░] 67% (phase 11 execution)
 
 ## Accumulated Context
 
@@ -31,10 +31,12 @@ All v1.0 decisions reviewed and outcomes recorded at milestone completion.
 - [Phase 11]: Execution context is internal metadata and must not change tool input schema validation behavior. — Keeps deterministic traceability plumbing separate from LLM-facing schemas and preserves backward compatibility for existing tool calls.
 - [Phase 11]: Deterministic branch identity is derived from goal/cycle/sub-goal/tool context plus change fingerprint without timestamps. — Supports idempotent branch reuse and deterministic auditability for repository-backed self-modification.
 - [Phase 11]: Sub-agent execution context identifiers are nullable when not available. — Worker jobs do not always carry full goal/cycle metadata; best-effort propagation avoids blocking execution while preserving available trace data.
+- [Phase 11]: Trusted GitHub context resolution now includes decrypted OAuth token retrieval in tools package. — Self-extension pipeline must call GitHub APIs with fail-closed credentials sourced from validated setup trust state.
+- [Phase 11]: Builtin modify flow now runs compile+sandbox checks before repository promotion operations. — Preserves safety ordering while still publishing candidate branch/PR/status evidence for auditability.
+- [Phase 11]: Pull requests are upserted by deterministic branch identity instead of created per attempt. — Avoids PR spam and keeps retries attached to one auditable candidate lifecycle.
 
 ### Pending Todos
 
-- Execute 11-02 GitHub branch/commit/PR orchestration using deterministic context metadata.
 - Execute 11-03 promotion gate and merge-blocking guardrails.
 - Run Phase 11 verification after plans 02/03 complete.
 
@@ -55,9 +57,10 @@ All v1.0 decisions reviewed and outcomes recorded at milestone completion.
 | Phase | Plan | Duration | Tasks | Files |
 |---|---|---|---|---|
 | 11 | 01 | 4 min | 3 | 8 |
+| 11 | 02 | 3 min | 3 | 5 |
 
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 11-01-PLAN.md
+Stopped at: Completed 11-02-PLAN.md
 Resume file: None
