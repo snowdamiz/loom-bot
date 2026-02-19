@@ -20,6 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: Browser, Identity, and Bootstrapping** - Web interaction, credential vault, self-provisioning (completed 2026-02-19)
 - [x] **Phase 7: Strategy Engine** - Opportunity discovery, hypothesis testing, portfolio management (completed 2026-02-19)
 - [x] **Phase 8: Self-Extension** - Code generation, tool registry, schema evolution (completed 2026-02-19)
+- [ ] **Phase 9: Integration Gap Closure** - Wire CreditMonitor, fix sub-agent tool visibility
 
 ## Phase Details
 
@@ -164,10 +165,24 @@ Plans:
 - [ ] 08-03-PLAN.md — Tool lifecycle tools (tool_write, tool_delete, built-in staging) + barrel exports
 - [ ] 08-04-PLAN.md — Agent process wiring + worker tool sync + shutdown integration
 
+### Phase 9: Integration Gap Closure
+**Goal**: Close the two integration wiring gaps identified by the v1 milestone audit — CreditMonitor never started and sub-agent worker seeing a stale tool snapshot
+**Depends on**: Phase 8
+**Requirements**: COST-02 (operational alerting), MULTI-02 (sub-agent tool visibility)
+**Success Criteria** (what must be TRUE):
+  1. CreditMonitor is instantiated at agent startup, polls OpenRouter credit balance, and sends Discord DM when credits fall below threshold
+  2. CreditMonitor is stopped cleanly during graceful shutdown
+  3. Sub-agent worker LLM prompts include all registered tools (30+), not just Phase 1+3 tools
+  4. After tool_write creates a new tool, sub-agent LLM prompts include the new tool on next spawn
+**Plans:** 0/1
+
+Plans:
+- [ ] 09-01-PLAN.md — Wire CreditMonitor into agent startup/shutdown + move createAgentWorker after all tool registrations
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -179,3 +194,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 6. Browser, Identity, and Bootstrapping | 4/4 | Complete   | 2026-02-19 |
 | 7. Strategy Engine | 2/2 | Complete    | 2026-02-19 |
 | 8. Self-Extension | 4/4 | Complete    | 2026-02-19 |
+| 9. Integration Gap Closure | 0/1 | Pending | |
