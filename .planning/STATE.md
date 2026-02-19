@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** The agent must be able to autonomously reason about opportunities, acquire the tools and accounts it needs, and execute money-making strategies without human intervention.
-**Current focus:** Phase 8: Self-Extension and Agent Economics — COMPLETE (4/4 plans done)
+**Current focus:** Phase 9: Integration Gap Closure — COMPLETE (1/1 plans done)
 
 ## Current Position
 
-Phase: 8 of 8 (Self-Extension and Agent Economics) — COMPLETE
-Plan: 4 of 4 in current phase (08-04 complete — agent+worker Phase 8 wiring, loadPersistedTools, self-extension tools registered, reload-tools BullMQ sync)
-Status: Phase 8 complete — 4/4 plans done. All 8 phases complete.
-Last activity: 2026-02-19 — Completed 08-04 (agent loads persisted tools on startup, registers self-extension tools, worker syncs via BullMQ reload-tools)
+Phase: 9 of 9 (Integration Gap Closure) — COMPLETE
+Plan: 1 of 1 in current phase (09-01 complete — CreditMonitor wired to startup/shutdown, sub-agent worker lazy tool derivation)
+Status: Phase 9 complete — 1/1 plans done. All 9 phases complete.
+Last activity: 2026-02-19 — Completed 09-01 (CreditMonitor lifecycle wired, Supervisor+Worker moved after Phase 8, lazy tool derivation in agent-worker)
 
-Progress: [█████████████████████████] 100%
+Progress: [█████████████████████████] 100% (Phase 9 complete)
 
 ## Performance Metrics
 
@@ -62,6 +62,7 @@ Progress: [███████████████████████
 | Phase 08 P02 | 2 | 2 tasks | 1 files |
 | Phase 08 P03 | 2 | 2 tasks | 4 files |
 | Phase 08 P04 | 2 | 2 tasks | 5 files |
+| Phase 09-integration-gap-closure P01 | 2 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -176,6 +177,9 @@ Recent decisions affecting current work:
 - [Phase 08-04]: onToolChange optional callback on createSelfExtensionTools — backward compatible, keeps @jarvis/tools free of bullmq dependency; callers inject enqueue function from outside
 - [Phase 08-04]: reload-tools BullMQ Worker in worker.ts: concurrency 1, removeOnComplete age 60s — transient notifications, not tool execution jobs needing DLQ
 - [Phase 08-04]: loadPersistedTools in worker.ts uses non-blocking .then()/.catch() — worker accepts jobs immediately while persisted tools load in parallel
+- [Phase 09]: [Phase 09-01]: CreditMonitor instantiated immediately after createRouter — polls balance on startup plus every 5 min; stop() called in gracefulShutdown at step 1.5 to prevent event loop hang
+- [Phase 09]: [Phase 09-01]: Supervisor + agentWorker moved to after Phase 8 openAITools re-derivation so Supervisor receives all 30+ tools not just 7-tool Phase 1+3 snapshot
+- [Phase 09]: [Phase 09-01]: tools param removed from createAgentWorker — lazy toolDefinitionsToOpenAI(registry) inside job handler captures runtime tool_write additions for next sub-agent spawn
 
 ### Pending Todos
 
@@ -190,5 +194,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 08-04-PLAN.md (Phase 8 complete: agent+worker wiring, loadPersistedTools, self-extension tools, reload-tools BullMQ sync)
-Resume file: All 8 phases complete — no further plans to execute
+Stopped at: Completed 09-01-PLAN.md (Phase 9 complete: CreditMonitor wired, sub-agent lazy tool derivation, Supervisor positioned after all tool registrations)
+Resume file: All 9 phases complete — no further plans to execute
