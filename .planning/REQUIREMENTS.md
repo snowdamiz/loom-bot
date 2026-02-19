@@ -12,7 +12,7 @@ This milestone only covers hardening self-extension. Existing v1.0 capabilities 
 
 ### GitHub Identity and Repository Binding
 
-- [ ] **SEXT-01**: Setup wizard must implement real GitHub OAuth code exchange (no placeholder connection state).
+- [x] **SEXT-01**: Setup wizard must implement real GitHub OAuth code exchange (no placeholder connection state).
 - [x] **SEXT-02**: The system must persist a validated connected GitHub identity (username + account id) and selected target repository.
 - [x] **SEXT-03**: Access tokens used for GitHub operations must be stored with the same credential security model as other secrets (no plaintext in logs).
 - [ ] **SEXT-04**: Self-modifying operations on built-in/core files must be denied when GitHub is not connected and repository binding is incomplete.

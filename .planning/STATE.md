@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 ## Current Position
 
 Phase: 10-github-identity-and-repo-trust
-Plan: 02 (10-01 complete)
+Plan: 03 (10-02 complete)
 Status: Executing phase 10 plans with real GitHub trust onboarding
-Last activity: 2026-02-19 - Completed 10-01 schema + OAuth config foundation
+Last activity: 2026-02-19 - Completed 10-02 real OAuth start/callback flow
 
-Progress: [████████░░░░░░░░░░░░░░░░░] 33% (phase 10 execution)
+Progress: [████████████████░░░░░░░░░] 66% (phase 10 execution)
 
 ## Accumulated Context
 
@@ -24,10 +24,11 @@ Decisions are logged in PROJECT.md Key Decisions table.
 All v1.0 decisions reviewed and outcomes recorded at milestone completion.
 - [Phase 10]: Store only githubTokenCredentialId in setup_state and keep GitHub OAuth token material in encrypted credentials records. — Maintains the existing secret-at-rest model and avoids plaintext token persistence in setup metadata.
 - [Phase 10]: Persist hashed OAuth state with PKCE verifier lifecycle metadata. — Enables anti-forgery and anti-replay checks during callback while avoiding raw state token storage.
+- [Phase 10]: Expose OAuth callback as /setup/github/callback outside /api bearer middleware. — GitHub redirects cannot carry dashboard bearer headers, so callback must be public while state/PKCE enforce safety.
+- [Phase 10]: Rotate previously active github oauth_token credentials before storing newly exchanged token. — Preserves a deterministic single-active-token model and avoids stale token ambiguity during trust checks.
 
 ### Pending Todos
 
-- Execute 10-02 real OAuth start/callback with token encryption + identity persistence.
 - Execute 10-03 repo binding UX/API and builtin modification trust guard.
 
 ### Blockers/Concerns
@@ -45,5 +46,5 @@ All v1.0 decisions reviewed and outcomes recorded at milestone completion.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 10-01-PLAN.md
-Resume file: .planning/phases/10-github-identity-and-repo-trust/10-02-PLAN.md
+Stopped at: Completed 10-02-PLAN.md
+Resume file: .planning/phases/10-github-identity-and-repo-trust/10-03-PLAN.md
