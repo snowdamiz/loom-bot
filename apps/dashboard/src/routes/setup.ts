@@ -1,46 +1,91 @@
 import { Hono } from 'hono';
-import { db, agentState, setupState, eq } from '@jarvis/db';
+import { db, agentState, setupState, oauthState, eq } from '@jarvis/db';
+import {
+  buildGitHubAuthorizeUrl,
+  createOAuthState,
+  createPkceChallenge,
+  getGitHubOAuthConfig,
+  hashOAuthState,
+} from './github-oauth-helpers.js';
 
 /**
  * Setup wizard backend routes.
- * All routes require bearer auth (applied in app.ts at the /api/* level).
- *
- * GET  /api/setup           — returns current setup state
- * POST /api/setup/openrouter — validates and stores OpenRouter API key
- * POST /api/setup/github     — marks GitHub as connected (stub — real OAuth TBD)
- * GET  /api/setup/github/callback — placeholder for OAuth callback
+ * All routes under /api/setup require bearer auth (applied in app.ts).
  */
 const app = new Hono();
 
+interface SetupStatePayload {
+  openrouterKeySet: boolean;
+  githubConnected: boolean;
+  githubUserId: string | null;
+  githubUsername: string | null;
+  githubRepoId: string | null;
+  githubRepoFullName: string | null;
+  githubRepoDefaultBranch: string | null;
+  githubRepoValidatedAt: string | null;
+  setupCompletedAt: string | null;
+  complete: boolean;
+}
+
+function toSetupStatePayload(row: (typeof setupState.$inferSelect) | undefined): SetupStatePayload {
+  if (!row) {
+    return {
+      openrouterKeySet: false,
+      githubConnected: false,
+      githubUserId: null,
+      githubUsername: null,
+      githubRepoId: null,
+      githubRepoFullName: null,
+      githubRepoDefaultBranch: null,
+      githubRepoValidatedAt: null,
+      setupCompletedAt: null,
+      complete: false,
+    };
+  }
+
+  return {
+    openrouterKeySet: row.openrouterKeySet,
+    githubConnected: row.githubConnected,
+    githubUserId: row.githubUserId ?? null,
+    githubUsername: row.githubUsername ?? null,
+    githubRepoId: row.githubRepoId ?? null,
+    githubRepoFullName: row.githubRepoFullName ?? null,
+    githubRepoDefaultBranch: row.githubRepoDefaultBranch ?? null,
+    githubRepoValidatedAt: row.githubRepoValidatedAt?.toISOString() ?? null,
+    setupCompletedAt: row.setupCompletedAt?.toISOString() ?? null,
+    complete: row.openrouterKeySet && row.githubConnected,
+  };
+}
+
+function normalizeReturnTo(rawReturnTo: unknown): string | null {
+  if (typeof rawReturnTo !== 'string') {
+    return null;
+  }
+
+  const trimmed = rawReturnTo.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  if (!trimmed.startsWith('/') || trimmed.startsWith('//')) {
+    return null;
+  }
+
+  return trimmed;
+}
+
 /**
  * GET /api/setup
- * Returns the current setup state. If no row exists, returns all-false defaults.
+ * Returns current setup state. If no row exists, returns all-false defaults.
  */
 app.get('/', async (c) => {
   const rows = await db.select().from(setupState).limit(1);
-  const row = rows[0];
-
-  if (!row) {
-    return c.json({
-      openrouterKeySet: false,
-      githubConnected: false,
-      complete: false,
-    });
-  }
-
-  return c.json({
-    openrouterKeySet: row.openrouterKeySet,
-    githubConnected: row.githubConnected,
-    githubUsername: row.githubUsername ?? null,
-    setupCompletedAt: row.setupCompletedAt?.toISOString() ?? null,
-    complete: row.openrouterKeySet && row.githubConnected,
-  });
+  return c.json(toSetupStatePayload(rows[0]));
 });
 
 /**
  * POST /api/setup/openrouter
- * Accepts { apiKey: string }. Validates the key against OpenRouter /v1/models.
- * If valid, stores the key in agentState and marks openrouterKeySet = true.
+ * Accepts { apiKey: string }. Validates key against OpenRouter /v1/models.
  */
 app.post('/openrouter', async (c) => {
   let body: { apiKey?: string };
@@ -50,18 +95,15 @@ app.post('/openrouter', async (c) => {
     return c.json({ error: 'Invalid JSON body' }, 400);
   }
 
-  const { apiKey } = body;
-  if (!apiKey || typeof apiKey !== 'string' || !apiKey.trim()) {
+  const apiKey = body.apiKey?.trim();
+  if (!apiKey) {
     return c.json({ error: 'apiKey is required' }, 400);
   }
 
-  const trimmedKey = apiKey.trim();
-
-  // Validate the key by calling OpenRouter /v1/models
   let isValid = false;
   try {
     const response = await fetch('https://openrouter.ai/api/v1/models', {
-      headers: { Authorization: `Bearer ${trimmedKey}` },
+      headers: { Authorization: `Bearer ${apiKey}` },
     });
     isValid = response.status === 200;
   } catch {
@@ -72,7 +114,6 @@ app.post('/openrouter', async (c) => {
     return c.json({ error: 'Invalid API key — OpenRouter rejected it' }, 400);
   }
 
-  // Store the API key in agentState (plaintext for now; encrypted if CREDENTIAL_ENCRYPTION_KEY is used)
   const existingKey = await db
     .select()
     .from(agentState)
@@ -82,20 +123,19 @@ app.post('/openrouter', async (c) => {
   if (existingKey.length > 0) {
     await db
       .update(agentState)
-      .set({ value: { apiKey: trimmedKey }, updatedAt: new Date() })
+      .set({ value: { apiKey }, updatedAt: new Date() })
       .where(eq(agentState.key, 'config:openrouter_api_key'));
   } else {
     await db
       .insert(agentState)
-      .values({ key: 'config:openrouter_api_key', value: { apiKey: trimmedKey } });
+      .values({ key: 'config:openrouter_api_key', value: { apiKey } });
   }
 
-  // Update setup state: mark openrouter key as set
   const existingSetup = await db.select().from(setupState).limit(1);
 
   if (existingSetup.length > 0) {
     const row = existingSetup[0]!;
-    const isComplete = true && row.githubConnected; // openrouter is now set
+    const isComplete = row.githubConnected;
     await db
       .update(setupState)
       .set({
@@ -115,49 +155,64 @@ app.post('/openrouter', async (c) => {
 });
 
 /**
- * POST /api/setup/github
- * Accepts { code: string } (OAuth authorization code).
- * For now: stub that marks GitHub as connected with a placeholder username.
- *
- * TODO: Exchange code for access token via GitHub OAuth App
+ * POST /api/setup/github/start
+ * Starts real GitHub OAuth flow with server-managed state + PKCE persistence.
  */
-app.post('/github', async (c) => {
-  // Stub implementation — marks GitHub as connected
-  // When real OAuth is wired, this will exchange the code for a token
-
-  const existingSetup = await db.select().from(setupState).limit(1);
-
-  const username = 'pending-oauth';
-
-  if (existingSetup.length > 0) {
-    const row = existingSetup[0]!;
-    const isComplete = row.openrouterKeySet && true; // github is now connected
-    await db
-      .update(setupState)
-      .set({
-        githubConnected: true,
-        githubUsername: username,
-        updatedAt: new Date(),
-        setupCompletedAt: isComplete ? new Date() : row.setupCompletedAt,
-      })
-      .where(eq(setupState.id, row.id));
-  } else {
-    await db.insert(setupState).values({
-      openrouterKeySet: false,
-      githubConnected: true,
-      githubUsername: username,
-    });
+app.post('/github/start', async (c) => {
+  let body: { returnTo?: unknown } = {};
+  try {
+    body = await c.req.json<{ returnTo?: unknown }>();
+  } catch {
+    // Body is optional. Ignore parse failures and continue without returnTo.
   }
 
-  return c.json({ success: true, username });
+  let oauthConfig;
+  try {
+    oauthConfig = getGitHubOAuthConfig();
+  } catch (err) {
+    return c.json(
+      {
+        error: err instanceof Error ? err.message : 'GitHub OAuth configuration is invalid',
+      },
+      500,
+    );
+  }
+
+  const state = createOAuthState();
+  const { codeVerifier, codeChallenge } = createPkceChallenge();
+  const stateHash = hashOAuthState(state);
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+  await db.insert(oauthState).values({
+    stateHash,
+    codeVerifier,
+    returnTo: normalizeReturnTo(body.returnTo),
+    expiresAt,
+  });
+
+  const authorizeUrl = buildGitHubAuthorizeUrl({
+    clientId: oauthConfig.clientId,
+    redirectUri: oauthConfig.redirectUri,
+    state,
+    codeChallenge,
+  });
+
+  return c.json({
+    authorizeUrl,
+    expiresAt: expiresAt.toISOString(),
+  });
 });
 
 /**
- * GET /api/setup/github/callback
- * Placeholder for GitHub OAuth callback — not yet implemented.
+ * Legacy stub endpoint is intentionally disabled after Phase 10 OAuth rollout.
  */
-app.get('/github/callback', (c) => {
-  return c.json({ message: 'GitHub OAuth callback — not yet implemented' });
+app.post('/github', async (c) => {
+  return c.json(
+    {
+      error: 'GitHub setup now requires OAuth start + callback. Use POST /api/setup/github/start.',
+    },
+    410,
+  );
 });
 
 export default app;
