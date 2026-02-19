@@ -77,6 +77,8 @@ export interface ShutdownResources {
   walletSubscription?: { stop: () => void };
   /** Phase 6: Browser manager (Chromium child process — must close to prevent zombie) */
   browserManager?: ShutdownBrowserManager;
+  /** Phase 8: BullMQ queue for reload-tools dispatch */
+  reloadToolsQueue?: { close(): Promise<void> };
 }
 
 export function registerShutdownHandlers(resources: ShutdownResources): void {
@@ -91,6 +93,7 @@ export function registerShutdownHandlers(resources: ShutdownResources): void {
     signerProcess,
     walletSubscription,
     browserManager,
+    reloadToolsQueue,
   } = resources;
 
   async function gracefulShutdown(signal: string): Promise<void> {
@@ -143,6 +146,12 @@ export function registerShutdownHandlers(resources: ShutdownResources): void {
       if (agentTasksQueue !== undefined) {
         await agentTasksQueue.close();
         process.stderr.write('[shutdown] Agent-tasks queue closed.\n');
+      }
+
+      // 5.5. Close reload-tools queue (Phase 8 — transient tool change notifications)
+      if (reloadToolsQueue !== undefined) {
+        await reloadToolsQueue.close();
+        process.stderr.write('[shutdown] Reload-tools queue closed.\n');
       }
 
       // 6. Close BullMQ worker (stop accepting new jobs, drain in-flight)

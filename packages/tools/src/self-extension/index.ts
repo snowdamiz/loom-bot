@@ -23,7 +23,7 @@ import { createToolWriteTool, createToolDeleteTool } from './tool-writer.js';
 import { createSchemaExtendTool } from './schema-extend.js';
 
 /**
- * createSelfExtensionTools(registry) — convenience factory returning all 3 self-extension ToolDefinitions.
+ * createSelfExtensionTools(registry, onToolChange?) — convenience factory returning all 3 self-extension ToolDefinitions.
  *
  * Returns 3 tools:
  * 1. tool_write    — write/test/persist/register TypeScript tools (EXTEND-01, 02, 03, 05)
@@ -34,11 +34,14 @@ import { createSchemaExtendTool } from './schema-extend.js';
  * register/unregister tools at runtime.
  *
  * @param registry - The ToolRegistry instance (passed by reference)
+ * @param onToolChange - Optional callback invoked after tool_write or tool_delete succeeds.
+ *   Used by the agent process to enqueue a reload-tools BullMQ job so the worker process
+ *   stays in sync. Fire-and-forget — errors are caught at the call site.
  */
-export function createSelfExtensionTools(registry: ToolRegistry): ToolDefinition<unknown, unknown>[] {
+export function createSelfExtensionTools(registry: ToolRegistry, onToolChange?: () => void): ToolDefinition<unknown, unknown>[] {
   return [
-    createToolWriteTool(registry),
-    createToolDeleteTool(registry),
+    createToolWriteTool(registry, onToolChange),
+    createToolDeleteTool(registry, onToolChange),
     createSchemaExtendTool(),
   ];
 }

@@ -76,8 +76,9 @@ type ToolDeleteInput = z.infer<typeof toolDeleteInput>;
  * These are the "built-in" tools. Agent-authored tools are anything NOT in this set.
  *
  * @param registry - The live ToolRegistry (by reference) for hot-swap registration
+ * @param onToolChange - Optional callback invoked after a tool is written/updated (fire-and-forget)
  */
-export function createToolWriteTool(registry: ToolRegistry): ToolDefinition {
+export function createToolWriteTool(registry: ToolRegistry, onToolChange?: () => void): ToolDefinition {
   // Capture built-in tool names at factory creation time
   const builtinToolNames = new Set<string>(registry.list().map((t) => t.name));
 
@@ -216,6 +217,9 @@ export function createToolWriteTool(registry: ToolRegistry): ToolDefinition {
         registry.unregister(input.name);
         registry.register(tool);
 
+        // Notify worker to reload tools (fire-and-forget)
+        onToolChange?.();
+
         // Step 5: Return success
         return {
           success: true,
@@ -245,8 +249,9 @@ export function createToolWriteTool(registry: ToolRegistry): ToolDefinition {
  * cannot be deleted — use tool_write with builtinModify=true to modify them.
  *
  * @param registry - The live ToolRegistry (by reference) for unregistration
+ * @param onToolChange - Optional callback invoked after a tool is deleted (fire-and-forget)
  */
-export function createToolDeleteTool(registry: ToolRegistry): ToolDefinition {
+export function createToolDeleteTool(registry: ToolRegistry, onToolChange?: () => void): ToolDefinition {
   // Capture built-in tool names at factory creation time
   const builtinToolNames = new Set<string>(registry.list().map((t) => t.name));
 
@@ -292,6 +297,9 @@ export function createToolDeleteTool(registry: ToolRegistry): ToolDefinition {
         } catch {
           // File may not exist
         }
+
+        // Notify worker to reload tools (fire-and-forget)
+        onToolChange?.();
 
         return { success: true, deleted: input.name };
       } catch (err) {

@@ -2,7 +2,7 @@ import 'dotenv/config';
 import { fork } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { db, pool, agentState, eq } from '@jarvis/db';
-import { createDefaultRegistry, redis, createWalletTools, createBrowserTools, createIdentityTools, createBootstrapTools } from '@jarvis/tools';
+import { createDefaultRegistry, redis, createWalletTools, createBrowserTools, createIdentityTools, createBootstrapTools, createSelfExtensionTools, loadPersistedTools } from '@jarvis/tools';
 import { createRouter, KillSwitchGuard, loadModelConfig, toolDefinitionsToOpenAI } from '@jarvis/ai';
 import { BrowserManager } from '@jarvis/browser';
 import { SignerClient, subscribeToWallet } from '@jarvis/wallet';
@@ -294,7 +294,48 @@ async function main(): Promise<void> {
     `[agent] Phase 6 ready. Browser: ${browserTools.length} tools, Identity: ${identityTools.length} tools, Bootstrap: ${bootstrapTools.length} tools. Total: ${registry.count()}\n`,
   );
 
-  // 4. Register graceful shutdown handlers with all Phase 3, 4 + 6 resources
+  // === Phase 8: Self-Extension ===
+
+  // Load agent-authored tools from disk (persisted from previous runs)
+  const loadResult = await loadPersistedTools(registry);
+  if (loadResult.loaded.length > 0) {
+    process.stderr.write(
+      `[agent] Loaded ${loadResult.loaded.length} persisted tool(s): ${loadResult.loaded.join(', ')}\n`,
+    );
+  }
+  if (loadResult.failed.length > 0) {
+    process.stderr.write(
+      `[agent] Failed to load ${loadResult.failed.length} persisted tool(s): ${loadResult.failed.join(', ')}\n`,
+    );
+  }
+
+  // Create reload-tools queue for worker synchronization (Phase 8)
+  const reloadToolsQueue = new Queue('reload-tools', {
+    connection: { url: process.env.REDIS_URL! },
+  });
+
+  const onToolChange = () => {
+    reloadToolsQueue.add('reload', {}).catch((err) => {
+      process.stderr.write(
+        `[agent] Failed to enqueue reload-tools job: ${err instanceof Error ? err.message : String(err)}\n`,
+      );
+    });
+  };
+
+  // Register self-extension tools (3 tools: tool_write, tool_delete, schema_extend)
+  const selfExtensionTools = createSelfExtensionTools(registry, onToolChange);
+  selfExtensionTools.forEach((t) => registry.register(t));
+
+  // Re-derive openAITools after Phase 8 registration so the LLM sees all tools
+  openAITools = toolDefinitionsToOpenAI(registry);
+
+  process.stderr.write(
+    `[agent] Phase 8 ready. Self-extension: ${selfExtensionTools.length} tools. ` +
+      `Persisted: ${loadResult.loaded.length} loaded, ${loadResult.failed.length} failed. ` +
+      `Total: ${registry.count()}\n`,
+  );
+
+  // 4. Register graceful shutdown handlers with all Phase 3, 4, 6 + 8 resources
   registerShutdownHandlers({
     pool,
     redis,
@@ -305,6 +346,7 @@ async function main(): Promise<void> {
     signerProcess,
     walletSubscription,
     browserManager: browserManager as ShutdownBrowserManager,
+    reloadToolsQueue,
   });
 
   // Run startup recovery if needed (RECOV-02: resume from last journal checkpoint)
@@ -321,7 +363,7 @@ async function main(): Promise<void> {
   await supervisor.startSupervisorLoop();
   process.stderr.write('[agent] Autonomous loop started. Supervisor active.\n');
 
-  process.stderr.write(`[agent] Phase 4 ready. Tools: ${registry.count()}. Goals: supervisor managed.\n`);
+  process.stderr.write(`[agent] All phases ready. Tools: ${registry.count()}. Goals: supervisor managed.\n`);
 
   // The process stays alive — shutdown is handled by registerShutdownHandlers on SIGTERM/SIGINT.
 }
