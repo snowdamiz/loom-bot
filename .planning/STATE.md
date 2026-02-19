@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-19)
 
 **Core value:** The agent must be able to autonomously reason about opportunities, acquire the tools and accounts it needs, and execute money-making strategies without human intervention.
-**Current focus:** v1.0 MVP shipped — planning next milestone
+**Current focus:** v1.1 self-extension hardening — GitHub-backed self-modification safety
 
 ## Current Position
 
-Phase: 9 of 9 — ALL COMPLETE
-Plan: All plans complete
-Status: v1.0 MVP shipped 2026-02-19
-Last activity: 2026-02-19 - Completed quick task 3: Add comprehensive README.md (205 lines, 11 sections, all 20 tools and 15 env vars documented)
+Phase: 10-github-identity-and-repo-trust
+Plan: 02 (10-01 complete)
+Status: Executing phase 10 plans with real GitHub trust onboarding
+Last activity: 2026-02-19 - Completed 10-01 schema + OAuth config foundation
 
-Progress: [█████████████████████████] 100% (v1.0 shipped)
+Progress: [████████░░░░░░░░░░░░░░░░░] 33% (phase 10 execution)
 
 ## Accumulated Context
 
@@ -22,14 +22,17 @@ Progress: [███████████████████████
 
 Decisions are logged in PROJECT.md Key Decisions table.
 All v1.0 decisions reviewed and outcomes recorded at milestone completion.
+- [Phase 10]: Store only githubTokenCredentialId in setup_state and keep GitHub OAuth token material in encrypted credentials records. — Maintains the existing secret-at-rest model and avoids plaintext token persistence in setup metadata.
+- [Phase 10]: Persist hashed OAuth state with PKCE verifier lifecycle metadata. — Enables anti-forgery and anti-replay checks during callback while avoiding raw state token storage.
 
 ### Pending Todos
 
-None.
+- Execute 10-02 real OAuth start/callback with token encryption + identity persistence.
+- Execute 10-03 repo binding UX/API and builtin modification trust guard.
 
 ### Blockers/Concerns
 
-None — v1.0 shipped.
+- Local `pnpm db:push` is currently blocked until `DATABASE_URL` is configured in this environment.
 
 ### Quick Tasks Completed
 
@@ -42,5 +45,5 @@ None — v1.0 shipped.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed quick task 3 — created comprehensive README.md (205 lines)
-Resume file: Use `/gsd:new-milestone` to start next milestone
+Stopped at: Completed 10-01-PLAN.md
+Resume file: .planning/phases/10-github-identity-and-repo-trust/10-02-PLAN.md
