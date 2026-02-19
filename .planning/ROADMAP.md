@@ -19,7 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 5: Web Dashboard** - Operator visibility into agent decisions, status, and P&L
 - [x] **Phase 6: Browser, Identity, and Bootstrapping** - Web interaction, credential vault, self-provisioning (completed 2026-02-19)
 - [x] **Phase 7: Strategy Engine** - Opportunity discovery, hypothesis testing, portfolio management (completed 2026-02-19)
-- [ ] **Phase 8: Self-Extension and Agent Economics** - Code generation, tool registry, x402 protocol
+- [ ] **Phase 8: Self-Extension** - Code generation, tool registry, schema evolution
 
 ## Phase Details
 
@@ -148,16 +148,14 @@ Plans:
 - [ ] 07-01-PLAN.md — Strategy schema, attribution FKs, P&L extension, StrategyManager
 - [ ] 07-02-PLAN.md — Portfolio prompt injection, agent loop wiring, goal seeding API
 
-### Phase 8: Self-Extension and Agent Economics
-**Goal**: The agent can write its own TypeScript tools, test them safely, register them for use, extend its database schema, and participate in the agent-to-agent economy via x402 micropayments
+### Phase 8: Self-Extension
+**Goal**: The agent can write its own TypeScript tools, test them safely, register them for use, and extend its database schema — if the agent needs x402 or other economic capabilities, it builds them itself using self-extension
 **Depends on**: Phase 7
-**Requirements**: EXTEND-01, EXTEND-02, EXTEND-03, EXTEND-04, EXTEND-05, AGENT-01, AGENT-02, AGENT-03, AGENT-04, STRAT-07
+**Requirements**: EXTEND-01, EXTEND-02, EXTEND-03, EXTEND-04, EXTEND-05
 **Success Criteria** (what must be TRUE):
   1. Agent writes a new TypeScript tool, tests it in a sandbox, and the tool appears in the tool registry available for use in subsequent planning cycles
   2. A failed code deployment is rolled back without affecting the running agent loop or existing tools
   3. Agent extends its own database schema (CREATE TABLE or ALTER TABLE) and the new schema is used in subsequent operations
-  4. Agent discovers an x402 service, makes a micropayment, and receives data or compute in return, with the transaction logged in P&L
-  5. Agent offers one of its own capabilities as a paid x402 service and receives payment from another agent
 **Plans**: TBD
 
 Plans:
