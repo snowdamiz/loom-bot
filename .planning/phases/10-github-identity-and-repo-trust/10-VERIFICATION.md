@@ -1,53 +1,59 @@
 ---
 phase: 10-github-identity-and-repo-trust
-verified: 2026-02-19T22:32:25.385Z
+verified: 2026-02-19T22:51:49Z
 status: passed
-score: 7/7 dimensions passed
-re_verification: false
-issues: []
+score: 6/6 dimensions passed
+re_verification: true
+issues:
+  - "Manual OAuth happy-path run not executed in this workspace due missing runtime env bootstrap (DATABASE_URL + OAuth app credentials)."
 ---
 
-# Phase 10 Plan Verification Report
+# Phase 10 Verification Report
 
 **Phase Goal:** Replace setup stub with real GitHub identity + repository binding so self-modification has an authenticated source of truth.
-**Verified:** 2026-02-19T22:32:25.385Z
+**Verified:** 2026-02-19T22:51:49Z
 **Status:** passed
 
 ## Dimension Results
 
 | Dimension | Result | Notes |
 |-----------|--------|-------|
-| Requirement coverage | PASS | `SEXT-01`..`SEXT-04` are all present in plan frontmatter and have concrete task coverage. |
-| Task completeness | PASS | All tasks include files, action, verify, and done fields (validated via `gsd_verify_plan_structure`). |
-| Dependency correctness | PASS | `10-01 -> 10-02 -> 10-03` is acyclic and wave assignments are consistent. |
-| Key links planned | PASS | API, DB, UI, and tool-guard wiring paths are explicitly planned in `must_haves.key_links`. |
-| Scope sanity | PASS | 3 plans, 3 tasks each; no plan exceeds context-risk thresholds. |
-| Verification derivation | PASS | Each plan includes observable truths, required artifacts, and key links tied to phase goal. |
-| Context compliance | PASS (N/A) | No `10-CONTEXT.md` present; no contradictory user-decision constraints to enforce. |
+| Plan execution completeness | PASS | `gsd_verify_phase_completeness` confirms 3/3 plans have summaries and no orphan files. |
+| Requirement traceability | PASS | `SEXT-01`..`SEXT-04` are marked complete in `.planning/REQUIREMENTS.md` and map to implemented plan outputs. |
+| Backend implementation coverage | PASS | OAuth start/callback, repo list/bind, and setup-state trust payload are implemented in dashboard routes. |
+| Frontend trust-flow enforcement | PASS | Setup wizard now enforces connect-and-bind flow; skip path removed; bind action wired to new APIs. |
+| Self-extension fail-closed guard | PASS | `tool_write` builtin path calls `assertGitHubTrustForBuiltinModify` before `stageBuiltinChange`. |
+| Build/package verification | PASS | `pnpm build --filter @jarvis/dashboard`, `@jarvis/dashboard-client`, `@jarvis/tools`, and `@jarvis/agent` all succeeded. |
 
 ## Requirement Coverage Matrix
 
-| Requirement | Covering Plans | Coverage Summary |
-|-------------|----------------|------------------|
-| SEXT-01 | 10-02 | Real OAuth start/callback implementation replaces stub connection path. |
-| SEXT-02 | 10-01, 10-02, 10-03 | Identity + repo-binding persistence and validated repository selection flow. |
-| SEXT-03 | 10-01, 10-02 | Encrypted token storage model + OAuth callback token persistence with no plaintext logging. |
-| SEXT-04 | 10-03 | Built-in `tool_write` path guarded by GitHub trust preconditions (fail closed). |
+| Requirement | Evidence | Result |
+|-------------|----------|--------|
+| SEXT-01 | `apps/dashboard/src/routes/setup.ts` (`POST /github/start`) + `apps/dashboard/src/routes/github-oauth-callback.ts` (real code exchange) | PASS |
+| SEXT-02 | `setup_state` identity/repo fields + `POST /api/setup/github/bind` persistence path | PASS |
+| SEXT-03 | Callback stores token via `pgp_sym_encrypt` in `credentials` and references credential ID in setup state | PASS |
+| SEXT-04 | `packages/tools/src/self-extension/github-trust-guard.ts` and guard invocation in `tool-writer.ts` builtin branch | PASS |
 
-## Plan Summary
+## Must-Have Artifact Checks
 
-| Plan | Wave | Tasks | Requirements | Status |
-|------|------|-------|--------------|--------|
-| 10-01 | 1 | 3 | SEXT-02, SEXT-03 | Valid |
-| 10-02 | 2 | 3 | SEXT-01, SEXT-02, SEXT-03 | Valid |
-| 10-03 | 3 | 3 | SEXT-02, SEXT-04 | Valid |
+- `packages/db/src/schema/setup-state.ts` contains trust fields (`githubRepoFullName`, `githubTokenCredentialId`, identity metadata).
+- `packages/db/src/schema/github-oauth-state.ts` exists and defines one-time OAuth state persistence.
+- `apps/dashboard/src/routes/setup.ts` exposes `/github/start`, `/github/repos`, and `/github/bind`.
+- `apps/dashboard/src/routes/github-oauth-callback.ts` validates and consumes state before OAuth exchange.
+- `apps/dashboard/client/src/components/SetupStepGitHub.tsx` includes repository bind UX and API wiring.
+- `packages/tools/src/self-extension/tool-writer.ts` references `assertGitHubTrustForBuiltinModify` before builtin staging.
 
-## Notes
+## Human Verification Follow-Up
 
-- `gsd_verify_plan_structure` passed for all three plan files with no errors/warnings.
-- No blocker or warning issues were found in the plan-check phase.
-- Plans are ready for execution in wave order.
+Manual operator flow is still recommended once runtime env vars are set:
+
+1. Open dashboard setup wizard and run `connect -> callback -> repo bind`.
+2. Confirm `GET /api/setup` returns `githubTrustBound: true` and `complete: true`.
+3. Trigger a `tool_write` request with `builtinModify=true` before/after trust binding and confirm fail-closed behavior when trust is incomplete.
+
+## Verdict
+
+Phase 10 implementation satisfies planned requirements and compile-time/system integration checks. No code-level gaps were found in automated verification.
 
 ---
-
-_Verifier: Claude (gsd-plan-checker)_
+_Verifier: Codex (execution-phase verification)_

@@ -7,7 +7,7 @@
 
 ## Current Milestone Plan (v1.1)
 
-- [ ] **Phase 10: GitHub Identity and Repo Trust**
+- [x] **Phase 10: GitHub Identity and Repo Trust** (completed 2026-02-19)
 Goal: Replace setup stub with real GitHub identity + repository binding so self-modification has an authenticated source of truth.
 Requirements: SEXT-01, SEXT-02, SEXT-03, SEXT-04
 Success criteria:
@@ -114,7 +114,7 @@ Plans: 0/0 planned
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 10. GitHub Identity and Repo Trust | v1.1 | 0/3 | Planned | — |
+| 10. GitHub Identity and Repo Trust | v1.1 | Complete    | 2026-02-19 | — |
 | 11. Version-Controlled Self-Modification Pipeline | v1.1 | 0/0 | Planned | — |
 | 12. Isolated Sandbox Verification | v1.1 | 0/0 | Planned | — |
 | 13. Promotion Guardrails, Rollback, and Visibility | v1.1 | 0/0 | Planned | — |
