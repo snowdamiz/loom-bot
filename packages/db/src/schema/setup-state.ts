@@ -1,4 +1,5 @@
-import { boolean, integer, pgTable, timestamp, varchar } from 'drizzle-orm/pg-core';
+import { boolean, integer, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import { credentials } from './identities.js';
 
 /**
  * Setup state tracking table.
@@ -12,7 +13,13 @@ export const setupState = pgTable('setup_state', {
   id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
   openrouterKeySet: boolean('openrouter_key_set').notNull().default(false),
   githubConnected: boolean('github_connected').notNull().default(false),
+  githubUserId: varchar('github_user_id', { length: 64 }),
   githubUsername: varchar('github_username', { length: 256 }),
+  githubRepoId: varchar('github_repo_id', { length: 64 }),
+  githubRepoFullName: varchar('github_repo_full_name', { length: 512 }),
+  githubRepoDefaultBranch: varchar('github_repo_default_branch', { length: 256 }),
+  githubRepoValidatedAt: timestamp('github_repo_validated_at'),
+  githubTokenCredentialId: uuid('github_token_credential_id').references(() => credentials.id),
   setupCompletedAt: timestamp('setup_completed_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),

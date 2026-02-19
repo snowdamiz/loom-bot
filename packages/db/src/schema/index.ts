@@ -19,3 +19,4 @@ export * from './credentials.js';
 export * from './credential-audit.js';
 export * from './agent-migrations.js';
 export * from './setup-state.js';
+export * from './github-oauth-state.js';
