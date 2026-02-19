@@ -1,102 +1,112 @@
-import { simpleGit } from 'simple-git';
-import type { StatusResultRenamed } from 'simple-git';
-import { writeFileSync } from 'node:fs';
+import type { DbClient } from '@jarvis/db';
 import { compileTypeScript } from './compiler.js';
 import { runInSandbox } from './sandbox-runner.js';
+import { runGitHubSelfExtensionPipeline } from './github-pipeline.js';
+import type { SelfExtensionExecutionContext } from './pipeline-context.js';
+
+const SANDBOX_STATUS_CONTEXT = 'jarvis/sandbox';
+
+export interface StageBuiltinChangeResult {
+  success: boolean;
+  error?: string;
+  branchName?: string;
+  headSha?: string;
+  pullRequestUrl?: string;
+  pullRequestNumber?: number;
+  evidenceStatusContext: string;
+  evidenceState: 'success' | 'failure';
+}
+
+function summarizeSandboxOutput(value: unknown): string {
+  const serialized = typeof value === 'string' ? value : JSON.stringify(value);
+  if (!serialized) {
+    return 'No sandbox output was produced.';
+  }
+  return serialized.slice(0, 400);
+}
 
 /**
- * stageBuiltinChange — applies a modification to a built-in tool via git branch staging.
+ * stageBuiltinChange — validates a built-in modification and then delegates
+ * repository writes to the GitHub self-extension pipeline.
  *
- * Flow:
- *  1. Record current branch name
- *  2. Verify working tree is clean for the target file
- *  3. Create a new staging branch
- *  4. Write new content, stage, and commit
- *  5. Compile and sandbox test the new content
- *  6. If test passes: checkout original branch, merge staging branch with --ff-only, delete staging branch
- *  7. If test fails: checkout original branch, force-delete staging branch, return error
- *
- * IMPORTANT: Does NOT assume 'main' — uses the branch name captured before staging.
+ * Safety ordering is preserved:
+ * 1) compile candidate code
+ * 2) run sandbox verification
+ * 3) execute repository branch/commit/PR pipeline
  */
 export async function stageBuiltinChange(opts: {
+  db: DbClient;
   toolName: string;
   filePath: string;
   newContent: string;
   testInput: unknown;
-}): Promise<{ success: boolean; error?: string }> {
-  const git = simpleGit(process.cwd());
-  const branchName = `agent/builtin-mod/${opts.toolName}-${Date.now()}`;
-  let originalBranch: string = 'main';
-
+  executionContext?: SelfExtensionExecutionContext;
+}): Promise<StageBuiltinChangeResult> {
+  let compiledCode: string;
   try {
-    // Step 1: Record current branch BEFORE creating staging branch
-    const rawBranch = await git.revparse(['--abbrev-ref', 'HEAD']);
-    originalBranch = rawBranch.trim();
-
-    // Step 2: Verify working tree is clean for the target file
-    const status = await git.status();
-    const allDirty = [
-      ...status.modified,
-      ...status.not_added,
-      ...status.created,
-      ...status.deleted,
-      ...status.renamed.map((r: StatusResultRenamed) => r.to),
-      ...status.renamed.map((r: StatusResultRenamed) => r.from),
-    ];
-    const isDirty = allDirty.some((f) => f === opts.filePath || f.endsWith(`/${opts.filePath}`) || opts.filePath.endsWith(`/${f}`));
-    if (isDirty) {
-      return {
-        success: false,
-        error: `Working tree has uncommitted changes for ${opts.filePath}`,
-      };
-    }
-
-    // Step 3: Create staging branch
-    await git.checkoutLocalBranch(branchName);
-
-    // Step 4: Write new content, stage, commit
-    writeFileSync(opts.filePath, opts.newContent, 'utf-8');
-    await git.add(opts.filePath);
-    await git.commit(`agent: modify builtin tool ${opts.toolName}`);
-
-    // Step 5: Compile the new content
-    const { code } = await compileTypeScript(opts.newContent);
-
-    // Step 6: Sandbox test
-    const result = await runInSandbox(code, opts.toolName, opts.testInput, 30_000);
-
-    if (!result.passed) {
-      // Test failed: abandon staging branch, return to original
-      await git.checkout(originalBranch);
-      await git.deleteLocalBranch(branchName, true);
-      return {
-        success: false,
-        error: `Sandbox test failed: ${result.error}`,
-      };
-    }
-
-    // Step 7: Test passed: merge into original branch
-    await git.checkout(originalBranch);
-    await git.merge([branchName, '--ff-only']);
-    await git.deleteLocalBranch(branchName);
-    return { success: true };
+    const compiled = await compileTypeScript(opts.newContent);
+    compiledCode = compiled.code;
   } catch (err) {
-    // Cleanup: try to return to original branch and delete staging branch
-    if (originalBranch) {
-      try {
-        await git.checkout(originalBranch);
-      } catch {
-        // Best-effort
-      }
-    }
-    try {
-      await git.deleteLocalBranch(branchName, true);
-    } catch {
-      // Best-effort
-    }
     return {
       success: false,
-      error: err instanceof Error ? err.message : String(err),
+      error: `Compilation failed: ${err instanceof Error ? err.message : String(err)}`,
+      evidenceStatusContext: SANDBOX_STATUS_CONTEXT,
+      evidenceState: 'failure',
     };
   }
+
+  const sandboxStart = Date.now();
+  const sandboxResult = await runInSandbox(compiledCode, opts.toolName, opts.testInput, 30_000);
+  const sandboxDurationMs = Date.now() - sandboxStart;
+
+  const pipelineResult = await runGitHubSelfExtensionPipeline({
+    db: opts.db,
+    toolName: opts.toolName,
+    filePath: opts.filePath,
+    newContent: opts.newContent,
+    executionContext: opts.executionContext,
+    sandboxEvidence: {
+      passed: sandboxResult.passed,
+      durationMs: sandboxDurationMs,
+      summary: sandboxResult.passed
+        ? `Sandbox passed in ${sandboxDurationMs}ms`
+        : summarizeSandboxOutput(sandboxResult.error ?? sandboxResult.output),
+    },
+  });
+
+  if (!pipelineResult.success) {
+    return {
+      success: false,
+      error: pipelineResult.error,
+      branchName: pipelineResult.branchName,
+      headSha: pipelineResult.headSha,
+      pullRequestUrl: pipelineResult.pullRequestUrl,
+      pullRequestNumber: pipelineResult.pullRequestNumber,
+      evidenceStatusContext: pipelineResult.evidenceStatusContext,
+      evidenceState: pipelineResult.evidenceState,
+    };
+  }
+
+  if (!sandboxResult.passed) {
+    return {
+      success: false,
+      error: `Sandbox test failed: ${sandboxResult.error ?? 'unknown sandbox error'}`,
+      branchName: pipelineResult.branchName,
+      headSha: pipelineResult.headSha,
+      pullRequestUrl: pipelineResult.pullRequestUrl,
+      pullRequestNumber: pipelineResult.pullRequestNumber,
+      evidenceStatusContext: pipelineResult.evidenceStatusContext,
+      evidenceState: pipelineResult.evidenceState,
+    };
+  }
+
+  return {
+    success: true,
+    branchName: pipelineResult.branchName,
+    headSha: pipelineResult.headSha,
+    pullRequestUrl: pipelineResult.pullRequestUrl,
+    pullRequestNumber: pipelineResult.pullRequestNumber,
+    evidenceStatusContext: pipelineResult.evidenceStatusContext,
+    evidenceState: pipelineResult.evidenceState,
+  };
 }

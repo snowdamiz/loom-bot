@@ -6,6 +6,7 @@ import { runInSandbox } from './sandbox-runner.js';
 import { AGENT_TOOLS_DIR } from './tool-loader.js';
 import { stageBuiltinChange } from './staging-deployer.js';
 import { assertGitHubTrustForBuiltinModify } from './github-trust-guard.js';
+import type { SelfExtensionExecutionContext } from './pipeline-context.js';
 import type { DbClient } from '@jarvis/db';
 import type { ToolRegistry } from '../registry.js';
 import type { ToolDefinition } from '../types.js';
@@ -46,8 +47,8 @@ const toolWriteInput = z.object({
     .boolean()
     .default(false)
     .describe(
-      'Set to true to modify a built-in tool (Phase 1-7). This will use git branch staging: ' +
-        'branch, test, merge on success. Only use this if you need to modify core agent capabilities. ' +
+      'Set to true to modify a built-in tool (Phase 1-7). This uses the trusted GitHub branch/commit/PR pipeline: ' +
+        'deterministic branch, metadata commit, sandbox evidence status, and promotion gating. Only use this if you need to modify core agent capabilities. ' +
         'For new tools, leave false.'
     ),
   builtinFilePath: z
@@ -95,14 +96,18 @@ export function createToolWriteTool(
       'Write a new TypeScript tool or update an existing one. The source code is compiled, tested in an isolated sandbox process, then persisted to disk and registered for immediate use. ' +
       'For new tools: provide name, description, and tsSource. The tool is compiled via esbuild, tested in a forked child process, and on success written to disk and registered in the tool registry. ' +
       'For updating agent-authored tools: use the same name — the old version is replaced. ' +
-      'For modifying built-in tools (Phase 1-7): set builtinModify=true and provide builtinFilePath. This creates a git branch, applies the change, tests it in a sandbox, and merges only on success. ' +
+      'For modifying built-in tools (Phase 1-7): set builtinModify=true and provide builtinFilePath. This routes the change through a trusted GitHub branch/commit/PR flow with sandbox evidence and merge gating. ' +
       'IMPORTANT: Your tool must export a ToolDefinition as default export or named "tool" export. ' +
       'All tool names must be lowercase with underscores. If your tool name matches a built-in, you must use builtinModify=true.',
     inputSchema: toolWriteInput,
     timeoutMs: 120_000,
     maxOutputBytes: 8192,
 
-    async execute(input: ToolWriteInput, signal: AbortSignal) {
+    async execute(
+      input: ToolWriteInput,
+      signal: AbortSignal,
+      executionContext?: SelfExtensionExecutionContext,
+    ) {
       try {
         // Check for abort
         if (signal.aborted) {
@@ -139,22 +144,40 @@ export function createToolWriteTool(
           }
 
           const result = await stageBuiltinChange({
+            db,
             toolName: input.name,
             filePath: input.builtinFilePath,
             newContent: input.tsSource,
             testInput: input.testInput,
+            executionContext,
           });
 
           if (result.success) {
             return {
               success: true,
-              mode: 'builtin-staged',
+              mode: 'builtin-pr',
               toolName: input.name,
+              branchName: result.branchName,
+              headSha: result.headSha,
+              pullRequestUrl: result.pullRequestUrl ?? null,
+              pullRequestNumber: result.pullRequestNumber ?? null,
+              evidenceStatusContext: result.evidenceStatusContext,
+              evidenceState: result.evidenceState,
               message:
-                'Built-in tool modified via git branch staging. Run pnpm build --filter @jarvis/tools to compile changes.',
+                'Built-in tool modified via trusted GitHub pipeline. Review branch/PR evidence before promotion.',
             };
           } else {
-            return { success: false, error: result.error };
+            return {
+              success: false,
+              mode: 'builtin-pr',
+              error: result.error,
+              branchName: result.branchName,
+              headSha: result.headSha,
+              pullRequestUrl: result.pullRequestUrl ?? null,
+              pullRequestNumber: result.pullRequestNumber ?? null,
+              evidenceStatusContext: result.evidenceStatusContext,
+              evidenceState: result.evidenceState,
+            };
           }
         }
 
