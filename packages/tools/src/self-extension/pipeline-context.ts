@@ -3,9 +3,9 @@
  * deterministic self-extension traceability.
  */
 export interface SelfExtensionExecutionContext {
-  goalId: number | string;
-  cycleId: number | string;
-  subGoalId: number | string;
+  goalId: number | string | null;
+  cycleId: number | string | null;
+  subGoalId: number | string | null;
   toolName: string;
   toolCallId?: string | null;
   actorSource?: string | null;
@@ -13,9 +13,9 @@ export interface SelfExtensionExecutionContext {
 
 export interface CommitMetadataPayload {
   schemaVersion: 1;
-  goalId: string;
-  cycleId: string;
-  subGoalId: string;
+  goalId: string | null;
+  cycleId: string | null;
+  subGoalId: string | null;
   toolName: string;
   toolCallId: string | null;
   actorSource: string | null;
@@ -26,8 +26,12 @@ export interface CommitMetadataEnvelope {
   serialized: string;
 }
 
-function normalizeRequired(value: number | string): string {
-  return String(value).trim();
+function normalizeRequired(value: number | string | null): string | null {
+  if (value === null) {
+    return null;
+  }
+  const trimmed = String(value).trim();
+  return trimmed.length > 0 ? trimmed : null;
 }
 
 function normalizeOptional(value: string | null | undefined): string | null {
@@ -36,6 +40,11 @@ function normalizeOptional(value: string | null | undefined): string | null {
   }
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
+}
+
+function normalizeToolName(value: string): string {
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : 'unknown_tool';
 }
 
 function orderKeys(value: unknown): unknown {
@@ -64,7 +73,7 @@ export function buildCommitMetadata(
     goalId: normalizeRequired(context.goalId),
     cycleId: normalizeRequired(context.cycleId),
     subGoalId: normalizeRequired(context.subGoalId),
-    toolName: normalizeRequired(context.toolName),
+    toolName: normalizeToolName(context.toolName),
     toolCallId: normalizeOptional(context.toolCallId),
     actorSource: normalizeOptional(context.actorSource),
   };

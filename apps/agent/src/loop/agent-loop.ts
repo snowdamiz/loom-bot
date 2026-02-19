@@ -92,9 +92,13 @@ export class AgentLoop {
    *   5. Repeat until stop / length / content_filter / max turns
    *
    * @param subGoal - The sub-goal to execute
+   * @param cycleLogId - Cycle log row ID for deterministic per-call trace metadata
    * @returns success flag and outcome (LLM's final message content or error description)
    */
-  async executeSubGoal(subGoal: SubGoal): Promise<{ success: boolean; outcome: unknown }> {
+  async executeSubGoal(
+    subGoal: SubGoal,
+    cycleLogId: number,
+  ): Promise<{ success: boolean; outcome: unknown }> {
     // INVARIANT: Fresh messages array per sub-goal (no context leakage)
     const systemParts = [
       `You are an autonomous AI agent executing a specific sub-goal.`,
@@ -183,6 +187,15 @@ export class AgentLoop {
               this.db,
               toolCall.function.name,
               parsedArgs,
+              undefined,
+              {
+                goalId: subGoal.goalId,
+                cycleId: cycleLogId,
+                subGoalId: subGoal.id,
+                toolName: toolCall.function.name,
+                toolCallId: toolCall.id,
+                actorSource: 'agent-loop',
+              },
             );
             result = toolResult;
           } catch (err) {
@@ -309,7 +322,7 @@ export class AgentLoop {
         process.stderr.write(
           `[agent-loop] Executing sub-goal ${subGoal.id}: "${subGoal.description}"\n`,
         );
-        const result = await this.executeSubGoal(subGoal);
+        const result = await this.executeSubGoal(subGoal, cycleLogId);
         outcomes.push(result.outcome);
 
         // RECOV-01: Checkpoint MUST succeed before proceeding to the next sub-goal.

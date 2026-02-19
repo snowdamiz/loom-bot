@@ -36,6 +36,25 @@ function buildSubAgentSystemPrompt(task: string, context: Record<string, unknown
   ].join('\n\n');
 }
 
+function extractContextIdentifier(
+  context: Record<string, unknown>,
+  candidates: string[],
+): string | number | null {
+  for (const key of candidates) {
+    const value = context[key];
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (trimmed.length > 0) {
+        return trimmed;
+      }
+    }
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+  }
+  return null;
+}
+
 /**
  * MULTI-01, MULTI-02, MULTI-03: BullMQ worker that processes sub-agent jobs.
  *
@@ -115,7 +134,28 @@ export function createAgentWorker(deps: {
               rawInput = {};
             }
 
-            const result = await invokeWithKillCheck(killSwitch, registry, db, toolName, rawInput);
+            const goalId = extractContextIdentifier(context, ['goalId', 'parentGoalId', 'rootGoalId']);
+            const cycleId = extractContextIdentifier(context, ['cycleId', 'cycleLogId', 'parentCycleId']);
+            const subGoalId =
+              extractContextIdentifier(context, ['subGoalId', 'taskId', 'jobId']) ??
+              (typeof job.id === 'string' || typeof job.id === 'number' ? job.id : null);
+
+            const result = await invokeWithKillCheck(
+              killSwitch,
+              registry,
+              db,
+              toolName,
+              rawInput,
+              undefined,
+              {
+                goalId,
+                cycleId,
+                subGoalId,
+                toolName,
+                toolCallId: toolCall.id,
+                actorSource: 'agent-worker',
+              },
+            );
 
             // Format result as tool message for the next turn
             const toolContent = result.success
