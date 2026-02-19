@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@jarvis/ai": "workspace:*",
+    "@jarvis/browser": "workspace:*",
     "@jarvis/db": "workspace:*",
     "@jarvis/logging": "workspace:*",
     "@jarvis/tools": "workspace:*",

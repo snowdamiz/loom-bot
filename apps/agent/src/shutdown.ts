@@ -4,15 +4,16 @@ import type { Worker } from 'bullmq';
  * Graceful shutdown handler for all service connections.
  *
  * Listens for SIGTERM and SIGINT signals and shuts down in order:
- * 1. Memory consolidation interval (prevents new DB writes)
- * 2. Wallet subscription (stops inbound monitoring)
- * 3. Supervisor: stop all active main agent loops (Phase 3)
- * 4. Agent worker: close BullMQ worker for sub-agent jobs (Phase 3)
- * 5. Agent-tasks queue: close BullMQ queue for sub-agent dispatch (Phase 3)
- * 6. BullMQ worker (if provided)
- * 7. Signer process: kill SIGTERM to signer co-process (Phase 4)
- * 8. Redis client
- * 9. Postgres connection pool
+ * 1.   Memory consolidation interval (prevents new DB writes)
+ * 2.   Wallet subscription (stops inbound monitoring)
+ * 2.5. Browser close (kills Chromium child process — prevents zombie, Phase 6)
+ * 3.   Supervisor: stop all active main agent loops (Phase 3)
+ * 4.   Agent worker: close BullMQ worker for sub-agent jobs (Phase 3)
+ * 5.   Agent-tasks queue: close BullMQ queue for sub-agent dispatch (Phase 3)
+ * 6.   BullMQ worker (if provided)
+ * 7.   Signer process: kill SIGTERM to signer co-process (Phase 4)
+ * 8.   Redis client
+ * 9.   Postgres connection pool
  *
  * Per research anti-pattern guidance: ALWAYS call pool.end() to prevent connection leaks.
  * A 10-second force-kill timeout ensures the process exits even if graceful shutdown hangs.
@@ -49,6 +50,16 @@ export interface ShutdownSignerProcess {
   pid?: number;
 }
 
+/**
+ * Minimal interface for BrowserManager shutdown — avoids importing the concrete
+ * BrowserManager class in shutdown.ts, keeping it decoupled per pnpm strict isolation.
+ * Matches the BrowserManager API from @jarvis/browser.
+ */
+export interface ShutdownBrowserManager {
+  close(): Promise<void>;
+  isRunning(): boolean;
+}
+
 export interface ShutdownResources {
   pool: ShutdownPool;
   redis: ShutdownRedis;
@@ -64,6 +75,8 @@ export interface ShutdownResources {
   signerProcess?: ShutdownSignerProcess;
   /** Phase 4: Wallet WebSocket subscription */
   walletSubscription?: { stop: () => void };
+  /** Phase 6: Browser manager (Chromium child process — must close to prevent zombie) */
+  browserManager?: ShutdownBrowserManager;
 }
 
 export function registerShutdownHandlers(resources: ShutdownResources): void {
@@ -77,6 +90,7 @@ export function registerShutdownHandlers(resources: ShutdownResources): void {
     agentTasksQueue,
     signerProcess,
     walletSubscription,
+    browserManager,
   } = resources;
 
   async function gracefulShutdown(signal: string): Promise<void> {
@@ -102,6 +116,12 @@ export function registerShutdownHandlers(resources: ShutdownResources): void {
       if (walletSubscription !== undefined) {
         walletSubscription.stop();
         process.stderr.write('[shutdown] Wallet subscription stopped.\n');
+      }
+
+      // 2.5. Close browser (kills Chromium child process — prevents zombie per research Pitfall 6)
+      if (browserManager !== undefined && browserManager.isRunning()) {
+        await browserManager.close();
+        process.stderr.write('[shutdown] Browser closed.\n');
       }
 
       // 3. Stop all active main agent loops via supervisor

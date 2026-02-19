@@ -6,6 +6,7 @@ import killSwitchRoute from './routes/kill-switch.js';
 import pnlRoute from './routes/pnl.js';
 import activityRoute from './routes/activity.js';
 import sseRoute from './routes/sse.js';
+import identitiesRoute from './routes/identities.js';
 
 /**
  * DASH-01: Hono app factory with middleware and routes.
@@ -32,5 +33,7 @@ app.route('/api/kill-switch', killSwitchRoute);
 app.route('/api/activity', activityRoute);
 app.route('/api/pnl', pnlRoute);
 app.route('/api/sse', sseRoute);
+// Phase 6: Identity ledger (IDENT-06 — operator audit of browser identities)
+app.route('/api', identitiesRoute);
 
 export default app;

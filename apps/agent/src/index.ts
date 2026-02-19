@@ -2,13 +2,14 @@ import 'dotenv/config';
 import { fork } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { db, pool, agentState, eq } from '@jarvis/db';
-import { createDefaultRegistry, redis, createWalletTools } from '@jarvis/tools';
+import { createDefaultRegistry, redis, createWalletTools, createBrowserTools, createIdentityTools, createBootstrapTools } from '@jarvis/tools';
 import { createRouter, KillSwitchGuard, loadModelConfig, toolDefinitionsToOpenAI } from '@jarvis/ai';
+import { BrowserManager } from '@jarvis/browser';
 import { SignerClient, subscribeToWallet } from '@jarvis/wallet';
 import { Queue } from 'bullmq';
 import { startConsolidation } from './memory-consolidation.js';
 import { registerShutdownHandlers } from './shutdown.js';
-import type { ShutdownSignerProcess } from './shutdown.js';
+import type { ShutdownSignerProcess, ShutdownBrowserManager } from './shutdown.js';
 import { GoalManager } from './loop/goal-manager.js';
 import { AgentLoop } from './loop/agent-loop.js';
 import { EvaluatorImpl } from './loop/evaluator.js';
@@ -255,7 +256,39 @@ async function main(): Promise<void> {
     }
   }
 
-  // 4. Register graceful shutdown handlers with all Phase 3 + 4 resources
+  // === Phase 6: Browser, Identity, and Bootstrapping ===
+
+  // Browser manager lifecycle (always available — no env var gating)
+  const browserManager = new BrowserManager();
+
+  // Register browser tools (8 tools: session open/close/save, navigate, click, fill, extract, screenshot)
+  const browserTools = createBrowserTools(browserManager);
+  browserTools.forEach((t) => registry.register(t));
+
+  // Register identity tools (7 tools: identity_create, credential_store/retrieve, temp_email_create/check, identity_retire, request_operator_credentials)
+  const identityTools = createIdentityTools(db);
+  identityTools.forEach((t) => registry.register(t));
+
+  // Register bootstrap tools (2 tools: package_install, tool_discover)
+  const bootstrapTools = createBootstrapTools(registry);
+  bootstrapTools.forEach((t) => registry.register(t));
+
+  // Re-derive openAITools after Phase 6 registration so the LLM sees all tools
+  openAITools = toolDefinitionsToOpenAI(registry);
+
+  // Validate CREDENTIAL_ENCRYPTION_KEY at startup (warn, don't crash — identity tools degrade gracefully)
+  if (!process.env.CREDENTIAL_ENCRYPTION_KEY) {
+    process.stderr.write(
+      '[agent] WARNING: CREDENTIAL_ENCRYPTION_KEY not set — credential vault tools will fail. ' +
+        'Set this env var to enable encrypted credential storage.\n',
+    );
+  }
+
+  process.stderr.write(
+    `[agent] Phase 6 ready. Browser: ${browserTools.length} tools, Identity: ${identityTools.length} tools, Bootstrap: ${bootstrapTools.length} tools. Total: ${registry.count()}\n`,
+  );
+
+  // 4. Register graceful shutdown handlers with all Phase 3, 4 + 6 resources
   registerShutdownHandlers({
     pool,
     redis,
@@ -265,6 +298,7 @@ async function main(): Promise<void> {
     agentTasksQueue,
     signerProcess,
     walletSubscription,
+    browserManager: browserManager as ShutdownBrowserManager,
   });
 
   // Run startup recovery if needed (RECOV-02: resume from last journal checkpoint)
