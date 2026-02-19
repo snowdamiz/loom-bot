@@ -17,6 +17,9 @@ importers:
       '@jarvis/ai':
         specifier: workspace:*
         version: link:../../packages/ai
+      '@jarvis/browser':
+        specifier: workspace:*
+        version: link:../../packages/browser
       '@jarvis/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -244,6 +247,9 @@ importers:
       discord.js:
         specifier: ^14.16.3
         version: 14.25.1(bufferutil@4.1.0)(utf-8-validate@5.0.10)
+      esbuild:
+        specifier: ^0.27.3
+        version: 0.27.3
       got:
         specifier: ^14.4.5
         version: 14.6.6
@@ -253,6 +259,9 @@ importers:
       playwright:
         specifier: ^1.50.1
         version: 1.58.2
+      simple-git:
+        specifier: ^3.31.1
+        version: 3.31.1
       tough-cookie:
         specifier: ^5.1.2
         version: 5.1.2
@@ -1038,6 +1047,12 @@ packages:
 
   '@keyv/serialize@1.1.1':
     resolution: {integrity: sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA==}
+
+  '@kwsites/file-exists@1.1.1':
+    resolution: {integrity: sha512-m9/5YGR18lIwxSFDwfE3oA7bWuq9kdau6ugN4H2rJeyhFQZcG9AgSHkQtSD15a8WvTgfz9aikZMrKPHvbpqFiw==}
+
+  '@kwsites/promise-deferred@1.1.1':
+    resolution: {integrity: sha512-GaHYm+c0O9MjZRu0ongGBRbinu8gVAMd2UZjji6jVmqKtZluZnptXGWhz1E8j8D2HJ3f/yMxKAUC0b+57wncIw==}
 
   '@microsoft/fetch-event-source@2.0.1':
     resolution: {integrity: sha512-W6CLUJ2eBMw3Rec70qrsEW0jOm/3twwJv21mrmj2yORiaVmVYGS4sSS5yUwvQc1ZlDLYGPnClVWmUUMagKNsfA==}
@@ -2482,6 +2497,9 @@ packages:
     resolution: {integrity: sha512-ObmnIF4hXNg1BqhnHmgbDETF8dLPCggZWBjkQfhZpbszZnYur5DUljTcCHii5LC3J5E0yeO/1LIMyH+UvHQgyw==}
     engines: {node: '>= 0.4'}
 
+  simple-git@3.31.1:
+    resolution: {integrity: sha512-oiWP4Q9+kO8q9hHqkX35uuHmxiEbZNTrZ5IPxgMGrJwN76pzjm/jabkZO0ItEcqxAincqGAzL3QHSaHt4+knBg==}
+
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
     engines: {node: '>=0.10.0'}
@@ -3197,6 +3215,14 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.5.5
 
   '@keyv/serialize@1.1.1': {}
+
+  '@kwsites/file-exists@1.1.1':
+    dependencies:
+      debug: 4.4.3
+    transitivePeerDependencies:
+      - supports-color
+
+  '@kwsites/promise-deferred@1.1.1': {}
 
   '@microsoft/fetch-event-source@2.0.1': {}
 
@@ -4808,6 +4834,14 @@ snapshots:
       mixin-object: 2.0.1
 
   shell-quote@1.8.3: {}
+
+  simple-git@3.31.1:
+    dependencies:
+      '@kwsites/file-exists': 1.1.1
+      '@kwsites/promise-deferred': 1.1.1
+      debug: 4.4.3
+    transitivePeerDependencies:
+      - supports-color
 
   source-map-js@1.2.1: {}
 

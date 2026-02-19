@@ -20,9 +20,11 @@
     "@jarvis/logging": "workspace:*",
     "@jarvis/wallet": "workspace:*",
     "discord.js": "^14.16.3",
+    "esbuild": "^0.27.3",
     "got": "^14.4.5",
     "ioredis": "^5.6.0",
     "playwright": "^1.50.1",
+    "simple-git": "^3.31.1",
     "tough-cookie": "^5.1.2",
     "zod": "^3.24.2"
   },

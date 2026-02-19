@@ -16,6 +16,7 @@ export default defineConfig({
     './src/schema/spend-limits.ts',
     './src/schema/wallet-config.ts',
     './src/schema/identities.ts',
+    './src/schema/agent-migrations.ts',
   ],
   out: './drizzle',
   dialect: 'postgresql',
