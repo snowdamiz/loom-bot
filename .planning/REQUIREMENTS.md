@@ -117,10 +117,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Browser Automation
 
-- [ ] **BROWSER-01**: Agent can select and install a browser automation library of its choice
-- [ ] **BROWSER-02**: Agent can navigate to URLs and interact with page elements programmatically
-- [ ] **BROWSER-03**: Agent can fill forms, click buttons, and extract structured content from pages
-- [ ] **BROWSER-04**: Agent can handle CAPTCHA challenges via external solving service
+- [x] **BROWSER-01**: Agent can select and install a browser automation library of its choice
+- [x] **BROWSER-02**: Agent can navigate to URLs and interact with page elements programmatically
+- [x] **BROWSER-03**: Agent can fill forms, click buttons, and extract structured content from pages
+- [x] **BROWSER-04**: Agent can handle CAPTCHA challenges via external solving service
 - [x] **BROWSER-05**: Browser sessions are tied to specific identities for session isolation
 
 ### Identity Management
@@ -257,10 +257,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DASH-05 | Phase 5 | Complete (05-01) |
 | DASH-06 | Phase 5 | Complete (05-01) |
 | DASH-07 | Phase 5 | Complete (05-01) |
-| BROWSER-01 | Phase 6 | Pending |
-| BROWSER-02 | Phase 6 | Pending |
-| BROWSER-03 | Phase 6 | Pending |
-| BROWSER-04 | Phase 6 | Pending |
+| BROWSER-01 | Phase 6 | Complete |
+| BROWSER-02 | Phase 6 | Complete |
+| BROWSER-03 | Phase 6 | Complete |
+| BROWSER-04 | Phase 6 | Complete |
 | BROWSER-05 | Phase 6 | Complete |
 | IDENT-01 | Phase 6 | Pending |
 | IDENT-02 | Phase 6 | Pending |

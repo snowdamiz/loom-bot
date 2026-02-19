@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** The agent must be able to autonomously reason about opportunities, acquire the tools and accounts it needs, and execute money-making strategies without human intervention.
-**Current focus:** Phase 6: Browser Identity and Bootstrapping — IN PROGRESS (1/4 plans done)
+**Current focus:** Phase 6: Browser Identity and Bootstrapping — IN PROGRESS (3/4 plans done)
 
 ## Current Position
 
 Phase: 6 of 8 (Browser Identity and Bootstrapping) — IN PROGRESS
-Plan: 1 of 4 in current phase (06-01 complete — Identity/credential DB schemas + pgcrypto + @jarvis/browser package)
+Plan: 3 of 4 in current phase (06-03 complete — 8 browser automation ToolDefinitions via createBrowserTools factory)
 Status: In progress
-Last activity: 2026-02-19 — Completed 06-01 (Identity schemas, credentials table with bytea/pgcrypto, BrowserManager/BrowserSession/stealth/CaptchaSolver)
+Last activity: 2026-02-19 — Completed 06-03 (browser_navigate, browser_click/fill/extract, browser_screenshot, browser_session_open/close/save)
 
 Progress: [████████████████████] 80%
 
@@ -32,11 +32,11 @@ Progress: [████████████████████] 80%
 | 03-autonomous-loop | 6/6 | 20 min | 3.3 min |
 | 04-wallet-and-financial-governance | 4/4 | 28 min | 7 min |
 | 05-web-dashboard | 3/3 | 14 min | 4.7 min |
-| 06-browser-identity-and-bootstrapping | 1/4 | 8 min | 8 min |
+| 06-browser-identity-and-bootstrapping | 3/4 | 11 min | 5.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-01 (4 min), 05-02 (5 min), 05-03 (5 min), 06-01 (8 min)
-- Trend: Phase 6 in progress; 06-01 took 8 min (infra/schema plan)
+- Last 5 plans: 05-02 (5 min), 05-03 (5 min), 06-01 (8 min), 06-03 (3 min)
+- Trend: Phase 6 in progress; 06-03 browser tools plan completed in 3 min
 
 *Updated after each plan completion*
 | Phase 02-ai-backbone-and-safety P02 | 4 | 2 tasks | 11 files |
@@ -54,6 +54,7 @@ Progress: [████████████████████] 80%
 | Phase 05-web-dashboard P02 | 5 | 2 tasks | 14 files |
 | Phase 05-web-dashboard P03 | 5 | 2 tasks | 5 files |
 | Phase 06 P01 | 8 | 2 tasks | 12 files |
+| Phase 06-browser-identity-and-bootstrapping P03 | 3 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -137,6 +138,9 @@ Recent decisions affecting current work:
 - [Phase 06-01]: customType bytea for encryptedValue — pgcrypto pgp_sym_encrypt returns raw binary; text column would corrupt it
 - [Phase 06-01]: BrowserManager is NOT a singleton — caller manages lifecycle for flexibility
 - [Phase 06-01]: playwright-extra uses cloudflareTurnstile not turnstile method name in @2captcha/captcha-solver v1.3.2
+- [Phase 06]: playwright added as direct dep to @jarvis/tools — pnpm strict isolation requires direct deps for Page type imports
+- [Phase 06]: humanLike click uses page.mouse.move steps + random offset within bounding box — simulates natural mouse paths per locked stealth decision
+- [Phase 06]: typeDelay uses page.type() for per-keystroke events (not page.fill() instantaneous) — exposes human-like typing to agent as optional capability
 
 ### Pending Todos
 
@@ -151,5 +155,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 06-01-PLAN.md (identity schemas + @jarvis/browser package)
+Stopped at: Completed 06-03-PLAN.md (browser automation tool group: 8 ToolDefinitions)
 Resume file: .planning/phases/06-browser-identity-and-bootstrapping/06-CONTEXT.md
