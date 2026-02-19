@@ -108,7 +108,7 @@ Each task was committed atomically:
 1. **Task 1: Create credential vault with pgcrypto encryption and audit logging** - `42b46ac` (feat)
 2. **Task 2: Create identity lifecycle tools (create, temp email, retire, operator escalation)** - `f8bf023` (feat)
 
-**Plan metadata:** *(upcoming docs commit)*
+**Plan metadata:** `775e64f` (docs: complete identity management tool group plan)
 
 ## Files Created/Modified
 - `packages/tools/src/identity/credential-vault.ts` - storeCredential/retrieveCredential/listCredentials/rotateCredential + credential_store/credential_retrieve ToolDefinition factories

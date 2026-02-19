@@ -2,184 +2,26 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-18)
+See: .planning/PROJECT.md (updated 2026-02-19)
 
 **Core value:** The agent must be able to autonomously reason about opportunities, acquire the tools and accounts it needs, and execute money-making strategies without human intervention.
-**Current focus:** Phase 9: Integration Gap Closure — COMPLETE (1/1 plans done)
+**Current focus:** v1.0 MVP shipped — planning next milestone
 
 ## Current Position
 
-Phase: 9 of 9 (Integration Gap Closure) — COMPLETE
-Plan: 1 of 1 in current phase (09-01 complete — CreditMonitor wired to startup/shutdown, sub-agent worker lazy tool derivation)
-Status: Phase 9 complete — 1/1 plans done. All 9 phases complete.
-Last activity: 2026-02-19 — Completed 09-01 (CreditMonitor lifecycle wired, Supervisor+Worker moved after Phase 8, lazy tool derivation in agent-worker)
+Phase: 9 of 9 — ALL COMPLETE
+Plan: All plans complete
+Status: v1.0 MVP shipped 2026-02-19
+Last activity: 2026-02-19 — Milestone v1.0 archived
 
-Progress: [█████████████████████████] 100% (Phase 9 complete)
-
-## Performance Metrics
-
-**Velocity:**
-- Total plans completed: 15
-- Average duration: 3.8 min
-- Total execution time: 0.83 hours
-
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 01-infrastructure | 4/4 | 26 min | 6.5 min |
-| 02-ai-backbone-and-safety | 3/3 | 9 min | 3 min |
-| 03-autonomous-loop | 6/6 | 20 min | 3.3 min |
-| 04-wallet-and-financial-governance | 4/4 | 28 min | 7 min |
-| 05-web-dashboard | 3/3 | 14 min | 4.7 min |
-| 06-browser-identity-and-bootstrapping | 4/4 | 14 min | 3.5 min |
-
-**Recent Trend:**
-- Last 5 plans: 05-03 (5 min), 06-01 (8 min), 06-02 (5 min), 06-03 (3 min), 06-04 (3 min)
-- Trend: Phase 6 complete; all 4 plans done; average 3.5 min/plan
-
-*Updated after each plan completion*
-| Phase 02-ai-backbone-and-safety P02 | 4 | 2 tasks | 11 files |
-| Phase 03-autonomous-loop P01 | 3 | 3 tasks | 8 files |
-| Phase 03-autonomous-loop P04 | 3 | 2 tasks | 3 files |
-| Phase 03-autonomous-loop P02 | 6 | 2 tasks | 6 files |
-| Phase 03-autonomous-loop P03 | 6 | 2 tasks | 3 files |
-| Phase 03-autonomous-loop P05 | 4 | 2 tasks | 5 files |
-| Phase 03-autonomous-loop P06 | 4 | 3 tasks | 5 files |
-| Phase 04-wallet-and-financial-governance P01 | 8 | 2 tasks | 13 files |
-| Phase 04-wallet-and-financial-governance P02 | 4 | 2 tasks | 6 files |
-| Phase 04-wallet-and-financial-governance P03 | 14 | 2 tasks | 12 files |
-| Phase 04-wallet-and-financial-governance P04 | 2 | 1 tasks | 1 files |
-| Phase 05-web-dashboard P01 | 4 | 2 tasks | 12 files |
-| Phase 05-web-dashboard P02 | 5 | 2 tasks | 14 files |
-| Phase 05-web-dashboard P03 | 5 | 2 tasks | 5 files |
-| Phase 06 P01 | 8 | 2 tasks | 12 files |
-| Phase 06-browser-identity-and-bootstrapping P03 | 3 | 2 tasks | 8 files |
-| Phase 06 P02 | 5 | 2 tasks | 8 files |
-| Phase 06-browser-identity-and-bootstrapping P04 | 3 | 2 tasks | 9 files |
-| Phase 07-strategy-engine P01 | 3 | 2 tasks | 5 files |
-| Phase 07-strategy-engine P02 | 3 | 2 tasks | 6 files |
-| Phase 08 P02 | 2 | 2 tasks | 1 files |
-| Phase 08 P03 | 2 | 2 tasks | 4 files |
-| Phase 08 P04 | 2 | 2 tasks | 5 files |
-| Phase 09-integration-gap-closure P01 | 2 | 2 tasks | 3 files |
+Progress: [█████████████████████████] 100% (v1.0 shipped)
 
 ## Accumulated Context
 
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
-
-- [Roadmap]: 8 phases derived from 89 requirements; safety systems precede capabilities; research SUMMARY.md phase structure adopted with refinements for comprehensive depth
-- [01-01]: jarvis-postgres uses port 5433 (port 5432 occupied by another project on host) — all DATABASE_URL must use 5433
-- [01-01]: drizzle.config.ts enumerates individual schema .ts files (not barrel index) to avoid drizzle-kit CJS .js resolution failure
-- [01-01]: Append-only LOG-05 compliance via two-row pattern — initial row immutable, completion inserts new row with parentId FK
-- [01-01]: AnyPgColumn type required for self-referential FK callbacks in TypeScript strict mode
-- [01-02]: DbClient from @jarvis/db used as logger db param type — avoids drizzle-orm direct dep in @jarvis/logging (pnpm strict isolation)
-- [01-02]: ioredis named export { Redis } required for NodeNext moduleResolution — default import causes TS2351 no-construct-signatures
-- [01-02]: Redis error handler writes to stderr only — Postgres unavailable during Redis failures, stderr always available
-- [01-02]: session: prefix for all Redis keys — BullMQ uses separate prefix, avoids key collisions
-- [01-03]: ZodType<TInput, ZodTypeDef, unknown> for inputSchema — third generic param unknown allows ZodDefault fields without TypeScript variance errors
-- [01-03]: createDbTool(db) factory pattern — DB tool requires DbClient injection at registry creation, not module load time
-- [01-03]: sql imported from @jarvis/db (not drizzle-orm) — pnpm strict isolation prevents transitive imports
-- [01-03]: shell: false always in spawn — avoids shell injection even in unrestricted agent mode; args passed as array
-- [01-04]: ShutdownPool/ShutdownRedis duck-typing interfaces — apps/agent cannot import ioredis/pg directly (not direct deps); structural interfaces satisfy the contract
-- [01-04]: drizzle-orm operators (eq, and, gt, etc.) re-exported from @jarvis/db — extends the sql re-export pattern from 01-01 for full operator access under pnpm isolation
-- [01-04]: Memory consolidation joins success rows to parent started rows via parentId to get actual tool names (two-row pattern stores toolName='completion' on success rows)
-- [01-04]: consolidate() runs immediately at startup before setInterval to process results from previous agent runs without waiting 5 minutes
-- [02-01]: OpenRouter via openai SDK with baseURL='https://openrouter.ai/api/v1' — compatible with OpenAI wire protocol, no custom HTTP client needed
-- [02-01]: Model defaults: strong=anthropic/claude-opus-4.6, mid=anthropic/claude-sonnet-4.5, cheap=x-ai/grok-4.1-fast per Phase 2 research
-- [02-01]: Env-var model config (JARVIS_MODEL_STRONG/MID/CHEAP) over DB storage — models swappable without redeploy
-- [02-01]: OpenRouter cost field accessed via cast (usage as unknown as { cost?: number }) — non-SDK extension
-- [02-01]: cost_category as pgEnum (not text constraint) — enforced at DB level; costUsd uses numeric(12,8) not float for financial precision
-- [02-03]: GET /api/v1/key not /api/v1/credits for balance polling — /api/v1/credits requires management key; /api/v1/key works with standard API key
-- [02-03]: Partials.Channel required in discord.js v14 for DM support — without it bot cannot send/receive direct messages
-- [02-03]: P&L as query functions not SQL views — drizzle db:push does not manage Postgres views; query functions equally type-safe
-- [02-03]: coalesce(sum(...), '0') pattern — returns '0' string on empty tables, parsed to 0 number; avoids null arithmetic in getPnl
-- [02-03]: getAiSpendSummary() queries ai_calls directly — no need to bridge to operating_costs since ai_calls stores per-call cost data
-- [Phase 02-ai-backbone-and-safety]: CLI commands use activateKillSwitch/deactivateKillSwitch helpers from @jarvis/ai — DRY and centralizes the upsert+audit logic
-- [Phase 02-02]: KillCheckable duck-typed interface in invoke-safe.ts — @jarvis/tools does not depend on @jarvis/ai, keeps dep graph clean (tools->db, not tools->ai->db)
-- [Phase 02-02]: Worker creates KillSwitchGuard at module level — 1s cache shared across all 5 concurrent BullMQ jobs avoids redundant DB queries under load
-- [Phase 03-01]: goalId FK in sub_goals uses plain .references() not AnyPgColumn — not self-referential
-- [Phase 03-01]: zodToJsonSchema manual converter in @jarvis/ai — no zod-to-json-schema package, handles all tool Zod types
-- [Phase 03-01]: ToolRegistryLike duck-typed interface in tool-schema.ts — @jarvis/ai does not depend on @jarvis/tools
-- [Phase 03-01]: completeWithTools does NOT throw on content===null — valid response format for finish_reason=tool_calls
-- [Phase 03-03]: zod added as direct dep to apps/agent — pnpm strict isolation prevents transitive zod access from @jarvis/tools
-- [Phase 03-03]: ChatCompletionMessageParam sourced via ToolCompletionRequest['messages'][number] — established pattern from agent-loop.ts, avoids direct openai dep
-- [Phase 03-03]: removeOnFail omitted (not false) in WorkerOptions — BullMQ v5 WorkerOptions.removeOnFail is KeepJobs|undefined, not boolean; omitting preserves DLQ jobs
-- [Phase 03-03]: Sub-agents use 'mid' tier not 'strong' — focused scoped tasks don't require frontier reasoning capability
-- [Phase 03-04]: BullMQ WorkerOptions does not accept defaultJobOptions or removeOnFail: false (boolean) — retry options set per-job via createRetryJobOptions(); worker omits removeOnFail (BullMQ default keeps all failed jobs)
-- [Phase 03-04]: isTransientError() is conservative — unknown errors return false (no retry) to prevent infinite retry loops on unexpected failures
-- [Phase 03-04]: upsertJobScheduler() is idempotent — same schedulerId updates schedule in place, safe to call at every agent startup
-- [Phase 03-autonomous-loop]: ChatCompletionMessageParam extracted from ToolCompletionRequest['messages'][number] — avoids direct openai import in @jarvis/agent under pnpm strict isolation
-- [Phase 03-autonomous-loop]: GoalManager.decomposeGoal uses 2-pass insert for dependsOn resolution — insert all rows first, then patch resolved IDs
-- [Phase 03-autonomous-loop]: Evaluator and Replanner defined as interface stubs in Plan 02 — concrete implementations wired in Plan 05
-- [Phase 03-05]: EvaluatorImpl uses metric-before-LLM evaluation — fast failure/cost triggers first, cheap LLM only if metrics pass
-- [Phase 03-05]: shouldReplan accumulation — any major triggers immediately; >2 minor accumulate; >50% divergent (min 4 samples) triggers
-- [Phase 03-05]: Supervisor does not decide spawn-vs-inline — LLM makes that decision via tool description (MULTI-06 fulfilled at prompt level)
-- [Phase 03-05]: Discord DM for operator alerts reads DISCORD_TOKEN/DISCORD_OPERATOR_USER_ID from env vars — non-fatal if missing
-- [Phase 03-06]: Journal checkpoint must succeed before next sub-goal — 3 retries then halt (not silent skip) to prevent duplicate execution on recovery
-- [Phase 03-06]: clearJournal called on goal completion to prevent stale journal affecting future recovery runs
-- [Phase 03-06]: LOG-05 two-row pattern applied to interrupted planning cycles — insert interrupted row, never update original active row
-- [Phase 03-06]: ShutdownSupervisor duck-typed interface in shutdown.ts — avoids importing concrete Supervisor class, keeps shutdown.ts decoupled
-- [Phase 04-01]: signBytes (raw byte signing) used instead of @solana/kit transaction object API — signer stays format-agnostic, returns 64-byte Ed25519 signature as base64; callers embed signature into transaction structure themselves
-- [Phase 04-01]: Sub-goals co-located in goals.ts — cross-file .js imports break drizzle-kit CJS bundler (esbuild-register); sub-goals.ts becomes a re-export shim for backward compat
-- [Phase 04-01]: process.send('ready') guarded by if (process.send) — allows signer to run both standalone and via child_process.fork() without IPC
-- [Phase 04-wallet-and-financial-governance]: Rolling 24h window for daily aggregate spend (not calendar day) — avoids timezone ambiguity
-- [Phase 04-wallet-and-financial-governance]: No active spend limit row = allow all transactions (high generous defaults per locked decision)
-- [Phase 04-03]: @solana/web3.js v1 Transaction API used for SOL/SPL sends — @solana-program/system incompatible with @solana/kit@2.x; web3.js v1 already a dep
-- [Phase 04-03]: Idempotent ATA creation bundled in same tx as transfer — createAssociatedTokenAccountIdempotentInstruction is no-op if ATA exists
-- [Phase 04-03]: SPL token governance initially skipped — resolved by 04-04 gap closure (checkSpendLimits now enforced in sendSplToken)
-- [Phase 04-03]: createRequire(import.meta.url).resolve() for signer path — ESM-compatible, resolves @jarvis/wallet/dist/signer/server.js from node_modules
-- [Phase 04-03]: ShutdownSignerProcess.kill() accepts number|NodeJS.Signals|string — matches ChildProcess.kill() while staying pnpm-isolated
-- [Phase 04-04]: SPL governance uses raw token base units vs lamport ceilings — coarse safety net preventing unbounded SPL sends; USD-denominated per-token limits require oracle pricing, deferred to future phase
-- [Phase 05-01]: Hono app factory in app.ts, server lifecycle in index.ts — clean separation of app definition vs startup
-- [Phase 05-01]: serveStatic mounted AFTER API routes — prevents /api/* requests being caught by static file handler
-- [Phase 05-01]: SSE heartbeat uses event:heartbeat with empty data (not comment field) — Hono SSEMessage type has no comment field
-- [Phase 05-01]: broadcaster.ts EventEmitter singleton with maxListeners=100 — central fan-out for SSE; poller emits, SSE route subscribes
-- [Phase 05-01]: Poller starts immediately at startup then runs on interval — processes state from prior runs without waiting first interval
-- [Phase 05-web-dashboard]: pnpm-workspace.yaml needs explicit apps/dashboard/client entry — apps/* glob only matches direct subdirectories, not nested paths
-- [Phase 05-web-dashboard]: Client tsconfig uses moduleResolution:bundler not NodeNext — Vite handles module resolution, NodeNext causes TS errors
-- [Phase 05-web-dashboard]: SSE + polling dual-track: fetchEventSource calls setQueryData for immediate push; useQuery polls as fallback
-- [Phase 06-01]: All 4 identity/credential tables co-located in identities.ts — drizzle-kit CJS bundler cannot resolve .js cross-file FK imports
-- [Phase 06-01]: customType bytea for encryptedValue — pgcrypto pgp_sym_encrypt returns raw binary; text column would corrupt it
-- [Phase 06-01]: BrowserManager is NOT a singleton — caller manages lifecycle for flexibility
-- [Phase 06-01]: playwright-extra uses cloudflareTurnstile not turnstile method name in @2captcha/captcha-solver v1.3.2
-- [Phase 06]: playwright added as direct dep to @jarvis/tools — pnpm strict isolation requires direct deps for Page type imports
-- [Phase 06]: humanLike click uses page.mouse.move steps + random offset within bounding box — simulates natural mouse paths per locked stealth decision
-- [Phase 06]: typeDelay uses page.type() for per-keystroke events (not page.fill() instantaneous) — exposes human-like typing to agent as optional capability
-- [Phase 06-02]: sql template used for all pgcrypto ops — Drizzle ORM has no native pgp_sym_encrypt support
-- [Phase 06-02]: discord.js added as direct dep to @jarvis/tools — pnpm strict isolation prevents transitive import from @jarvis/ai
-- [Phase 06-02]: Dynamic import discord.js in operator-escalation.ts — avoids import-time failure when Discord unconfigured
-- [Phase 06-04]: process.cwd() for pnpm install project root — agent always starts from monorepo root; avoids fragile URL-based path resolution
-- [Phase 06-04]: parsePackageName handles scoped packages via double-split: extract @scope prefix first, strip @version from name remainder
-- [Phase 06-04]: importAfterInstall defaults true — post-install dynamic import verifies package loaded; non-fatal if import fails (package still installed)
-- [Phase 06-04]: tool_discover receives registry by reference — reflects live tool state including post-startup additions
-- [Phase 06-04]: ShutdownBrowserManager duck-typed interface — keeps shutdown.ts decoupled from @jarvis/browser (follows Phase 4 signer pattern)
-- [Phase 07-01]: strategies table co-located in goals.ts: drizzle-kit CJS bundler cannot resolve cross-file .js imports — strategies.ts becomes re-export shim (sub-goals.ts pattern)
-- [Phase 07-01]: sql template for != and NOT IN operators — not/notInArray not re-exported from @jarvis/db; sql template avoids pnpm strict isolation constraint
-- [Phase 07-01]: metadata jsonb merge via coalesce+|| pattern — non-destructive, preserves prior agent context across multiple updateMetadata calls
-- [Phase 07-02]: systemParts array replaces static join for executeSubGoal system prompt — enables conditional strategy context block between SUB-GOAL and CONSTRAINTS
-- [Phase 07-02]: Supervisor resolves strategy context per-goal (not globally) — only strategy-backed goals receive portfolio context; plain goals unaffected
-- [Phase 07-02]: buildPortfolioContextPrompt is domain-agnostic: status + hypothesis only, lastTransitionReason shown only for paused/killed strategies
-- [Phase 07-02]: Dashboard api.ts uses direct db inserts (not GoalManager) — avoids cross-app dependency; follows existing dashboard route pattern
-- [Phase 08-01]: esbuild.transform throws TransformFailure on error (not returns errors in result) — compiler.ts uses try/catch, casts to TransformFailure to extract .errors[]
-- [Phase 08-01]: Sandbox harness generated as inline .mjs string (generateHarnessScript) written to temp file — avoids needing harness.ts separately compiled/resolved at runtime
-- [Phase 08-01]: runInSandbox() never throws — all outcomes (success, failure, timeout, process error) returned as SandboxResult
-- [Phase 08-01]: loadPersistedTools() loads only .mjs (compiled) not .ts (source); cache-busting query param on dynamic import for hot-swap
-- [Phase 08-02]: validateDdl uses case-insensitive regex on original SQL — agent_* namespace boundary enforces full DDL control inside prefix, ADD COLUMN only on core tables
-- [Phase 08-02]: applyAgentMigration never throws — all outcomes expressed as structured return value (applied, alreadyApplied, error) per locked Phase 8 decision
-- [Phase 08-03]: simple-git named import { simpleGit } required — TypeScript NodeNext moduleResolution does not recognize default export as callable (TS2349 no-call-signatures)
-- [Phase 08-03]: createToolWriteTool/createToolDeleteTool capture built-in tool names at factory creation time as Set<string> snapshot — stable across all invocations within process lifetime
-- [Phase 08-03]: Built-in modification gate uses builtinToolNames Set checked at execute() entry; builtinModify=true required to modify Phase 1-7 tools via git branch staging
-- [Phase 08-03]: stageBuiltinChange captures originalBranch via git.revparse before staging branch creation — never assumes 'main' branch name
-- [Phase 08-04]: onToolChange optional callback on createSelfExtensionTools — backward compatible, keeps @jarvis/tools free of bullmq dependency; callers inject enqueue function from outside
-- [Phase 08-04]: reload-tools BullMQ Worker in worker.ts: concurrency 1, removeOnComplete age 60s — transient notifications, not tool execution jobs needing DLQ
-- [Phase 08-04]: loadPersistedTools in worker.ts uses non-blocking .then()/.catch() — worker accepts jobs immediately while persisted tools load in parallel
-- [Phase 09]: [Phase 09-01]: CreditMonitor instantiated immediately after createRouter — polls balance on startup plus every 5 min; stop() called in gracefulShutdown at step 1.5 to prevent event loop hang
-- [Phase 09]: [Phase 09-01]: Supervisor + agentWorker moved to after Phase 8 openAITools re-derivation so Supervisor receives all 30+ tools not just 7-tool Phase 1+3 snapshot
-- [Phase 09]: [Phase 09-01]: tools param removed from createAgentWorker — lazy toolDefinitionsToOpenAI(registry) inside job handler captures runtime tool_write additions for next sub-agent spawn
+All v1.0 decisions reviewed and outcomes recorded at milestone completion.
 
 ### Pending Todos
 
@@ -187,12 +29,10 @@ None.
 
 ### Blockers/Concerns
 
-- Research flags Phase 7 (Strategy Engine) as LOW confidence frontier territory
-- Research flags Phase 8 (Self-Extension) code sandbox safety as needing research
-- REQUIREMENTS.md states 82 total requirements but actual count is 91; traceability table corrected
+None — v1.0 shipped.
 
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 09-01-PLAN.md (Phase 9 complete: CreditMonitor wired, sub-agent lazy tool derivation, Supervisor positioned after all tool registrations)
-Resume file: All 9 phases complete — no further plans to execute
+Stopped at: v1.0 milestone completion — all 9 phases archived
+Resume file: Use `/gsd:new-milestone` to start next milestone
