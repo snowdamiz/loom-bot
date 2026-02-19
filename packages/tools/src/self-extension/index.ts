@@ -50,6 +50,16 @@ export type {
   VerificationStageResult,
   VerificationRunResult,
 } from './verification-diagnostics.js';
+export {
+  buildVerificationPlan,
+  REQUIRED_VERIFICATION_STAGES,
+} from './verification-policy.js';
+export type {
+  BuildVerificationPlanInput,
+  VerificationPlan,
+  VerificationStageName,
+  VerificationStageCommandPlan,
+} from './verification-policy.js';
 export { loadPersistedTools, AGENT_TOOLS_DIR } from './tool-loader.js';
 export { createToolWriteTool, createToolDeleteTool } from './tool-writer.js';
 export { createSchemaExtendTool } from './schema-extend.js';
