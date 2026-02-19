@@ -29,6 +29,10 @@ export { createIdentityTools } from './identity/index.js';
 // Bootstrap tools (Phase 06)
 export { createBootstrapTools } from './bootstrap/index.js';
 
+// Self-extension tools (Phase 08)
+export { createSelfExtensionTools } from './self-extension/index.js';
+export { loadPersistedTools, AGENT_TOOLS_DIR } from './self-extension/index.js';
+
 // Convenience factory: create a registry with all 4 default tools pre-registered.
 // This is what apps/agent will call at startup.
 import type { DbClient } from '@jarvis/db';
