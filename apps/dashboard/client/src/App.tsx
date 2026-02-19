@@ -4,8 +4,11 @@ import './App.css';
 import { AuthGate } from './components/AuthGate.js';
 import { OverviewTab } from './components/OverviewTab.js';
 import { ActivityTab } from './components/ActivityTab.js';
+import { SetupWizard } from './components/SetupWizard.js';
+import { DashboardLayout } from './components/DashboardLayout.js';
 import { getToken } from './lib/api.js';
 import { useSSE } from './hooks/useSSE.js';
+import { useSetupState } from './hooks/useSetupState.js';
 import type { AgentStatus, ActivityEntry } from './hooks/useSSE.js';
 import type { ActivityItem } from './hooks/useActivityFeed.js';
 
@@ -75,10 +78,47 @@ function Dashboard() {
   );
 }
 
+/**
+ * AppContent renders the appropriate screen based on auth + setup state.
+ * Flow: AuthGate (login) -> SetupWizard (if not complete) -> DashboardLayout (main app)
+ */
+function AppContent() {
+  const queryClient = useQueryClient();
+  const { data: setupState, isLoading: setupLoading, refetch: refetchSetup } = useSetupState();
+
+  const handleSetupComplete = useCallback(() => {
+    void refetchSetup();
+    void queryClient.invalidateQueries({ queryKey: ['setup-state'] });
+  }, [refetchSetup, queryClient]);
+
+  if (setupLoading || !setupState) {
+    return (
+      <div className="loading-page">
+        <p className="loading-text">Loading...</p>
+      </div>
+    );
+  }
+
+  if (!setupState.complete) {
+    return (
+      <SetupWizard
+        setupState={setupState}
+        onSetupComplete={handleSetupComplete}
+      />
+    );
+  }
+
+  return (
+    <DashboardLayout>
+      <Dashboard />
+    </DashboardLayout>
+  );
+}
+
 export default function App() {
   return (
     <AuthGate>
-      <Dashboard />
+      <AppContent />
     </AuthGate>
   );
 }
