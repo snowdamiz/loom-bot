@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, symlinkSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { runBoundedCommand } from './bounded-command.js';
 import {
@@ -39,6 +39,19 @@ export interface IsolatedVerificationResult {
   evidence: IsolatedVerificationEvidence;
   cleanupWarnings: string[];
 }
+
+const PACKAGE_NAME_TO_DIR: Record<string, string> = {
+  '@jarvis/tools': 'packages/tools',
+  '@jarvis/db': 'packages/db',
+  '@jarvis/ai': 'packages/ai',
+  '@jarvis/browser': 'packages/browser',
+  '@jarvis/logging': 'packages/logging',
+  '@jarvis/agent': 'apps/agent',
+  '@jarvis/dashboard': 'apps/dashboard',
+  '@jarvis/dashboard-client': 'apps/dashboard/client',
+  '@jarvis/cli': 'apps/cli',
+  '@jarvis/landing': 'apps/landing',
+};
 
 function resolveCandidatePath(worktreePath: string, candidateFilePath: string): string {
   const normalized = candidateFilePath.replace(/\\/g, '/').replace(/^\/+/, '');
@@ -111,6 +124,46 @@ function summarizeEvidence(result: VerificationRunResult): string {
   return `Isolated verification ${result.overallStatus}: ${stageLabel} - ${reason}`;
 }
 
+function extractFilterPackage(args: string[]): string | undefined {
+  const filterIndex = args.findIndex((arg) => arg === '--filter');
+  if (filterIndex === -1) {
+    return undefined;
+  }
+  return args[filterIndex + 1];
+}
+
+function ensureSymlink(source: string, target: string): void {
+  if (!existsSync(source) || existsSync(target)) {
+    return;
+  }
+
+  mkdirSync(path.dirname(target), { recursive: true });
+  symlinkSync(source, target, 'dir');
+}
+
+function hydrateWorktreeNodeModules(opts: {
+  repoRoot: string;
+  worktreePath: string;
+  packageNames: Set<string>;
+}): void {
+  ensureSymlink(
+    path.join(opts.repoRoot, 'node_modules'),
+    path.join(opts.worktreePath, 'node_modules'),
+  );
+
+  for (const packageName of opts.packageNames) {
+    const relativePackageDir = PACKAGE_NAME_TO_DIR[packageName];
+    if (!relativePackageDir) {
+      continue;
+    }
+
+    ensureSymlink(
+      path.join(opts.repoRoot, relativePackageDir, 'node_modules'),
+      path.join(opts.worktreePath, relativePackageDir, 'node_modules'),
+    );
+  }
+}
+
 function ensureRequiredStages(stages: VerificationStageResult[]): void {
   for (const stageName of REQUIRED_VERIFICATION_STAGES) {
     const stage = stages.find((candidate) => candidate.name === stageName);
@@ -156,6 +209,19 @@ export async function runIsolatedVerification(
     const verificationPlan = buildVerificationPlan({
       workspaceRoot: worktree.worktreePath,
       candidateFilePath: input.candidateFilePath,
+    });
+
+    const packageNames = new Set<string>();
+    for (const stagePlan of verificationPlan.stages) {
+      const packageName = extractFilterPackage(stagePlan.args);
+      if (packageName) {
+        packageNames.add(packageName);
+      }
+    }
+    hydrateWorktreeNodeModules({
+      repoRoot: input.repoRoot,
+      worktreePath: worktree.worktreePath,
+      packageNames,
     });
 
     for (const stagePlan of verificationPlan.stages) {
