@@ -26,6 +26,52 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function isStartupSmokeMode(): boolean {
+  return process.argv.includes('--startup-smoke') || process.env.JARVIS_STARTUP_SMOKE === '1';
+}
+
+/**
+ * Startup smoke mode validates critical boot wiring and exits quickly.
+ * It intentionally avoids long-running loops, queue workers, and readiness polling.
+ */
+async function runStartupSmoke(): Promise<void> {
+  const registry = createDefaultRegistry(db);
+  const bootstrapTools = createBootstrapTools(registry);
+  bootstrapTools.forEach((tool) => registry.register(tool));
+
+  const selfExtensionTools = createSelfExtensionTools(registry, db);
+  selfExtensionTools.forEach((tool) => registry.register(tool));
+
+  const openAITools = toolDefinitionsToOpenAI(registry);
+  const requiredToolNames = ['tool_write', 'tool_delete', 'schema_extend'];
+  const availableToolNames = new Set(registry.list().map((tool) => tool.name));
+  const missingRequired = requiredToolNames.filter((name) => !availableToolNames.has(name));
+  if (missingRequired.length > 0) {
+    throw new Error(
+      `Startup smoke failed: missing required tools: ${missingRequired.join(', ')}`,
+    );
+  }
+
+  const modelConfig = loadModelConfig();
+  process.stderr.write(
+    `[agent] Startup smoke PASS. tools=${registry.count()} openaiTools=${openAITools.length} models=${modelConfig.strong}/${modelConfig.mid}/${modelConfig.cheap}\n`,
+  );
+}
+
+async function closeStartupSmokeResources(): Promise<void> {
+  try {
+    await redis.quit();
+  } catch {
+    // no-op: smoke cleanup should never fail startup semantics
+  }
+
+  try {
+    await pool.end();
+  } catch {
+    // no-op: smoke cleanup should never fail startup semantics
+  }
+}
+
 /**
  * Resolve OpenRouter API key with DB-first precedence.
  *
@@ -111,6 +157,22 @@ async function waitForOpenRouterApiKey(): Promise<string> {
  */
 
 async function main(): Promise<void> {
+  if (isStartupSmokeMode()) {
+    let smokeError: unknown = null;
+    try {
+      await runStartupSmoke();
+    } catch (error) {
+      smokeError = error;
+    }
+
+    await closeStartupSmokeResources();
+    if (smokeError) {
+      throw smokeError;
+    }
+
+    process.exit(0);
+  }
+
   // 1. Create tool registry with 4 primitive tools (shell, http, file, db)
   const registry = createDefaultRegistry(db);
 
