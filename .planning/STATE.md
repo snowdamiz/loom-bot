@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 
 ## Current Position
 
-Phase: 10-github-identity-and-repo-trust
-Plan: Complete (10-03 complete)
-Status: Phase 10 implementation complete; verification and transition pending
-Last activity: 2026-02-19 - Completed 10-03 repo binding and builtin trust guard
+Phase: 11-version-controlled-self-modification-pipeline
+Plan: In Progress (11-01 complete, 11-02 next)
+Status: Phase 11 execution in progress; deterministic context and branch identity primitives landed
+Last activity: 2026-02-19 - Completed 11-01 execution-context propagation and deterministic branch metadata helpers
 
-Progress: [█████████████████████████] 100% (phase 10 execution)
+Progress: [████████░░░░░░░░░░░░░░░░░] 33% (phase 11 execution)
 
 ## Accumulated Context
 
@@ -28,10 +28,15 @@ All v1.0 decisions reviewed and outcomes recorded at milestone completion.
 - [Phase 10]: Rotate previously active github oauth_token credentials before storing newly exchanged token. — Preserves a deterministic single-active-token model and avoids stale token ambiguity during trust checks.
 - [Phase 10]: Setup completion now requires repository trust binding in addition to OAuth identity connection. — SEXT-04 requires explicit trusted repository anchor before enabling self-modification paths.
 - [Phase 10]: Centralize builtinModify preconditions in github-trust-guard before stageBuiltinChange. — Single fail-closed guard point prevents bypass drift and keeps trust enforcement deterministic.
+- [Phase 11]: Execution context is internal metadata and must not change tool input schema validation behavior. — Keeps deterministic traceability plumbing separate from LLM-facing schemas and preserves backward compatibility for existing tool calls.
+- [Phase 11]: Deterministic branch identity is derived from goal/cycle/sub-goal/tool context plus change fingerprint without timestamps. — Supports idempotent branch reuse and deterministic auditability for repository-backed self-modification.
+- [Phase 11]: Sub-agent execution context identifiers are nullable when not available. — Worker jobs do not always carry full goal/cycle metadata; best-effort propagation avoids blocking execution while preserving available trace data.
 
 ### Pending Todos
 
-- Run phase-level verification and transition to Phase 11 implementation planning.
+- Execute 11-02 GitHub branch/commit/PR orchestration using deterministic context metadata.
+- Execute 11-03 promotion gate and merge-blocking guardrails.
+- Run Phase 11 verification after plans 02/03 complete.
 
 ### Blockers/Concerns
 
@@ -45,8 +50,14 @@ All v1.0 decisions reviewed and outcomes recorded at milestone completion.
 | 2 | Re-add browser tools (8 tools) to agent startup — BrowserManager lifecycle managed, 20 tools total | 2026-02-19 | 96ba883 | [2-re-add-browser-tools-to-agent-startup](./quick/2-re-add-browser-tools-to-agent-startup/) |
 | 3 | Add comprehensive README.md (205 lines, 11 sections, all 20 tools and 15 env vars documented) | 2026-02-19 | 103f57a | [3-add-comprehensive-documentation-as-readm](./quick/3-add-comprehensive-documentation-as-readm/) |
 
+### Performance Metrics
+
+| Phase | Plan | Duration | Tasks | Files |
+|---|---|---|---|---|
+| 11 | 01 | 4 min | 3 | 8 |
+
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 10-03-PLAN.md
-Resume file: .planning/phases/10-github-identity-and-repo-trust/10-VERIFICATION.md
+Stopped at: Completed 11-01-PLAN.md
+Resume file: None
