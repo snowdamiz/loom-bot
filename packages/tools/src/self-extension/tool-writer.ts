@@ -123,7 +123,7 @@ export function createToolWriteTool(
         }
 
         // ----------------------------------------------------------------
-        // Built-in modification path — git branch staging
+        // Built-in modification path — trusted GitHub pipeline
         // ----------------------------------------------------------------
         if (input.builtinModify) {
           if (!input.builtinFilePath) {
@@ -163,8 +163,13 @@ export function createToolWriteTool(
               pullRequestNumber: result.pullRequestNumber ?? null,
               evidenceStatusContext: result.evidenceStatusContext,
               evidenceState: result.evidenceState,
+              promotionAttempted: result.promotionAttempted,
+              promotionSucceeded: result.promotionSucceeded,
+              promotionBlocked: result.promotionBlocked,
+              blockReasons: result.blockReasons,
+              mergeError: result.mergeError ?? null,
               message:
-                'Built-in tool modified via trusted GitHub pipeline. Review branch/PR evidence before promotion.',
+                'Built-in tool modified and promoted via trusted GitHub pipeline with status-gated merge checks.',
             };
           } else {
             return {
@@ -177,6 +182,11 @@ export function createToolWriteTool(
               pullRequestNumber: result.pullRequestNumber ?? null,
               evidenceStatusContext: result.evidenceStatusContext,
               evidenceState: result.evidenceState,
+              promotionAttempted: result.promotionAttempted,
+              promotionSucceeded: result.promotionSucceeded,
+              promotionBlocked: result.promotionBlocked,
+              blockReasons: result.blockReasons,
+              mergeError: result.mergeError ?? null,
             };
           }
         }

@@ -15,6 +15,11 @@ export interface StageBuiltinChangeResult {
   pullRequestNumber?: number;
   evidenceStatusContext: string;
   evidenceState: 'success' | 'failure';
+  promotionAttempted: boolean;
+  promotionSucceeded: boolean;
+  promotionBlocked: boolean;
+  blockReasons: string[];
+  mergeError?: string;
 }
 
 function summarizeSandboxOutput(value: unknown): string {
@@ -52,6 +57,10 @@ export async function stageBuiltinChange(opts: {
       error: `Compilation failed: ${err instanceof Error ? err.message : String(err)}`,
       evidenceStatusContext: SANDBOX_STATUS_CONTEXT,
       evidenceState: 'failure',
+      promotionAttempted: false,
+      promotionSucceeded: false,
+      promotionBlocked: false,
+      blockReasons: [],
     };
   }
 
@@ -84,6 +93,11 @@ export async function stageBuiltinChange(opts: {
       pullRequestNumber: pipelineResult.pullRequestNumber,
       evidenceStatusContext: pipelineResult.evidenceStatusContext,
       evidenceState: pipelineResult.evidenceState,
+      promotionAttempted: pipelineResult.promotionAttempted,
+      promotionSucceeded: pipelineResult.promotionSucceeded,
+      promotionBlocked: pipelineResult.promotionBlocked,
+      blockReasons: pipelineResult.blockReasons,
+      mergeError: pipelineResult.mergeError,
     };
   }
 
@@ -97,6 +111,11 @@ export async function stageBuiltinChange(opts: {
       pullRequestNumber: pipelineResult.pullRequestNumber,
       evidenceStatusContext: pipelineResult.evidenceStatusContext,
       evidenceState: pipelineResult.evidenceState,
+      promotionAttempted: pipelineResult.promotionAttempted,
+      promotionSucceeded: pipelineResult.promotionSucceeded,
+      promotionBlocked: pipelineResult.promotionBlocked,
+      blockReasons: pipelineResult.blockReasons,
+      mergeError: pipelineResult.mergeError,
     };
   }
 
@@ -108,5 +127,10 @@ export async function stageBuiltinChange(opts: {
     pullRequestNumber: pipelineResult.pullRequestNumber,
     evidenceStatusContext: pipelineResult.evidenceStatusContext,
     evidenceState: pipelineResult.evidenceState,
+    promotionAttempted: pipelineResult.promotionAttempted,
+    promotionSucceeded: pipelineResult.promotionSucceeded,
+    promotionBlocked: pipelineResult.promotionBlocked,
+    blockReasons: pipelineResult.blockReasons,
+    mergeError: pipelineResult.mergeError,
   };
 }

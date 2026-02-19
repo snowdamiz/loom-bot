@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import type { DbClient } from '@jarvis/db';
 import { buildSelfExtensionBranchName } from './branch-naming.js';
 import { buildCommitMetadata, type SelfExtensionExecutionContext } from './pipeline-context.js';
+import { evaluatePromotionGate, type PromotionStatusContext } from './promotion-gate.js';
 import { resolveTrustedGitHubContext } from './github-trust-guard.js';
 
 const GITHUB_API_BASE_URL = 'https://api.github.com';
@@ -29,6 +30,21 @@ interface GitHubPullRequest {
   html_url: string;
 }
 
+interface GitHubCommitStatus {
+  context?: string;
+  state?: string;
+}
+
+interface GitHubCombinedStatusResponse {
+  statuses?: GitHubCommitStatus[];
+}
+
+interface GitHubMergeResponse {
+  merged?: boolean;
+  message?: string;
+  sha?: string;
+}
+
 export interface SandboxEvidence {
   passed: boolean;
   durationMs: number;
@@ -53,6 +69,11 @@ export interface GitHubSelfExtensionPipelineResult {
   pullRequestNumber?: number;
   evidenceStatusContext: string;
   evidenceState: 'success' | 'failure';
+  promotionAttempted: boolean;
+  promotionSucceeded: boolean;
+  promotionBlocked: boolean;
+  blockReasons: string[];
+  mergeError?: string;
 }
 
 class GitHubApiError extends Error {
@@ -422,6 +443,85 @@ async function setSandboxStatus(input: {
   );
 }
 
+async function fetchPromotionStatuses(input: {
+  accessToken: string;
+  owner: string;
+  repo: string;
+  headSha: string;
+  evidenceState: 'success' | 'failure';
+}): Promise<PromotionStatusContext[]> {
+  const payload = await githubApiRequest<GitHubCombinedStatusResponse>(
+    input.accessToken,
+    `/repos/${input.owner}/${input.repo}/commits/${input.headSha}/status`,
+  );
+
+  const normalized: PromotionStatusContext[] = [];
+  for (const status of payload.statuses ?? []) {
+    const context = status.context?.trim();
+    const state = status.state?.trim();
+    if (!context || !state) {
+      continue;
+    }
+    normalized.push({ context, state });
+  }
+
+  const existingSandbox = normalized.some(
+    (status) => status.context.toLowerCase() === SANDBOX_STATUS_CONTEXT,
+  );
+  if (!existingSandbox) {
+    // GitHub status reads can lag writes very briefly. Use the write intent to fail closed.
+    normalized.push({ context: SANDBOX_STATUS_CONTEXT, state: input.evidenceState });
+  }
+
+  return normalized;
+}
+
+async function mergePullRequestWithHeadGuard(input: {
+  accessToken: string;
+  owner: string;
+  repo: string;
+  pullRequestNumber: number;
+  expectedHeadSha: string;
+}): Promise<void> {
+  const payload = await githubApiRequest<GitHubMergeResponse>(
+    input.accessToken,
+    `/repos/${input.owner}/${input.repo}/pulls/${input.pullRequestNumber}/merge`,
+    {
+      method: 'PUT',
+      body: JSON.stringify({
+        sha: input.expectedHeadSha,
+        merge_method: 'squash',
+      }),
+    },
+  );
+
+  if (!payload.merged) {
+    throw new Error(`GitHub merge was not completed: ${payload.message ?? 'unknown reason'}`);
+  }
+}
+
+async function deleteBranchRef(input: {
+  accessToken: string;
+  owner: string;
+  repo: string;
+  branchName: string;
+}): Promise<void> {
+  try {
+    await githubApiRequest<unknown>(
+      input.accessToken,
+      `/repos/${input.owner}/${input.repo}/git/refs/heads/${encodeURIComponent(input.branchName)}`,
+      {
+        method: 'DELETE',
+      },
+    );
+  } catch (err) {
+    if (err instanceof GitHubApiError && (err.status === 404 || err.status === 422)) {
+      return;
+    }
+    throw err;
+  }
+}
+
 export async function runGitHubSelfExtensionPipeline(
   input: GitHubSelfExtensionPipelineInput,
 ): Promise<GitHubSelfExtensionPipelineResult> {
@@ -507,6 +607,84 @@ export async function runGitHubSelfExtensionPipeline(
       pullRequestUrl,
     });
 
+    const promotionStatuses = await fetchPromotionStatuses({
+      accessToken: trusted.accessToken,
+      owner,
+      repo,
+      headSha,
+      evidenceState,
+    });
+    const gate = evaluatePromotionGate({
+      statuses: promotionStatuses,
+    });
+
+    if (gate.blocked) {
+      return {
+        success: false,
+        error: `Promotion blocked: ${gate.blockReasons.join('; ')}`,
+        branchName,
+        headSha,
+        pullRequestUrl,
+        pullRequestNumber,
+        evidenceStatusContext: SANDBOX_STATUS_CONTEXT,
+        evidenceState,
+        promotionAttempted: true,
+        promotionSucceeded: false,
+        promotionBlocked: true,
+        blockReasons: gate.blockReasons,
+      };
+    }
+
+    if (!pullRequestNumber) {
+      return {
+        success: false,
+        error: 'Promotion blocked: pull request number is missing for merge attempt.',
+        branchName,
+        headSha,
+        pullRequestUrl,
+        pullRequestNumber,
+        evidenceStatusContext: SANDBOX_STATUS_CONTEXT,
+        evidenceState,
+        promotionAttempted: true,
+        promotionSucceeded: false,
+        promotionBlocked: true,
+        blockReasons: ['Missing pull request number'],
+      };
+    }
+
+    try {
+      await mergePullRequestWithHeadGuard({
+        accessToken: trusted.accessToken,
+        owner,
+        repo,
+        pullRequestNumber,
+        expectedHeadSha: headSha,
+      });
+      await deleteBranchRef({
+        accessToken: trusted.accessToken,
+        owner,
+        repo,
+        branchName,
+      });
+    } catch (mergeErr) {
+      const mergeError = mergeErr instanceof Error ? mergeErr.message : String(mergeErr);
+      return {
+        success: false,
+        error: `Promotion merge failed: ${mergeError}`,
+        mergeError,
+        branchName,
+        headSha,
+        pullRequestUrl,
+        pullRequestNumber,
+        evidenceStatusContext: SANDBOX_STATUS_CONTEXT,
+        evidenceState,
+        promotionAttempted: true,
+        promotionSucceeded: false,
+        promotionBlocked: false,
+        blockReasons: [],
+      };
+    }
+
     return {
       success: true,
       branchName,
@@ -515,6 +693,10 @@ export async function runGitHubSelfExtensionPipeline(
       pullRequestNumber,
       evidenceStatusContext: SANDBOX_STATUS_CONTEXT,
       evidenceState,
+      promotionAttempted: true,
+      promotionSucceeded: true,
+      promotionBlocked: false,
+      blockReasons: [],
     };
   } catch (err) {
     return {
@@ -526,6 +708,10 @@ export async function runGitHubSelfExtensionPipeline(
       pullRequestNumber,
       evidenceStatusContext: SANDBOX_STATUS_CONTEXT,
       evidenceState: toEvidenceState(input.sandboxEvidence.passed),
+      promotionAttempted: false,
+      promotionSucceeded: false,
+      promotionBlocked: false,
+      blockReasons: [],
     };
   }
 }
