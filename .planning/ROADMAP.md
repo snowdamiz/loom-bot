@@ -142,7 +142,7 @@ Plans:
   3. An underperforming strategy is automatically killed (no new capital allocated) based on its tracked P&L falling below threshold
   4. Multiple strategies run in parallel as independent goal trees, each with its own P&L tracked separately
   5. Agent dynamically reallocates capital from underperforming strategies to outperforming ones based on comparative performance
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 07-01-PLAN.md — Strategy schema, attribution FKs, P&L extension, StrategyManager
@@ -178,5 +178,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 4. Wallet and Financial Governance | 4/4 | Complete | 2026-02-18 |
 | 5. Web Dashboard | 2/3 | In Progress|  |
 | 6. Browser, Identity, and Bootstrapping | 4/4 | Complete   | 2026-02-19 |
-| 7. Strategy Engine | 0/2 | Planned | - |
+| 7. Strategy Engine | 1/2 | In Progress|  |
 | 8. Self-Extension and Agent Economics | 0/0 | Not started | - |

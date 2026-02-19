@@ -136,10 +136,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [ ] **STRAT-01**: Agent discovers potential money-making opportunities via web research
 - [ ] **STRAT-02**: Agent generates hypotheses about profitable strategies from discovered opportunities
-- [ ] **STRAT-03**: Agent tests strategies with minimal capital before committing larger amounts
+- [x] **STRAT-03**: Agent tests strategies with minimal capital before committing larger amounts
 - [ ] **STRAT-04**: Agent evaluates strategy performance against expectations and kills underperformers
 - [ ] **STRAT-05**: Agent scales winning strategies by allocating more capital
-- [ ] **STRAT-06**: Agent runs multiple strategies in parallel as independent goal trees
+- [x] **STRAT-06**: Agent runs multiple strategies in parallel as independent goal trees
 - [ ] **STRAT-07**: Per-strategy P&L is tracked independently with source attribution
 - [ ] **STRAT-08**: Agent dynamically allocates capital across strategies based on performance
 
@@ -274,10 +274,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BOOT-04 | Phase 6 | Complete |
 | STRAT-01 | Phase 7 | Pending |
 | STRAT-02 | Phase 7 | Pending |
-| STRAT-03 | Phase 7 | Pending |
+| STRAT-03 | Phase 7 | Complete |
 | STRAT-04 | Phase 7 | Pending |
 | STRAT-05 | Phase 7 | Pending |
-| STRAT-06 | Phase 7 | Pending |
+| STRAT-06 | Phase 7 | Complete |
 | STRAT-07 | Phase 7 | Pending |
 | STRAT-08 | Phase 7 | Pending |
 | EXTEND-01 | Phase 8 | Pending |

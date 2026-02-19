@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** The agent must be able to autonomously reason about opportunities, acquire the tools and accounts it needs, and execute money-making strategies without human intervention.
-**Current focus:** Phase 6: Browser Identity and Bootstrapping — COMPLETE (4/4 plans done)
+**Current focus:** Phase 7: Strategy Engine — IN PROGRESS (1/2 plans done)
 
 ## Current Position
 
-Phase: 6 of 8 (Browser Identity and Bootstrapping) — COMPLETE
-Plan: 4 of 4 in current phase (06-04 complete — bootstrap tools, agent wiring, browser shutdown, identity ledger API)
-Status: Phase 6 complete — ready for Phase 7
-Last activity: 2026-02-19 — Completed 06-04 (package_install, tool_discover, Phase 6 agent wiring, identity ledger API)
+Phase: 7 of 8 (Strategy Engine) — IN PROGRESS
+Plan: 1 of 2 in current phase (07-01 complete — strategies table, StrategyManager)
+Status: Phase 7 plan 1 complete — ready for plan 2
+Last activity: 2026-02-19 — Completed 07-01 (strategies table schema, StrategyManager domain-agnostic CRUD)
 
-Progress: [█████████████████████░░░░] 85%
+Progress: [██████████████████████░░░] 88%
 
 ## Performance Metrics
 
@@ -57,6 +57,7 @@ Progress: [█████████████████████░░
 | Phase 06-browser-identity-and-bootstrapping P03 | 3 | 2 tasks | 8 files |
 | Phase 06 P02 | 5 | 2 tasks | 8 files |
 | Phase 06-browser-identity-and-bootstrapping P04 | 3 | 2 tasks | 9 files |
+| Phase 07-strategy-engine P01 | 3 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -151,6 +152,9 @@ Recent decisions affecting current work:
 - [Phase 06-04]: importAfterInstall defaults true — post-install dynamic import verifies package loaded; non-fatal if import fails (package still installed)
 - [Phase 06-04]: tool_discover receives registry by reference — reflects live tool state including post-startup additions
 - [Phase 06-04]: ShutdownBrowserManager duck-typed interface — keeps shutdown.ts decoupled from @jarvis/browser (follows Phase 4 signer pattern)
+- [Phase 07-01]: strategies table co-located in goals.ts: drizzle-kit CJS bundler cannot resolve cross-file .js imports — strategies.ts becomes re-export shim (sub-goals.ts pattern)
+- [Phase 07-01]: sql template for != and NOT IN operators — not/notInArray not re-exported from @jarvis/db; sql template avoids pnpm strict isolation constraint
+- [Phase 07-01]: metadata jsonb merge via coalesce+|| pattern — non-destructive, preserves prior agent context across multiple updateMetadata calls
 
 ### Pending Todos
 
@@ -165,5 +169,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 06-04-PLAN.md (bootstrap tools + Phase 6 agent wiring + browser shutdown + identity ledger API)
-Resume file: .planning/phases/06-browser-identity-and-bootstrapping/06-CONTEXT.md
+Stopped at: Completed 07-01-PLAN.md (strategies table schema, StrategyManager domain-agnostic CRUD)
+Resume file: .planning/phases/07-strategy-engine/07-02-PLAN.md
