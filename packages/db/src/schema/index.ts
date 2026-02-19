@@ -13,3 +13,6 @@ export * from './sub-goals.js';
 export * from './wallet-transactions.js';
 export * from './spend-limits.js';
 export * from './wallet-config.js';
+export * from './identities.js';
+export * from './credentials.js';
+export * from './credential-audit.js';
