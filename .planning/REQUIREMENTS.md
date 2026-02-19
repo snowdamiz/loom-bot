@@ -147,16 +147,16 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **EXTEND-01**: Agent can write TypeScript code to create new tools and capabilities
 - [x] **EXTEND-02**: Agent tests generated code in a sandbox before deploying to production
-- [ ] **EXTEND-03**: Agent-created tools register in the tool registry and become available for use
+- [x] **EXTEND-03**: Agent-created tools register in the tool registry and become available for use
 - [x] **EXTEND-04**: Agent can extend its own database schema as its needs evolve
 - [x] **EXTEND-05**: Failed code deployments are rolled back without affecting the core agent loop
 
 ### Agent-to-Agent Economics
 
-- [ ] **AGENT-01**: Agent can discover services available via x402 protocol
-- [ ] **AGENT-02**: Agent can make micropayments to other agents/services for data or compute
-- [ ] **AGENT-03**: Agent can offer its own capabilities as paid services via x402
-- [ ] **AGENT-04**: All x402 transactions are logged and tracked in P&L
+- [x] **AGENT-01**: Agent can discover services available via x402 protocol
+- [x] **AGENT-02**: Agent can make micropayments to other agents/services for data or compute
+- [x] **AGENT-03**: Agent can offer its own capabilities as paid services via x402
+- [x] **AGENT-04**: All x402 transactions are logged and tracked in P&L
 
 ## v2 Requirements
 
@@ -282,13 +282,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STRAT-08 | Phase 7 | Complete |
 | EXTEND-01 | Phase 8 | Complete |
 | EXTEND-02 | Phase 8 | Complete |
-| EXTEND-03 | Phase 8 | Pending |
+| EXTEND-03 | Phase 8 | Complete |
 | EXTEND-04 | Phase 8 | Complete |
 | EXTEND-05 | Phase 8 | Complete |
-| AGENT-01 | Phase 8 | Pending |
-| AGENT-02 | Phase 8 | Pending |
-| AGENT-03 | Phase 8 | Pending |
-| AGENT-04 | Phase 8 | Pending |
+| AGENT-01 | Phase 8 | Complete |
+| AGENT-02 | Phase 8 | Complete |
+| AGENT-03 | Phase 8 | Complete |
+| AGENT-04 | Phase 8 | Complete |
 
 **Coverage:**
 - v1 requirements: 97 total

@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** The agent must be able to autonomously reason about opportunities, acquire the tools and accounts it needs, and execute money-making strategies without human intervention.
-**Current focus:** Phase 8: Self-Extension and Agent Economics — IN PROGRESS (2/4 plans done)
+**Current focus:** Phase 8: Self-Extension and Agent Economics — IN PROGRESS (3/4 plans done)
 
 ## Current Position
 
 Phase: 8 of 8 (Self-Extension and Agent Economics) — IN PROGRESS
-Plan: 2 of 4 in current phase (08-02 complete — schema_extend tool with validateDdl, applyAgentMigration)
-Status: Phase 8 in progress — 2/4 plans done
-Last activity: 2026-02-19 — Completed 08-02 (schema_extend tool, DDL validation, transactional migration application)
+Plan: 3 of 4 in current phase (08-03 complete — tool_write, tool_delete, createSelfExtensionTools factory, stageBuiltinChange)
+Status: Phase 8 in progress — 3/4 plans done
+Last activity: 2026-02-19 — Completed 08-03 (tool_write ToolDefinition, tool_delete ToolDefinition, git branch staging for built-in mods, createSelfExtensionTools factory)
 
 Progress: [█████████████████████████] 100%
 
@@ -60,6 +60,7 @@ Progress: [███████████████████████
 | Phase 07-strategy-engine P01 | 3 | 2 tasks | 5 files |
 | Phase 07-strategy-engine P02 | 3 | 2 tasks | 6 files |
 | Phase 08 P02 | 2 | 2 tasks | 1 files |
+| Phase 08 P03 | 2 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -167,6 +168,10 @@ Recent decisions affecting current work:
 - [Phase 08-01]: loadPersistedTools() loads only .mjs (compiled) not .ts (source); cache-busting query param on dynamic import for hot-swap
 - [Phase 08-02]: validateDdl uses case-insensitive regex on original SQL — agent_* namespace boundary enforces full DDL control inside prefix, ADD COLUMN only on core tables
 - [Phase 08-02]: applyAgentMigration never throws — all outcomes expressed as structured return value (applied, alreadyApplied, error) per locked Phase 8 decision
+- [Phase 08-03]: simple-git named import { simpleGit } required — TypeScript NodeNext moduleResolution does not recognize default export as callable (TS2349 no-call-signatures)
+- [Phase 08-03]: createToolWriteTool/createToolDeleteTool capture built-in tool names at factory creation time as Set<string> snapshot — stable across all invocations within process lifetime
+- [Phase 08-03]: Built-in modification gate uses builtinToolNames Set checked at execute() entry; builtinModify=true required to modify Phase 1-7 tools via git branch staging
+- [Phase 08-03]: stageBuiltinChange captures originalBranch via git.revparse before staging branch creation — never assumes 'main' branch name
 
 ### Pending Todos
 
@@ -181,5 +186,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 08-02-PLAN.md (schema_extend tool with validateDdl, applyAgentMigration, createSchemaExtendTool)
-Resume file: .planning/phases/08-self-extension-and-agent-economics/08-03-PLAN.md
+Stopped at: Completed 08-03-PLAN.md (tool_write, tool_delete, stageBuiltinChange, createSelfExtensionTools factory)
+Resume file: .planning/phases/08-self-extension-and-agent-economics/08-04-PLAN.md
