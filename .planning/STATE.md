@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** The agent must be able to autonomously reason about opportunities, acquire the tools and accounts it needs, and execute money-making strategies without human intervention.
-**Current focus:** Phase 5: Web Dashboard — IN PROGRESS (1/2 plans done)
+**Current focus:** Phase 5: Web Dashboard — IN PROGRESS (2/3 plans done)
 
 ## Current Position
 
 Phase: 5 of 8 (Web Dashboard) — IN PROGRESS
-Plan: 1 of 2 in current phase (05-01 complete — Hono API server with auth, REST endpoints, SSE)
-Status: In Progress — ready to begin Phase 5 Plan 2 (Dashboard Frontend)
-Last activity: 2026-02-19 — Completed 05-01 (Hono API server: status, kill-switch, activity, pnl, sse endpoints)
+Plan: 2 of 3 in current phase (05-02 complete — React/Vite SPA with auth gate, Overview tab, kill switch, SSE)
+Status: In Progress — ready to begin Phase 5 Plan 3 (Activity tab + P&L tab)
+Last activity: 2026-02-19 — Completed 05-02 (React SPA: auth gate, useSSE, TanStack Query, OverviewTab, KillSwitchButton)
 
-Progress: [██████████████] 69%
+Progress: [███████████████] 73%
 
 ## Performance Metrics
 
@@ -31,11 +31,11 @@ Progress: [██████████████] 69%
 | 02-ai-backbone-and-safety | 3/3 | 9 min | 3 min |
 | 03-autonomous-loop | 6/6 | 20 min | 3.3 min |
 | 04-wallet-and-financial-governance | 4/4 | 28 min | 7 min |
-| 05-web-dashboard | 1/2 | 4 min | 4 min |
+| 05-web-dashboard | 2/3 | 9 min | 4.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-02 (4 min), 04-03 (14 min), 04-04 (2 min), 05-01 (4 min)
-- Trend: Phase 5 web dashboard underway; API backend complete in 4 min
+- Last 5 plans: 04-03 (14 min), 04-04 (2 min), 05-01 (4 min), 05-02 (5 min)
+- Trend: Phase 5 frontend SPA complete; React + SSE + TanStack Query in 5 min
 
 *Updated after each plan completion*
 | Phase 02-ai-backbone-and-safety P02 | 4 | 2 tasks | 11 files |
@@ -50,6 +50,7 @@ Progress: [██████████████] 69%
 | Phase 04-wallet-and-financial-governance P03 | 14 | 2 tasks | 12 files |
 | Phase 04-wallet-and-financial-governance P04 | 2 | 1 tasks | 1 files |
 | Phase 05-web-dashboard P01 | 4 | 2 tasks | 12 files |
+| Phase 05-web-dashboard P02 | 5 | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -126,6 +127,9 @@ Recent decisions affecting current work:
 - [Phase 05-01]: SSE heartbeat uses event:heartbeat with empty data (not comment field) — Hono SSEMessage type has no comment field
 - [Phase 05-01]: broadcaster.ts EventEmitter singleton with maxListeners=100 — central fan-out for SSE; poller emits, SSE route subscribes
 - [Phase 05-01]: Poller starts immediately at startup then runs on interval — processes state from prior runs without waiting first interval
+- [Phase 05-web-dashboard]: pnpm-workspace.yaml needs explicit apps/dashboard/client entry — apps/* glob only matches direct subdirectories, not nested paths
+- [Phase 05-web-dashboard]: Client tsconfig uses moduleResolution:bundler not NodeNext — Vite handles module resolution, NodeNext causes TS errors
+- [Phase 05-web-dashboard]: SSE + polling dual-track: fetchEventSource calls setQueryData for immediate push; useQuery polls as fallback
 
 ### Pending Todos
 
@@ -140,5 +144,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 05-01 (Hono API server for dashboard — all 5 endpoints + SSE)
-Resume file: .planning/phases/05-web-dashboard/05-01-SUMMARY.md
+Stopped at: Completed 05-02 (Dashboard React SPA — auth gate, Overview tab, kill switch, SSE)
+Resume file: .planning/phases/05-web-dashboard/05-02-SUMMARY.md

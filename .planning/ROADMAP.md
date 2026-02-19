@@ -107,7 +107,7 @@ Plans:
   3. Dashboard displays P&L data with revenue, costs, and net over time, broken down by strategy
   4. Operator can activate and deactivate the kill switch from the dashboard and see the agent halt/resume within seconds
   5. Decision log shows the LLM reasoning behind each major agent decision
-**Plans:** 1/3 plans complete
+**Plans:** 2/3 plans executed
 
 Plans:
 - [x] 05-01-PLAN.md — Hono API server scaffold + auth + REST routes + SSE broadcaster
@@ -176,7 +176,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 2. AI Backbone and Safety | 0/3 | Complete    | 2026-02-18 |
 | 3. Autonomous Loop | 6/6 | Complete    | 2026-02-18 |
 | 4. Wallet and Financial Governance | 4/4 | Complete | 2026-02-18 |
-| 5. Web Dashboard | 1/3 | In Progress | - |
+| 5. Web Dashboard | 2/3 | In Progress|  |
 | 6. Browser, Identity, and Bootstrapping | 0/0 | Not started | - |
 | 7. Strategy Engine | 0/0 | Not started | - |
 | 8. Self-Extension and Agent Economics | 0/0 | Not started | - |
