@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** The agent must be able to autonomously reason about opportunities, acquire the tools and accounts it needs, and execute money-making strategies without human intervention.
-**Current focus:** Phase 7: Strategy Engine — COMPLETE (2/2 plans done)
+**Current focus:** Phase 8: Self-Extension and Agent Economics — IN PROGRESS (1/4 plans done)
 
 ## Current Position
 
-Phase: 7 of 8 (Strategy Engine) — COMPLETE
-Plan: 2 of 2 in current phase (07-02 complete — strategy engine integration)
-Status: Phase 7 complete — all 2 plans done; ready for Phase 8
-Last activity: 2026-02-19 — Completed 07-02 (portfolio prompt builder, supervisor wiring, dashboard API)
+Phase: 8 of 8 (Self-Extension and Agent Economics) — IN PROGRESS
+Plan: 1 of 4 in current phase (08-01 complete — self-extension foundation infrastructure)
+Status: Phase 8 in progress — 1/4 plans done
+Last activity: 2026-02-19 — Completed 08-01 (agent_migrations schema, TS compiler, sandbox runner, tool loader)
 
-Progress: [████████████████████████░] 96%
+Progress: [█████████████████████████] 100%
 
 ## Performance Metrics
 
@@ -160,6 +160,10 @@ Recent decisions affecting current work:
 - [Phase 07-02]: Supervisor resolves strategy context per-goal (not globally) — only strategy-backed goals receive portfolio context; plain goals unaffected
 - [Phase 07-02]: buildPortfolioContextPrompt is domain-agnostic: status + hypothesis only, lastTransitionReason shown only for paused/killed strategies
 - [Phase 07-02]: Dashboard api.ts uses direct db inserts (not GoalManager) — avoids cross-app dependency; follows existing dashboard route pattern
+- [Phase 08-01]: esbuild.transform throws TransformFailure on error (not returns errors in result) — compiler.ts uses try/catch, casts to TransformFailure to extract .errors[]
+- [Phase 08-01]: Sandbox harness generated as inline .mjs string (generateHarnessScript) written to temp file — avoids needing harness.ts separately compiled/resolved at runtime
+- [Phase 08-01]: runInSandbox() never throws — all outcomes (success, failure, timeout, process error) returned as SandboxResult
+- [Phase 08-01]: loadPersistedTools() loads only .mjs (compiled) not .ts (source); cache-busting query param on dynamic import for hot-swap
 
 ### Pending Todos
 
@@ -174,5 +178,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 07-02-PLAN.md (portfolio prompt builder, supervisor wiring, dashboard API)
-Resume file: .planning/phases/08-self-extension/08-01-PLAN.md
+Stopped at: Completed 08-01-PLAN.md (agent_migrations schema, esbuild compiler, sandbox runner, tool loader)
+Resume file: .planning/phases/08-self-extension-and-agent-economics/08-02-PLAN.md

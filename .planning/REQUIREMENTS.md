@@ -145,11 +145,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Self-Extending Codebase
 
-- [ ] **EXTEND-01**: Agent can write TypeScript code to create new tools and capabilities
-- [ ] **EXTEND-02**: Agent tests generated code in a sandbox before deploying to production
+- [x] **EXTEND-01**: Agent can write TypeScript code to create new tools and capabilities
+- [x] **EXTEND-02**: Agent tests generated code in a sandbox before deploying to production
 - [ ] **EXTEND-03**: Agent-created tools register in the tool registry and become available for use
 - [ ] **EXTEND-04**: Agent can extend its own database schema as its needs evolve
-- [ ] **EXTEND-05**: Failed code deployments are rolled back without affecting the core agent loop
+- [x] **EXTEND-05**: Failed code deployments are rolled back without affecting the core agent loop
 
 ### Agent-to-Agent Economics
 
@@ -280,11 +280,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STRAT-06 | Phase 7 | Complete |
 | STRAT-07 | Phase 8 | Pending |
 | STRAT-08 | Phase 7 | Complete |
-| EXTEND-01 | Phase 8 | Pending |
-| EXTEND-02 | Phase 8 | Pending |
+| EXTEND-01 | Phase 8 | Complete |
+| EXTEND-02 | Phase 8 | Complete |
 | EXTEND-03 | Phase 8 | Pending |
 | EXTEND-04 | Phase 8 | Pending |
-| EXTEND-05 | Phase 8 | Pending |
+| EXTEND-05 | Phase 8 | Complete |
 | AGENT-01 | Phase 8 | Pending |
 | AGENT-02 | Phase 8 | Pending |
 | AGENT-03 | Phase 8 | Pending |
