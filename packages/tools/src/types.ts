@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { SelfExtensionExecutionContext } from './self-extension/pipeline-context.js';
 
 /**
  * ToolDefinition<TInput, TOutput> — the contract every tool must implement.
@@ -31,7 +32,11 @@ export interface ToolDefinition<TInput = unknown, TOutput = unknown> {
    * Full output is ALWAYS logged to Postgres regardless of this limit.
    */
   maxOutputBytes?: number;
-  execute(input: TInput, signal: AbortSignal): Promise<TOutput>;
+  execute(
+    input: TInput,
+    signal: AbortSignal,
+    executionContext?: SelfExtensionExecutionContext,
+  ): Promise<TOutput>;
 }
 
 /**

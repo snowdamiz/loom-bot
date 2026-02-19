@@ -2,6 +2,7 @@ import type { DbClient } from '@jarvis/db';
 import { logToolStart, logToolComplete, logToolFailure } from '@jarvis/logging';
 import type { ToolRegistry } from './registry.js';
 import type { ToolResult } from './types.js';
+import type { SelfExtensionExecutionContext } from './self-extension/pipeline-context.js';
 import { withTimeout, ToolTimeoutError } from './timeout.js';
 
 /**
@@ -24,6 +25,8 @@ import { withTimeout, ToolTimeoutError } from './timeout.js';
  * @param toolName         - Name of the tool to invoke
  * @param rawInput         - Unvalidated input (validated via tool.inputSchema.parse)
  * @param overrideTimeoutMs - Override the tool's default timeout for this invocation
+ * @param executionContext - Optional internal metadata for self-extension traceability.
+ *   This is not exposed to the tool's zod input schema or LLM-facing tool arguments.
  * @returns ToolResult — never throws; failures are returned as { success: false, error }
  */
 export async function invokeWithLogging(
@@ -31,7 +34,8 @@ export async function invokeWithLogging(
   db: DbClient,
   toolName: string,
   rawInput: unknown,
-  overrideTimeoutMs?: number
+  overrideTimeoutMs?: number,
+  executionContext?: SelfExtensionExecutionContext,
 ): Promise<ToolResult<unknown>> {
   const startTime = Date.now();
 
@@ -80,7 +84,11 @@ export async function invokeWithLogging(
   let rawOutput: unknown;
   try {
     const timeoutMs = overrideTimeoutMs ?? tool.timeoutMs;
-    rawOutput = await withTimeout(tool.name, (signal) => tool.execute(validatedInput as never, signal), timeoutMs);
+    rawOutput = await withTimeout(
+      tool.name,
+      (signal) => tool.execute(validatedInput as never, signal, executionContext),
+      timeoutMs,
+    );
   } catch (err) {
     // 5a. Failure path: log the error (full message), return failure ToolResult
     const durationMs = Date.now() - execStart;

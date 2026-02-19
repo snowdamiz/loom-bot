@@ -1,6 +1,7 @@
 import type { DbClient } from '@jarvis/db';
 import type { ToolRegistry } from './registry.js';
 import type { ToolResult } from './types.js';
+import type { SelfExtensionExecutionContext } from './self-extension/pipeline-context.js';
 import { invokeWithLogging } from './invoke.js';
 
 /**
@@ -29,6 +30,8 @@ interface KillCheckable {
  * @param toolName         - Name of the tool to invoke
  * @param rawInput         - Unvalidated input (validated by invokeWithLogging via zod)
  * @param overrideTimeoutMs - Override the tool's default timeout for this invocation
+ * @param executionContext - Optional internal self-extension metadata propagated across
+ * invocation layers. Not part of tool input schema validation.
  * @returns ToolResult — or throws KillSwitchActiveError if kill switch is active
  */
 export async function invokeWithKillCheck(
@@ -37,10 +40,18 @@ export async function invokeWithKillCheck(
   db: DbClient,
   toolName: string,
   rawInput: unknown,
-  overrideTimeoutMs?: number
+  overrideTimeoutMs?: number,
+  executionContext?: SelfExtensionExecutionContext,
 ): Promise<ToolResult<unknown>> {
   // assertActive() throws KillSwitchActiveError if kill switch is active
   await guard.assertActive();
 
-  return invokeWithLogging(registry, db, toolName, rawInput, overrideTimeoutMs);
+  return invokeWithLogging(
+    registry,
+    db,
+    toolName,
+    rawInput,
+    overrideTimeoutMs,
+    executionContext,
+  );
 }
