@@ -9,6 +9,7 @@ import sseRoute from './routes/sse.js';
 import identitiesRoute from './routes/identities.js';
 import apiRoute from './routes/api.js';
 import setupRoute from './routes/setup.js';
+import githubOAuthCallbackRoute from './routes/github-oauth-callback.js';
 import chatRoute from './routes/chat.js';
 
 /**
@@ -42,6 +43,8 @@ app.route('/api', identitiesRoute);
 app.route('/api', apiRoute);
 // Setup wizard: GET/POST /api/setup/* for operator onboarding flow
 app.route('/api/setup', setupRoute);
+// Public OAuth callback (must stay outside /api bearer middleware)
+app.route('/setup/github', githubOAuthCallbackRoute);
 // Sidebar chat: POST /api/chat + GET /api/chat/history
 app.route('/api/chat', chatRoute);
 
