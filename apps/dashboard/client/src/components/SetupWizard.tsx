@@ -5,6 +5,7 @@ import type { SetupState } from '../hooks/useSetupState.js';
 
 interface SetupWizardProps {
   setupState: SetupState;
+  onRefreshSetupState: () => Promise<void>;
   onSetupComplete: () => void;
 }
 
@@ -13,7 +14,7 @@ interface SetupWizardProps {
  * Wraps both steps in a centered card with a step progress indicator.
  * Skips to step 2 if OpenRouter key is already set.
  */
-export function SetupWizard({ setupState, onSetupComplete }: SetupWizardProps) {
+export function SetupWizard({ setupState, onRefreshSetupState, onSetupComplete }: SetupWizardProps) {
   const [currentStep, setCurrentStep] = useState<1 | 2>(
     setupState.openrouterKeySet ? 2 : 1
   );
@@ -42,7 +43,11 @@ export function SetupWizard({ setupState, onSetupComplete }: SetupWizardProps) {
         )}
 
         {currentStep === 2 && (
-          <SetupStepGitHub onComplete={onSetupComplete} />
+          <SetupStepGitHub
+            setupState={setupState}
+            onRefreshSetupState={onRefreshSetupState}
+            onComplete={onSetupComplete}
+          />
         )}
       </div>
     </div>
