@@ -24,6 +24,11 @@ interface GitHubPutContentResponse {
   };
 }
 
+interface GitHubPullRequest {
+  number: number;
+  html_url: string;
+}
+
 export interface SandboxEvidence {
   passed: boolean;
   durationMs: number;
@@ -83,7 +88,14 @@ async function githubApiRequest<T>(
   });
 
   const rawBody = await response.text();
-  const payload = rawBody.length > 0 ? JSON.parse(rawBody) as unknown : null;
+  let payload: unknown = null;
+  if (rawBody.length > 0) {
+    try {
+      payload = JSON.parse(rawBody) as unknown;
+    } catch {
+      payload = rawBody;
+    }
+  }
 
   if (!response.ok) {
     const detail = typeof payload === 'object' && payload !== null && 'message' in payload
@@ -129,6 +141,78 @@ function normalizeExecutionContext(
 
 function toEvidenceState(passed: boolean): 'success' | 'failure' {
   return passed ? 'success' : 'failure';
+}
+
+function redactEvidenceSummary(summary: string): string {
+  return summary
+    .replace(/gh[pousr]_[A-Za-z0-9_]{20,}/g, '[redacted-github-token]')
+    .replace(/(Bearer\s+)[^\s]+/gi, '$1[redacted-token]')
+    .replace(/sk-[A-Za-z0-9]{16,}/g, '[redacted-secret]')
+    .slice(0, 500);
+}
+
+function buildEvidenceSection(input: {
+  toolName: string;
+  filePath: string;
+  headSha: string;
+  branchName: string;
+  evidence: SandboxEvidence;
+}): string {
+  const outcome = input.evidence.passed ? 'PASS' : 'FAIL';
+  const summary = redactEvidenceSummary(input.evidence.summary || 'No summary provided.');
+
+  return [
+    '## Sandbox Evidence',
+    `- context: ${SANDBOX_STATUS_CONTEXT}`,
+    `- result: ${outcome}`,
+    `- durationMs: ${input.evidence.durationMs}`,
+    `- tool: ${input.toolName}`,
+    `- file: ${input.filePath}`,
+    `- branch: ${input.branchName}`,
+    `- headSha: ${input.headSha}`,
+    '',
+    '### Diagnostic Summary',
+    summary,
+  ].join('\n');
+}
+
+function buildPullRequestTitle(toolName: string, filePath: string): string {
+  return `jarvis: builtin modify ${toolName} (${filePath})`;
+}
+
+function buildPullRequestBody(input: {
+  branchName: string;
+  defaultBranch: string;
+  headSha: string;
+  evidence: SandboxEvidence;
+  toolName: string;
+  filePath: string;
+  metadataJson: string;
+}): string {
+  return [
+    '# Jarvis Self-Extension Candidate',
+    '',
+    `This PR tracks deterministic self-modification for \`${input.filePath}\`.`,
+    '',
+    '- flow: deterministic branch/commit/PR upsert',
+    `- branch: \`${input.branchName}\``,
+    `- base: \`${input.defaultBranch}\``,
+    `- head: \`${input.headSha}\``,
+    `- tool: \`${input.toolName}\``,
+    '',
+    '## Commit Metadata',
+    '```json',
+    input.metadataJson,
+    '```',
+    '',
+    buildEvidenceSection({
+      toolName: input.toolName,
+      filePath: input.filePath,
+      headSha: input.headSha,
+      branchName: input.branchName,
+      evidence: input.evidence,
+    }),
+  ].join('\n');
 }
 
 async function fetchRefSha(
@@ -250,16 +334,107 @@ async function commitFileUpdate(input: {
   return headSha;
 }
 
+async function upsertPullRequest(input: {
+  accessToken: string;
+  owner: string;
+  repo: string;
+  branchName: string;
+  defaultBranch: string;
+  title: string;
+  body: string;
+}): Promise<{ number: number; htmlUrl: string }> {
+  const params = new URLSearchParams({
+    state: 'open',
+    head: `${input.owner}:${input.branchName}`,
+    base: input.defaultBranch,
+  });
+  const openPulls = await githubApiRequest<GitHubPullRequest[]>(
+    input.accessToken,
+    `/repos/${input.owner}/${input.repo}/pulls?${params.toString()}`,
+  );
+
+  if (openPulls.length > 0) {
+    const existing = openPulls[0];
+    // update a pull request when deterministic branch PR already exists.
+    const updated = await githubApiRequest<GitHubPullRequest>(
+      input.accessToken,
+      `/repos/${input.owner}/${input.repo}/pulls/${existing.number}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({
+          title: input.title,
+          body: input.body,
+          base: input.defaultBranch,
+        }),
+      },
+    );
+    return {
+      number: updated.number,
+      htmlUrl: updated.html_url,
+    };
+  }
+
+  // create a pull request when branch has no open PR yet.
+  const created = await githubApiRequest<GitHubPullRequest>(
+    input.accessToken,
+    `/repos/${input.owner}/${input.repo}/pulls`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        title: input.title,
+        head: input.branchName,
+        base: input.defaultBranch,
+        body: input.body,
+      }),
+    },
+  );
+
+  return {
+    number: created.number,
+    htmlUrl: created.html_url,
+  };
+}
+
+async function setSandboxStatus(input: {
+  accessToken: string;
+  owner: string;
+  repo: string;
+  headSha: string;
+  state: 'success' | 'failure';
+  pullRequestUrl: string;
+}): Promise<void> {
+  const description = input.state === 'success'
+    ? 'Sandbox verification passed'
+    : 'Sandbox verification failed';
+
+  await githubApiRequest<unknown>(
+    input.accessToken,
+    `/repos/${input.owner}/${input.repo}/statuses/${input.headSha}`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        state: input.state,
+        context: SANDBOX_STATUS_CONTEXT,
+        description,
+        target_url: input.pullRequestUrl,
+      }),
+    },
+  );
+}
+
 export async function runGitHubSelfExtensionPipeline(
   input: GitHubSelfExtensionPipelineInput,
 ): Promise<GitHubSelfExtensionPipelineResult> {
   let branchName: string | undefined;
   let headSha: string | undefined;
+  let pullRequestUrl: string | undefined;
+  let pullRequestNumber: number | undefined;
 
   try {
     const trusted = await resolveTrustedGitHubContext(input.db);
     const { owner, repo } = parseRepoFullName(trusted.repoFullName);
     const executionContext = normalizeExecutionContext(input);
+    const evidenceState = toEvidenceState(input.sandboxEvidence.passed);
 
     const contentHash = createHash('sha256')
       .update(input.newContent)
@@ -300,12 +475,46 @@ export async function runGitHubSelfExtensionPipeline(
       commitMessage,
     });
 
+    const pullRequestTitle = buildPullRequestTitle(input.toolName, input.filePath);
+    const pullRequestBody = buildPullRequestBody({
+      branchName,
+      defaultBranch: trusted.defaultBranch,
+      headSha,
+      evidence: input.sandboxEvidence,
+      toolName: input.toolName,
+      filePath: input.filePath,
+      metadataJson: commitMetadata.serialized,
+    });
+
+    const pullRequest = await upsertPullRequest({
+      accessToken: trusted.accessToken,
+      owner,
+      repo,
+      branchName,
+      defaultBranch: trusted.defaultBranch,
+      title: pullRequestTitle,
+      body: pullRequestBody,
+    });
+    pullRequestUrl = pullRequest.htmlUrl;
+    pullRequestNumber = pullRequest.number;
+
+    await setSandboxStatus({
+      accessToken: trusted.accessToken,
+      owner,
+      repo,
+      headSha,
+      state: evidenceState,
+      pullRequestUrl,
+    });
+
     return {
       success: true,
       branchName,
       headSha,
+      pullRequestUrl,
+      pullRequestNumber,
       evidenceStatusContext: SANDBOX_STATUS_CONTEXT,
-      evidenceState: toEvidenceState(input.sandboxEvidence.passed),
+      evidenceState,
     };
   } catch (err) {
     return {
@@ -313,6 +522,8 @@ export async function runGitHubSelfExtensionPipeline(
       error: err instanceof Error ? err.message : String(err),
       branchName,
       headSha,
+      pullRequestUrl,
+      pullRequestNumber,
       evidenceStatusContext: SANDBOX_STATUS_CONTEXT,
       evidenceState: toEvidenceState(input.sandboxEvidence.passed),
     };
