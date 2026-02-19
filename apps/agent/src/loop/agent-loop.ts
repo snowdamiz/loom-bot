@@ -30,6 +30,8 @@ export interface AgentLoopConfig {
   maxTurnsPerSubGoal?: number;
   /** Milliseconds to sleep between continuous loop iterations (default: 5000) */
   cycleSleepMs?: number;
+  /** Strategy portfolio context to inject into sub-goal system prompts */
+  strategyContext?: string;
 }
 
 /**
@@ -49,6 +51,7 @@ export interface AgentLoopConfig {
 export class AgentLoop {
   private readonly maxTurnsPerSubGoal: number;
   private readonly cycleSleepMs: number;
+  private readonly strategyContext: string | undefined;
   /** Set to true by external signal to stop the continuous loop gracefully */
   private cancelled = false;
 
@@ -65,6 +68,7 @@ export class AgentLoop {
   ) {
     this.maxTurnsPerSubGoal = config?.maxTurnsPerSubGoal ?? 20;
     this.cycleSleepMs = config?.cycleSleepMs ?? 5000;
+    this.strategyContext = config?.strategyContext;
   }
 
   /**
@@ -92,23 +96,32 @@ export class AgentLoop {
    */
   async executeSubGoal(subGoal: SubGoal): Promise<{ success: boolean; outcome: unknown }> {
     // INVARIANT: Fresh messages array per sub-goal (no context leakage)
+    const systemParts = [
+      `You are an autonomous AI agent executing a specific sub-goal.`,
+      ``,
+      `SUB-GOAL: ${subGoal.description}`,
+      ``,
+    ];
+
+    if (this.strategyContext) {
+      systemParts.push(this.strategyContext, '');
+    }
+
+    systemParts.push(
+      `CONSTRAINTS:`,
+      `- Execute the sub-goal using the available tools.`,
+      `- Be efficient: only call tools that are necessary.`,
+      `- When the sub-goal is complete, respond with a final message summarizing what was accomplished.`,
+      `- Do not ask clarifying questions — make reasonable decisions and proceed.`,
+      ``,
+      `AVAILABLE TOOLS:`,
+      this.registry.list().map((t) => `- ${t.name}: ${t.description}`).join('\n'),
+    );
+
     const messages: ChatCompletionMessageParam[] = [
       {
         role: 'system',
-        content: [
-          `You are an autonomous AI agent executing a specific sub-goal.`,
-          ``,
-          `SUB-GOAL: ${subGoal.description}`,
-          ``,
-          `CONSTRAINTS:`,
-          `- Execute the sub-goal using the available tools.`,
-          `- Be efficient: only call tools that are necessary.`,
-          `- When the sub-goal is complete, respond with a final message summarizing what was accomplished.`,
-          `- Do not ask clarifying questions — make reasonable decisions and proceed.`,
-          ``,
-          `AVAILABLE TOOLS:`,
-          this.registry.list().map((t) => `- ${t.name}: ${t.description}`).join('\n'),
-        ].join('\n'),
+        content: systemParts.join('\n'),
       },
       {
         role: 'user',
