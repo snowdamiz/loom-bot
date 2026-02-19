@@ -26,6 +26,9 @@ export { createBrowserTools } from './browser/index.js';
 // Identity tools (Phase 06)
 export { createIdentityTools } from './identity/index.js';
 
+// Bootstrap tools (Phase 06)
+export { createBootstrapTools } from './bootstrap/index.js';
+
 // Convenience factory: create a registry with all 4 default tools pre-registered.
 // This is what apps/agent will call at startup.
 import type { DbClient } from '@jarvis/db';
