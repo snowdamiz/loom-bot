@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { db, setupState, sql, oauthState } from '@jarvis/db';
+import { db, setupState, sql, oauthState, eq } from '@jarvis/db';
 import {
   exchangeOAuthCode,
   fetchAuthenticatedUser,
@@ -151,8 +151,6 @@ app.get('/callback', async (c) => {
 
   if (existingSetup.length > 0) {
     const row = existingSetup[0]!;
-    const isComplete = row.openrouterKeySet;
-
     await db
       .update(setupState)
       .set({
@@ -165,9 +163,9 @@ app.get('/callback', async (c) => {
         githubRepoDefaultBranch: null,
         githubRepoValidatedAt: null,
         updatedAt: now,
-        setupCompletedAt: isComplete ? now : row.setupCompletedAt,
+        setupCompletedAt: null,
       })
-      .where(sql`${setupState.id} = ${row.id}`);
+      .where(eq(setupState.id, row.id));
   } else {
     await db.insert(setupState).values({
       openrouterKeySet: false,
