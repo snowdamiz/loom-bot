@@ -124,12 +124,13 @@ Plans:
   3. All credentials are stored in the encrypted vault in Postgres and are retrievable by the agent without exposing them in logs or LLM context
   4. The identity ledger tracks every created account with service name, status, and purpose, and the operator can audit it
   5. Agent can install an npm package at runtime and use it in subsequent tool calls without a restart or operator intervention
-**Plans**: TBD
+**Plans:** 4 plans
 
 Plans:
-- [ ] 06-01: TBD
-- [ ] 06-02: TBD
-- [ ] 06-03: TBD
+- [ ] 06-01-PLAN.md — DB schemas (identities, credentials, audit) + @jarvis/browser package (Playwright, stealth, CAPTCHA)
+- [ ] 06-02-PLAN.md — Identity tools (credential vault, persona generation, temp email, retirement, operator escalation)
+- [ ] 06-03-PLAN.md — Browser tools (navigate, click, fill, extract, screenshot, session management)
+- [ ] 06-04-PLAN.md — Bootstrap tools (runtime package install, tool discovery) + agent wiring + dashboard identity API
 
 ### Phase 7: Strategy Engine
 **Goal**: The agent discovers revenue opportunities through web research, generates and tests hypotheses with minimal capital, evaluates performance, scales winners, kills losers, and manages a portfolio of parallel strategies with independent P&L tracking
@@ -177,6 +178,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 3. Autonomous Loop | 6/6 | Complete    | 2026-02-18 |
 | 4. Wallet and Financial Governance | 4/4 | Complete | 2026-02-18 |
 | 5. Web Dashboard | 2/3 | In Progress|  |
-| 6. Browser, Identity, and Bootstrapping | 0/0 | Not started | - |
+| 6. Browser, Identity, and Bootstrapping | 0/4 | Not started | - |
 | 7. Strategy Engine | 0/0 | Not started | - |
 | 8. Self-Extension and Agent Economics | 0/0 | Not started | - |
