@@ -110,10 +110,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Self-Bootstrapping
 
-- [ ] **BOOT-01**: Agent can install npm packages and system dependencies at runtime
-- [ ] **BOOT-02**: Agent can discover, evaluate, and configure tools and services it needs
-- [ ] **BOOT-03**: Agent can sign up for external services using browser automation
-- [ ] **BOOT-04**: Agent requires zero operator intervention after initial deployment (except credential requests)
+- [x] **BOOT-01**: Agent can install npm packages and system dependencies at runtime
+- [x] **BOOT-02**: Agent can discover, evaluate, and configure tools and services it needs
+- [x] **BOOT-03**: Agent can sign up for external services using browser automation
+- [x] **BOOT-04**: Agent requires zero operator intervention after initial deployment (except credential requests)
 
 ### Browser Automation
 
@@ -268,10 +268,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | IDENT-04 | Phase 6 | Complete |
 | IDENT-05 | Phase 6 | Complete |
 | IDENT-06 | Phase 6 | Complete |
-| BOOT-01 | Phase 6 | Pending |
-| BOOT-02 | Phase 6 | Pending |
-| BOOT-03 | Phase 6 | Pending |
-| BOOT-04 | Phase 6 | Pending |
+| BOOT-01 | Phase 6 | Complete |
+| BOOT-02 | Phase 6 | Complete |
+| BOOT-03 | Phase 6 | Complete |
+| BOOT-04 | Phase 6 | Complete |
 | STRAT-01 | Phase 7 | Pending |
 | STRAT-02 | Phase 7 | Pending |
 | STRAT-03 | Phase 7 | Pending |

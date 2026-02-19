@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** The agent must be able to autonomously reason about opportunities, acquire the tools and accounts it needs, and execute money-making strategies without human intervention.
-**Current focus:** Phase 6: Browser Identity and Bootstrapping — IN PROGRESS (3/4 plans done)
+**Current focus:** Phase 6: Browser Identity and Bootstrapping — COMPLETE (4/4 plans done)
 
 ## Current Position
 
-Phase: 6 of 8 (Browser Identity and Bootstrapping) — IN PROGRESS
-Plan: 3 of 4 in current phase (06-03 complete — 8 browser automation ToolDefinitions via createBrowserTools factory)
-Status: In progress
-Last activity: 2026-02-19 — Completed 06-03 (browser_navigate, browser_click/fill/extract, browser_screenshot, browser_session_open/close/save)
+Phase: 6 of 8 (Browser Identity and Bootstrapping) — COMPLETE
+Plan: 4 of 4 in current phase (06-04 complete — bootstrap tools, agent wiring, browser shutdown, identity ledger API)
+Status: Phase 6 complete — ready for Phase 7
+Last activity: 2026-02-19 — Completed 06-04 (package_install, tool_discover, Phase 6 agent wiring, identity ledger API)
 
-Progress: [████████████████████] 80%
+Progress: [█████████████████████░░░░] 85%
 
 ## Performance Metrics
 
@@ -32,11 +32,11 @@ Progress: [████████████████████] 80%
 | 03-autonomous-loop | 6/6 | 20 min | 3.3 min |
 | 04-wallet-and-financial-governance | 4/4 | 28 min | 7 min |
 | 05-web-dashboard | 3/3 | 14 min | 4.7 min |
-| 06-browser-identity-and-bootstrapping | 3/4 | 11 min | 5.5 min |
+| 06-browser-identity-and-bootstrapping | 4/4 | 14 min | 3.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-02 (5 min), 05-03 (5 min), 06-01 (8 min), 06-03 (3 min)
-- Trend: Phase 6 in progress; 06-03 browser tools plan completed in 3 min
+- Last 5 plans: 05-03 (5 min), 06-01 (8 min), 06-02 (5 min), 06-03 (3 min), 06-04 (3 min)
+- Trend: Phase 6 complete; all 4 plans done; average 3.5 min/plan
 
 *Updated after each plan completion*
 | Phase 02-ai-backbone-and-safety P02 | 4 | 2 tasks | 11 files |
@@ -56,6 +56,7 @@ Progress: [████████████████████] 80%
 | Phase 06 P01 | 8 | 2 tasks | 12 files |
 | Phase 06-browser-identity-and-bootstrapping P03 | 3 | 2 tasks | 8 files |
 | Phase 06 P02 | 5 | 2 tasks | 8 files |
+| Phase 06-browser-identity-and-bootstrapping P04 | 3 | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -145,6 +146,11 @@ Recent decisions affecting current work:
 - [Phase 06-02]: sql template used for all pgcrypto ops — Drizzle ORM has no native pgp_sym_encrypt support
 - [Phase 06-02]: discord.js added as direct dep to @jarvis/tools — pnpm strict isolation prevents transitive import from @jarvis/ai
 - [Phase 06-02]: Dynamic import discord.js in operator-escalation.ts — avoids import-time failure when Discord unconfigured
+- [Phase 06-04]: process.cwd() for pnpm install project root — agent always starts from monorepo root; avoids fragile URL-based path resolution
+- [Phase 06-04]: parsePackageName handles scoped packages via double-split: extract @scope prefix first, strip @version from name remainder
+- [Phase 06-04]: importAfterInstall defaults true — post-install dynamic import verifies package loaded; non-fatal if import fails (package still installed)
+- [Phase 06-04]: tool_discover receives registry by reference — reflects live tool state including post-startup additions
+- [Phase 06-04]: ShutdownBrowserManager duck-typed interface — keeps shutdown.ts decoupled from @jarvis/browser (follows Phase 4 signer pattern)
 
 ### Pending Todos
 
@@ -159,5 +165,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 06-02-PLAN.md (identity tool group: credential vault, faker personas, temp email, retire, operator escalation)
+Stopped at: Completed 06-04-PLAN.md (bootstrap tools + Phase 6 agent wiring + browser shutdown + identity ledger API)
 Resume file: .planning/phases/06-browser-identity-and-bootstrapping/06-CONTEXT.md
