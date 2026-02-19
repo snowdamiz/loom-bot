@@ -18,6 +18,15 @@ export { createSchemaExtendTool } from './schema-extend.js';
 export { stageBuiltinChange } from './staging-deployer.js';
 export { assertGitHubTrustForBuiltinModify } from './github-trust-guard.js';
 export {
+  resolveTrustedGitHubContext,
+} from './github-trust-guard.js';
+export { runGitHubSelfExtensionPipeline } from './github-pipeline.js';
+export type {
+  GitHubSelfExtensionPipelineInput,
+  GitHubSelfExtensionPipelineResult,
+  SandboxEvidence,
+} from './github-pipeline.js';
+export {
   buildCommitMetadata,
   stableSerialize,
 } from './pipeline-context.js';
