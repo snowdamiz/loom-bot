@@ -19,10 +19,12 @@ interface SetupStatePayload {
   githubConnected: boolean;
   githubUserId: string | null;
   githubUsername: string | null;
+  githubTokenCredentialSet: boolean;
   githubRepoId: string | null;
   githubRepoFullName: string | null;
   githubRepoDefaultBranch: string | null;
   githubRepoValidatedAt: string | null;
+  githubTrustBound: boolean;
   setupCompletedAt: string | null;
   complete: boolean;
 }
@@ -34,10 +36,12 @@ function toSetupStatePayload(row: (typeof setupState.$inferSelect) | undefined):
       githubConnected: false,
       githubUserId: null,
       githubUsername: null,
+      githubTokenCredentialSet: false,
       githubRepoId: null,
       githubRepoFullName: null,
       githubRepoDefaultBranch: null,
       githubRepoValidatedAt: null,
+      githubTrustBound: false,
       setupCompletedAt: null,
       complete: false,
     };
@@ -48,10 +52,12 @@ function toSetupStatePayload(row: (typeof setupState.$inferSelect) | undefined):
     githubConnected: row.githubConnected,
     githubUserId: row.githubUserId ?? null,
     githubUsername: row.githubUsername ?? null,
+    githubTokenCredentialSet: row.githubTokenCredentialId !== null,
     githubRepoId: row.githubRepoId ?? null,
     githubRepoFullName: row.githubRepoFullName ?? null,
     githubRepoDefaultBranch: row.githubRepoDefaultBranch ?? null,
     githubRepoValidatedAt: row.githubRepoValidatedAt?.toISOString() ?? null,
+    githubTrustBound: row.githubRepoFullName !== null && row.githubRepoId !== null,
     setupCompletedAt: row.setupCompletedAt?.toISOString() ?? null,
     complete: row.openrouterKeySet && row.githubConnected,
   };
