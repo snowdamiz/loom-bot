@@ -1,15 +1,10 @@
 import 'dotenv/config';
-import { fork } from 'node:child_process';
-import { createRequire } from 'node:module';
-import { db, pool, agentState, eq } from '@jarvis/db';
-import { createDefaultRegistry, redis, createWalletTools, createBrowserTools, createIdentityTools, createBootstrapTools, createSelfExtensionTools, loadPersistedTools } from '@jarvis/tools';
-import { createRouter, KillSwitchGuard, loadModelConfig, toolDefinitionsToOpenAI, CreditMonitor } from '@jarvis/ai';
-import { BrowserManager } from '@jarvis/browser';
-import { SignerClient, subscribeToWallet } from '@jarvis/wallet';
+import { db, pool, agentState, goals, eq } from '@jarvis/db';
+import { createDefaultRegistry, redis, createBootstrapTools, createSelfExtensionTools, loadPersistedTools } from '@jarvis/tools';
+import { createRouter, KillSwitchGuard, loadModelConfig, toolDefinitionsToOpenAI, CreditMonitor, activateKillSwitch } from '@jarvis/ai';
 import { Queue } from 'bullmq';
 import { startConsolidation } from './memory-consolidation.js';
 import { registerShutdownHandlers } from './shutdown.js';
-import type { ShutdownSignerProcess, ShutdownBrowserManager } from './shutdown.js';
 import { GoalManager } from './loop/goal-manager.js';
 import { AgentLoop } from './loop/agent-loop.js';
 import { EvaluatorImpl } from './loop/evaluator.js';
@@ -27,31 +22,29 @@ void AgentLoop;
  * Main agent process entry point.
  *
  * Startup sequence:
- * 1. Create tool registry with all 4 default tools
+ * 1. Create tool registry with essential tools only (no wallet/browser/identity)
+ *    Registered: shell, http, file, db (4 primitives)
+ *               spawn_agent, await_agent, cancel_agent (3 multi-agent)
+ *               package_install, tool_discover (2 bootstrap)
+ *               tool_write, tool_delete, schema_extend (3 self-extension)
+ *    Total: 12 tools
  * 2. Create BullMQ Queue for dispatching jobs to worker processes
  * 3. Start memory consolidation periodic job
- * 5. Wire KillSwitchGuard and ModelRouter (Phase 2)
- * 6. Log startup to stderr
- * 7. Write system status to agent_state (DATA-01)
- * 8. Phase 3: Register sub-agent tools, create autonomous loop components,
- *    run startup recovery, start supervisor loop
- * 9. Phase 4: Start signer co-process, create SignerClient, register wallet tools,
- *    start inbound wallet monitoring
+ * 4. Wire KillSwitchGuard and ModelRouter
+ * 5. On first boot (kill switch not yet set AND no goals): activate kill switch (agent starts OFF)
+ * 6. Seed a paused self-evolution goal if goals table is empty
+ * 7. Start supervisor loop
  *
- * RECOV-03: Postgres-backed journal + BullMQ Redis survive Fly.io restarts.
- * The Fly.io `restart: always` policy ensures this process relaunches on crash.
+ * Domain-specific tools (wallet, browser, identity) are NOT registered at startup.
+ * The agent can build or discover them later via tool_write/package_install if needed.
+ *
+ * RECOV-03: Postgres-backed journal + BullMQ Redis survive restarts.
  * On relaunch, detectCrashRecovery() reads active goals from Postgres and
  * performStartupRecovery() resumes them via the Supervisor's staggeredRestart().
- *
- * Phase 4 wallet features degrade gracefully if SOLANA_PRIVATE_KEY is not set:
- * - Signer co-process is not started
- * - Wallet tools are not registered
- * - Inbound monitoring is not started
- * - The agent continues running without wallet capabilities
  */
 
 async function main(): Promise<void> {
-  // 1. Create tool registry with all 4 tools (shell, http, file, db)
+  // 1. Create tool registry with 4 primitive tools (shell, http, file, db)
   const registry = createDefaultRegistry(db);
 
   // 2. Create BullMQ Queue for dispatching tool execution to worker processes
@@ -64,12 +57,12 @@ async function main(): Promise<void> {
   // 3. Start memory consolidation (runs every 5 minutes, also runs immediately)
   const consolidation = startConsolidation(db);
 
-  // 5. Wire Phase 2 components: KillSwitchGuard and ModelRouter
+  // 4. Wire Phase 2 components: KillSwitchGuard and ModelRouter
   const killSwitch = new KillSwitchGuard(db);
   const modelConfig = loadModelConfig();
   const router = createRouter(db, process.env.OPENROUTER_API_KEY!);
 
-  // Phase 9: CreditMonitor — polls OpenRouter balance, Discord DM on low credits
+  // CreditMonitor — polls OpenRouter balance, Discord DM on low credits
   const creditMonitor = new CreditMonitor(
     {
       apiKey: process.env.OPENROUTER_API_KEY!,
@@ -86,11 +79,11 @@ async function main(): Promise<void> {
     `[agent] AI router ready. Models: strong=${modelConfig.strong}, mid=${modelConfig.mid}, cheap=${modelConfig.cheap}\n`
   );
 
-  // 6. Log startup to stderr
+  // Log startup to stderr
   const toolCount = registry.count();
   process.stderr.write(`[agent] Jarvis agent started. Tools: ${toolCount}. Consolidation: active.\n`);
 
-  // 7. Write system status to agent_state (DATA-01 persistence verification)
+  // Write system status to agent_state (DATA-01 persistence verification)
   const systemStatus = {
     status: 'running',
     startedAt: new Date().toISOString(),
@@ -119,171 +112,23 @@ async function main(): Promise<void> {
   process.stderr.write('[agent] System status written to agent_state.\n');
   process.stderr.write(`[agent] Queue "${queue.name}" ready for worker dispatch.\n`);
 
-  // === Phase 3: Autonomous Loop Bootstrap ===
+  // === Multi-agent Bootstrap ===
 
   // Create agent-tasks queue for sub-agent jobs
   const agentTasksQueue = new Queue('agent-tasks', {
     connection: { url: process.env.REDIS_URL! },
   });
 
-  // Register sub-agent tools in the registry
+  // Register sub-agent tools in the registry (3 tools: spawn, await, cancel)
   registry.register(createSpawnAgentTool(agentTasksQueue));
   registry.register(createAwaitAgentTool(agentTasksQueue));
   registry.register(createCancelAgentTool(agentTasksQueue));
-
-  // Convert tool registry to OpenAI format for LLM consumption
-  let openAITools = toolDefinitionsToOpenAI(registry);
-
-  // Create Phase 3 components: GoalManager, Evaluator, Replanner, Supervisor
-  const goalManager = new GoalManager(db, router);
-  const evaluator = new EvaluatorImpl(router, db);
-  const replanner = new ReplannerImpl(goalManager, router, db);
-
-  // Phase 7: StrategyManager wired at startup (domain-agnostic strategy lifecycle)
-  const strategyManager = new StrategyManager(db, goalManager);
-  process.stderr.write('[agent] StrategyManager wired into Supervisor.\n');
-
-  // === Phase 4: Wallet Integration ===
-
-  // Wallet features are optional — only enabled if SOLANA_PRIVATE_KEY is set.
-  // If the key is not configured, the agent runs without wallet capabilities.
-  const SOLANA_PRIVATE_KEY = process.env.SOLANA_PRIVATE_KEY;
-  const SIGNER_SOCKET_PATH = process.env.SIGNER_SOCKET_PATH ?? '/tmp/jarvis-signer.sock';
-  const SIGNER_SHARED_SECRET = process.env.SIGNER_SHARED_SECRET;
-
-  let signerProcess: ShutdownSignerProcess | undefined;
-  let walletSubscription: { stop: () => void } | undefined;
-
-  if (!SOLANA_PRIVATE_KEY) {
-    process.stderr.write(
-      '[agent] SOLANA_PRIVATE_KEY not set — skipping wallet initialization. Wallet tools will not be available.\n',
-    );
-  } else if (!SIGNER_SHARED_SECRET) {
-    process.stderr.write(
-      '[agent] SIGNER_SHARED_SECRET not set — skipping wallet initialization. Set both SOLANA_PRIVATE_KEY and SIGNER_SHARED_SECRET to enable wallet.\n',
-    );
-  } else {
-    // --- Step 1: Start signer co-process ---
-    // Resolve signer server path from @jarvis/wallet package installed in node_modules.
-    // createRequire resolves relative to the current module's URL.
-    const require = createRequire(import.meta.url);
-    const signerServerPath = require.resolve('@jarvis/wallet/dist/signer/server.js');
-
-    const signerChild = fork(signerServerPath, [], {
-      env: {
-        ...process.env,
-        SIGNER_SOCKET_PATH,
-        SIGNER_SHARED_SECRET,
-        SOLANA_PRIVATE_KEY,
-      },
-      stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
-    });
-
-    signerProcess = signerChild;
-
-    // Pipe signer stdout/stderr to agent's stderr with [signer] prefix
-    if (signerChild.stdout) {
-      signerChild.stdout.on('data', (chunk: Buffer) => {
-        process.stderr.write(`[signer] ${chunk.toString('utf8')}`);
-      });
-    }
-    if (signerChild.stderr) {
-      signerChild.stderr.on('data', (chunk: Buffer) => {
-        process.stderr.write(`[signer] ${chunk.toString('utf8')}`);
-      });
-    }
-
-    // Wait for signer 'ready' message (sent via process.send() from server.ts)
-    await new Promise<void>((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        reject(new Error('Signer co-process did not send ready message within 10s'));
-      }, 10_000);
-
-      signerChild.on('message', (msg) => {
-        if (msg === 'ready') {
-          clearTimeout(timeout);
-          resolve();
-        }
-      });
-
-      signerChild.on('error', (err) => {
-        clearTimeout(timeout);
-        reject(err);
-      });
-
-      signerChild.on('exit', (code) => {
-        clearTimeout(timeout);
-        reject(new Error(`Signer co-process exited with code ${String(code)} before sending ready`));
-      });
-    });
-
-    process.stderr.write(`[agent] Signer co-process ready (pid: ${signerChild.pid ?? 'unknown'}).\n`);
-
-    // --- Step 2: Create SignerClient ---
-    const signerClient = new SignerClient(SIGNER_SOCKET_PATH, SIGNER_SHARED_SECRET);
-    const pingResult = await signerClient.ping();
-    process.stderr.write(
-      `[agent] SignerClient ping: ${pingResult ? 'SUCCESS' : 'FAILED — signer may not be accepting connections'}\n`,
-    );
-
-    // --- Step 3: Create and register wallet tools ---
-    const walletTools = createWalletTools(db, signerClient);
-    walletTools.forEach((t) => registry.register(t));
-    process.stderr.write(
-      `[agent] Wallet tools registered: ${walletTools.map((t) => t.name).join(', ')}\n`,
-    );
-
-    // Re-derive openAITools after wallet tool registration so the LLM sees all tools
-    openAITools = toolDefinitionsToOpenAI(registry);
-
-    // --- Step 4: Start inbound wallet monitoring ---
-    // Best-effort: if wss_url is not configured in wallet_config, catch and log (don't crash)
-    try {
-      walletSubscription = await subscribeToWallet(db, (event) => {
-        process.stderr.write(`[wallet] Inbound: ${JSON.stringify(event)}\n`);
-      });
-      process.stderr.write('[agent] Wallet inbound monitoring active.\n');
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      process.stderr.write(
-        `[agent] Wallet subscription failed (non-fatal — wss_url may not be configured): ${msg}\n`,
-      );
-    }
-  }
-
-  // === Phase 6: Browser, Identity, and Bootstrapping ===
-
-  // Browser manager lifecycle (always available — no env var gating)
-  const browserManager = new BrowserManager();
-
-  // Register browser tools (8 tools: session open/close/save, navigate, click, fill, extract, screenshot)
-  const browserTools = createBrowserTools(browserManager);
-  browserTools.forEach((t) => registry.register(t));
-
-  // Register identity tools (7 tools: identity_create, credential_store/retrieve, temp_email_create/check, identity_retire, request_operator_credentials)
-  const identityTools = createIdentityTools(db);
-  identityTools.forEach((t) => registry.register(t));
 
   // Register bootstrap tools (2 tools: package_install, tool_discover)
   const bootstrapTools = createBootstrapTools(registry);
   bootstrapTools.forEach((t) => registry.register(t));
 
-  // Re-derive openAITools after Phase 6 registration so the LLM sees all tools
-  openAITools = toolDefinitionsToOpenAI(registry);
-
-  // Validate CREDENTIAL_ENCRYPTION_KEY at startup (warn, don't crash — identity tools degrade gracefully)
-  if (!process.env.CREDENTIAL_ENCRYPTION_KEY) {
-    process.stderr.write(
-      '[agent] WARNING: CREDENTIAL_ENCRYPTION_KEY not set — credential vault tools will fail. ' +
-        'Set this env var to enable encrypted credential storage.\n',
-    );
-  }
-
-  process.stderr.write(
-    `[agent] Phase 6 ready. Browser: ${browserTools.length} tools, Identity: ${identityTools.length} tools, Bootstrap: ${bootstrapTools.length} tools. Total: ${registry.count()}\n`,
-  );
-
-  // === Phase 8: Self-Extension ===
+  // === Self-Extension ===
 
   // Load agent-authored tools from disk (persisted from previous runs)
   const loadResult = await loadPersistedTools(registry);
@@ -298,7 +143,7 @@ async function main(): Promise<void> {
     );
   }
 
-  // Create reload-tools queue for worker synchronization (Phase 8)
+  // Create reload-tools queue for worker synchronization
   const reloadToolsQueue = new Queue('reload-tools', {
     connection: { url: process.env.REDIS_URL! },
   });
@@ -315,20 +160,73 @@ async function main(): Promise<void> {
   const selfExtensionTools = createSelfExtensionTools(registry, onToolChange);
   selfExtensionTools.forEach((t) => registry.register(t));
 
-  // Re-derive openAITools after Phase 8 registration so the LLM sees all tools
-  openAITools = toolDefinitionsToOpenAI(registry);
-
   process.stderr.write(
-    `[agent] Phase 8 ready. Self-extension: ${selfExtensionTools.length} tools. ` +
-      `Persisted: ${loadResult.loaded.length} loaded, ${loadResult.failed.length} failed. ` +
-      `Total: ${registry.count()}\n`,
+    `[agent] Essential tools registered. Bootstrap: ${bootstrapTools.length}, Self-extension: ${selfExtensionTools.length}. ` +
+      `Persisted: ${loadResult.loaded.length} loaded. Total: ${registry.count()}\n`,
   );
 
-  // === Phase 9: Supervisor + Worker positioned after all tool registrations ===
+  // Convert tool registry to OpenAI format for LLM consumption
+  const openAITools = toolDefinitionsToOpenAI(registry);
+
+  // Create Phase 3 components: GoalManager, Evaluator, Replanner, Supervisor
+  const goalManager = new GoalManager(db, router);
+  const evaluator = new EvaluatorImpl(router, db);
+  const replanner = new ReplannerImpl(goalManager, router, db);
+
+  // StrategyManager wired at startup (domain-agnostic strategy lifecycle)
+  const strategyManager = new StrategyManager(db, goalManager);
+  process.stderr.write('[agent] StrategyManager wired into Supervisor.\n');
+
+  // === Kill Switch: Ensure agent starts OFF on first boot ===
+  // If kill switch is not yet set AND no goals exist → activate kill switch
+  // This guarantees the agent is dormant until the operator enables it after setup.
+  const killSwitchRows = await db
+    .select()
+    .from(agentState)
+    .where(eq(agentState.key, 'kill_switch'))
+    .limit(1);
+
+  const killSwitchValue = killSwitchRows[0]?.value as { active?: boolean } | undefined;
+  const killSwitchAlreadySet = killSwitchValue !== undefined;
+
+  if (!killSwitchAlreadySet) {
+    await activateKillSwitch(
+      db,
+      'Initial setup — agent starts in OFF state',
+      'system',
+    );
+    process.stderr.write('[agent] Kill switch activated: first boot, agent starts OFF.\n');
+  } else {
+    process.stderr.write(
+      `[agent] Kill switch already set (active=${String(killSwitchValue?.active ?? false)}).\n`,
+    );
+  }
+
+  // === Seed Goal: Self-evolution mission ===
+  // If goals table is empty, insert a paused seed goal describing the agent's purpose.
+  // This goal is NOT active — the operator must unpause it after activating the agent.
+  const existingGoals = await db.select().from(goals).limit(1);
+
+  if (existingGoals.length === 0) {
+    await db.insert(goals).values({
+      description:
+        'Bootstrap self-evolution capabilities. You are a self-improving autonomous agent. ' +
+        'Your mission: (1) Analyze what tools and integrations you currently have, ' +
+        '(2) Identify what you need to build to become more capable, ' +
+        '(3) Use your self-extension tools (tool_write, schema_extend, package_install) to build new capabilities, ' +
+        '(4) Use GitHub integration for safe code changes via branches. ' +
+        'Start by understanding your environment and planning your first capability expansion.',
+      source: 'system-seed',
+      status: 'paused',
+      priority: 10,
+      pauseReason: 'Awaiting operator activation after setup completion',
+    });
+    process.stderr.write('[agent] Seed goal inserted: self-evolution mission (paused).\n');
+  }
+
+  // === Supervisor + Worker ===
 
   // Supervisor manages multiple independent main agent loops (one per active goal).
-  // Constructed here (after Phase 4/6/8 tool registrations) so openAITools includes
-  // all 30+ tools, not just the Phase 1+3 snapshot.
   const supervisor = new Supervisor(
     db,
     router,
@@ -342,8 +240,6 @@ async function main(): Promise<void> {
   );
 
   // Create agent-tasks worker (processes sub-agent BullMQ jobs).
-  // tools param removed — worker derives fresh tools from registry per job,
-  // so tool_write additions are visible to the next sub-agent spawn.
   const agentWorker = createAgentWorker({
     redisUrl: process.env.REDIS_URL!,
     router,
@@ -352,7 +248,7 @@ async function main(): Promise<void> {
     db,
   });
 
-  // 4. Register graceful shutdown handlers with all Phase 3, 4, 6 + 8 resources
+  // Register graceful shutdown handlers
   registerShutdownHandlers({
     pool,
     redis,
@@ -360,9 +256,6 @@ async function main(): Promise<void> {
     supervisor,
     agentWorker,
     agentTasksQueue,
-    signerProcess,
-    walletSubscription,
-    browserManager: browserManager as ShutdownBrowserManager,
     reloadToolsQueue,
     creditMonitor,
   });

@@ -8,6 +8,8 @@ import activityRoute from './routes/activity.js';
 import sseRoute from './routes/sse.js';
 import identitiesRoute from './routes/identities.js';
 import apiRoute from './routes/api.js';
+import setupRoute from './routes/setup.js';
+import chatRoute from './routes/chat.js';
 
 /**
  * DASH-01: Hono app factory with middleware and routes.
@@ -38,5 +40,9 @@ app.route('/api/sse', sseRoute);
 app.route('/api', identitiesRoute);
 // Phase 7: Strategy engine — goal seeding + strategy listing
 app.route('/api', apiRoute);
+// Setup wizard: GET/POST /api/setup/* for operator onboarding flow
+app.route('/api/setup', setupRoute);
+// Sidebar chat: POST /api/chat + GET /api/chat/history
+app.route('/api/chat', chatRoute);
 
 export default app;
