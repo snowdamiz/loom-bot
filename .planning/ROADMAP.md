@@ -156,12 +156,13 @@ Plans:
   1. Agent writes a new TypeScript tool, tests it in a sandbox, and the tool appears in the tool registry available for use in subsequent planning cycles
   2. A failed code deployment is rolled back without affecting the running agent loop or existing tools
   3. Agent extends its own database schema (CREATE TABLE or ALTER TABLE) and the new schema is used in subsequent operations
-**Plans**: TBD
+**Plans:** 4 plans
 
 Plans:
-- [ ] 08-01: TBD
-- [ ] 08-02: TBD
-- [ ] 08-03: TBD
+- [ ] 08-01-PLAN.md — DB schema (agent_migrations) + esbuild/simple-git deps + TS compiler + sandbox runner + tool loader
+- [ ] 08-02-PLAN.md — Schema extension tool (transactional DDL, namespace enforcement, migration tracking)
+- [ ] 08-03-PLAN.md — Tool lifecycle tools (tool_write, tool_delete, built-in staging) + barrel exports
+- [ ] 08-04-PLAN.md — Agent process wiring + worker tool sync + shutdown integration
 
 ## Progress
 
@@ -177,4 +178,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 5. Web Dashboard | 2/3 | In Progress|  |
 | 6. Browser, Identity, and Bootstrapping | 4/4 | Complete   | 2026-02-19 |
 | 7. Strategy Engine | 2/2 | Complete    | 2026-02-19 |
-| 8. Self-Extension and Agent Economics | 0/0 | Not started | - |
+| 8. Self-Extension and Agent Economics | 0/4 | Not started | - |
