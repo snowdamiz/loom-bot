@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 Phase: 9 of 9 — ALL COMPLETE
 Plan: All plans complete
 Status: v1.0 MVP shipped 2026-02-19
-Last activity: 2026-02-19 - Completed quick task 1: Ensure app follows login, setup wizard, dashboard with sidebar chat, and seed agent flow
+Last activity: 2026-02-19 - Completed quick task 2: Re-add browser tools (8 tools) to agent startup — agent now has 20 tools
 
 Progress: [█████████████████████████] 100% (v1.0 shipped)
 
@@ -36,9 +36,10 @@ None — v1.0 shipped.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 1 | Ensure app follows login, setup wizard, dashboard with sidebar chat, and seed agent flow | 2026-02-19 | 84f838b | [1-ensure-app-follows-login-setup-wizard-da](./quick/1-ensure-app-follows-login-setup-wizard-da/) |
+| 2 | Re-add browser tools (8 tools) to agent startup — BrowserManager lifecycle managed, 20 tools total | 2026-02-19 | 96ba883 | [2-re-add-browser-tools-to-agent-startup](./quick/2-re-add-browser-tools-to-agent-startup/) |
 
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed quick task 1 — app flow restructure (Login->Setup Wizard->Dashboard)
+Stopped at: Completed quick task 2 — re-added 8 browser tools to agent startup (20 tools total)
 Resume file: Use `/gsd:new-milestone` to start next milestone
