@@ -157,12 +157,40 @@ When `tool_write` runs with `builtinModify=true`, Jarvis uses a repository-backe
 6. Evaluate merge gate requirements before promotion; merge is blocked unless required contexts are green.
 7. Merge with head-SHA guard and clean up the short-lived branch only after successful promotion.
 
+### Phase 12 Isolated Verifier Stages
+
+Before any repository promotion action, builtin modify now runs verification in an isolated git worktree (not the live runtime checkout). Required stages execute in order:
+
+1. `compile` — package compile check for the candidate scope
+2. `targetedTests` — deterministic targeted test surrogate for the candidate scope
+3. `startupSmoke` — `pnpm --filter @jarvis/agent run startup:smoke` for bounded boot wiring validation
+
+Promotion is fail-closed: if any required stage fails, times out, errors, or is missing, Jarvis returns failure and does not call the GitHub promotion pipeline.
+
+### Verification Diagnostics Fields
+
+Builtin modify responses keep existing promotion fields and now include structured verifier fields:
+
+- `verificationSummary`
+- `verificationOverallStatus`
+- `verificationFailedStage`
+- `verificationFailureCategory`
+- `verificationFailureReason`
+- `verificationDiagnostics` (full stage-level diagnostics envelope)
+
+These fields are present on both success and failure paths so operators and autonomous reasoning can classify stage failures without parsing raw logs.
+
 If promotion is blocked, `tool_write` returns structured fields such as `promotionBlocked`, `blockReasons`, and `mergeError` so operators and agent reasoning can diagnose state without guessing.
 
 Common blocked states:
 - Missing status context: required context (for example `jarvis/sandbox`) is absent on candidate SHA.
 - Failed sandbox evidence: sandbox verification reported a failing status.
 - Stale head mismatch: merge head SHA guard rejected promotion because PR head changed after evaluation.
+
+Verifier troubleshooting:
+- Timeout/resource-bound failures: increase stage timeout or reduce command scope; check `verificationDiagnostics.stages[*].resource` and bounded stdout/stderr tails.
+- Startup smoke failures: run `pnpm --filter @jarvis/agent run startup:smoke` locally and inspect smoke-specific errors before retrying builtin modify.
+- Isolated workspace setup failures: check worktree lifecycle diagnostics in `verificationFailureCategory` (`setup`/`infra`) and retry after environment/toolchain remediation.
 
 ## Environment Variables
 
