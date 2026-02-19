@@ -20,6 +20,14 @@ export { assertGitHubTrustForBuiltinModify } from './github-trust-guard.js';
 export {
   resolveTrustedGitHubContext,
 } from './github-trust-guard.js';
+export {
+  evaluatePromotionGate,
+  DEFAULT_PROMOTION_CONTEXTS,
+} from './promotion-gate.js';
+export type {
+  PromotionStatusContext,
+  PromotionGateResult,
+} from './promotion-gate.js';
 export { runGitHubSelfExtensionPipeline } from './github-pipeline.js';
 export type {
   GitHubSelfExtensionPipelineInput,
