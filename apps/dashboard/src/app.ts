@@ -5,11 +5,11 @@ import statusRoute from './routes/status.js';
 import killSwitchRoute from './routes/kill-switch.js';
 import pnlRoute from './routes/pnl.js';
 import activityRoute from './routes/activity.js';
+import sseRoute from './routes/sse.js';
 
 /**
  * DASH-01: Hono app factory with middleware and routes.
  * Applies CORS and auth middleware to /api/* paths.
- * SSE route mounted via index.ts after server setup.
  */
 const app = new Hono();
 
@@ -31,5 +31,6 @@ app.route('/api/status', statusRoute);
 app.route('/api/kill-switch', killSwitchRoute);
 app.route('/api/activity', activityRoute);
 app.route('/api/pnl', pnlRoute);
+app.route('/api/sse', sseRoute);
 
 export default app;
