@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto';
-import { spawn } from 'node:child_process';
 import { mkdirSync, rmSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { runBoundedCommand } from './bounded-command.js';
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_TEMP_ROOT = path.join(os.tmpdir(), 'jarvis-sext-worktrees');
@@ -94,13 +94,6 @@ function sanitizeRunId(value: string): string {
     .slice(0, 96) || randomUUID();
 }
 
-function trimTail(value: string, maxChars = OUTPUT_TAIL_LIMIT): string {
-  if (value.length <= maxChars) {
-    return value;
-  }
-  return value.slice(value.length - maxChars);
-}
-
 async function runGitWorktreeCommand(opts: {
   repoRoot: string;
   command: string[];
@@ -120,85 +113,34 @@ async function runGitWorktreeCommand(opts: {
       return;
     }
 
-    let stdout = '';
-    let stderr = '';
-    let timedOut = false;
-    let settled = false;
-
-    let child: ReturnType<typeof spawn>;
-    try {
-      child = spawn(binary, args, {
-        cwd: opts.repoRoot,
-        env: process.env,
-        shell: false,
+    runBoundedCommand({
+      command: binary,
+      args,
+      cwd: opts.repoRoot,
+      timeoutMs: opts.timeoutMs,
+      maxOutputBytes: OUTPUT_TAIL_LIMIT,
+      env: process.env,
+    })
+      .then((result) => {
+        resolve({
+          ok: result.status === 'pass',
+          exitCode: result.exitCode,
+          signal: result.signal,
+          timedOut: result.timedOut,
+          stdoutTail: result.stdout,
+          stderrTail: result.stderr || result.errorMessage || '',
+        });
+      })
+      .catch((error) => {
+        resolve({
+          ok: false,
+          exitCode: null,
+          signal: null,
+          timedOut: false,
+          stdoutTail: '',
+          stderrTail: error instanceof Error ? error.message : String(error),
+        });
       });
-    } catch (error) {
-      resolve({
-        ok: false,
-        exitCode: null,
-        signal: null,
-        timedOut: false,
-        stdoutTail: '',
-        stderrTail: error instanceof Error ? error.message : String(error),
-      });
-      return;
-    }
-
-    const finish = (result: GitCommandResult) => {
-      if (settled) {
-        return;
-      }
-      settled = true;
-      if (timeoutHandle) {
-        clearTimeout(timeoutHandle);
-      }
-      if (killHandle) {
-        clearTimeout(killHandle);
-      }
-      resolve(result);
-    };
-
-    child.stdout?.on('data', (chunk: Buffer | string) => {
-      stdout += typeof chunk === 'string' ? chunk : chunk.toString('utf8');
-      stdout = trimTail(stdout);
-    });
-
-    child.stderr?.on('data', (chunk: Buffer | string) => {
-      stderr += typeof chunk === 'string' ? chunk : chunk.toString('utf8');
-      stderr = trimTail(stderr);
-    });
-
-    child.on('error', (error) => {
-      finish({
-        ok: false,
-        exitCode: null,
-        signal: null,
-        timedOut,
-        stdoutTail: stdout,
-        stderrTail: trimTail(`${stderr}\n${error.message}`.trim()),
-      });
-    });
-
-    child.on('close', (exitCode, signal) => {
-      finish({
-        ok: exitCode === 0 && !timedOut,
-        exitCode,
-        signal,
-        timedOut,
-        stdoutTail: stdout,
-        stderrTail: stderr,
-      });
-    });
-
-    const timeoutHandle = setTimeout(() => {
-      timedOut = true;
-      child.kill('SIGTERM');
-      killHandle = setTimeout(() => {
-        child.kill('SIGKILL');
-      }, 1_500);
-    }, opts.timeoutMs);
-
-    let killHandle: ReturnType<typeof setTimeout> | null = null;
   });
 }
 
