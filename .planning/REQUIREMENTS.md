@@ -140,7 +140,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **STRAT-04**: Agent evaluates strategy performance against expectations and kills underperformers
 - [x] **STRAT-05**: Agent scales winning strategies by allocating more capital
 - [x] **STRAT-06**: Agent runs multiple strategies in parallel as independent goal trees
-- [ ] **STRAT-07**: Per-strategy P&L is tracked independently with source attribution
+- [x] **STRAT-07**: Per-strategy P&L is tracked independently with source attribution (moved to Phase 8 — agent self-extends schema)
 - [x] **STRAT-08**: Agent dynamically allocates capital across strategies based on performance
 
 ### Self-Extending Codebase
@@ -278,7 +278,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STRAT-04 | Phase 7 | Complete |
 | STRAT-05 | Phase 7 | Complete |
 | STRAT-06 | Phase 7 | Complete |
-| STRAT-07 | Phase 7 | Pending |
+| STRAT-07 | Phase 8 | Pending |
 | STRAT-08 | Phase 7 | Complete |
 | EXTEND-01 | Phase 8 | Pending |
 | EXTEND-02 | Phase 8 | Pending |

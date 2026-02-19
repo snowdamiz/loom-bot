@@ -133,15 +133,15 @@ Plans:
 - [ ] 06-04-PLAN.md — Bootstrap tools (runtime package install, tool discovery) + agent wiring + dashboard identity API
 
 ### Phase 7: Strategy Engine
-**Goal**: The agent discovers revenue opportunities through web research, generates and tests hypotheses with minimal capital, evaluates performance, scales winners, kills losers, and manages a portfolio of parallel strategies with independent P&L tracking
+**Goal**: The agent tracks strategies as first-class entities with lifecycle states, receives portfolio context in every planning cycle, and uses its own LLM reasoning and existing tools to discover opportunities, evaluate performance, and manage a portfolio of parallel strategies
 **Depends on**: Phase 6
-**Requirements**: STRAT-01, STRAT-02, STRAT-03, STRAT-04, STRAT-05, STRAT-06, STRAT-07, STRAT-08
+**Requirements**: STRAT-01, STRAT-02, STRAT-03, STRAT-04, STRAT-05, STRAT-06, STRAT-08
 **Success Criteria** (what must be TRUE):
-  1. Agent performs web research and produces a list of potential money-making opportunities with reasoning for each
-  2. Agent allocates minimal capital to test a new strategy and evaluates its P&L against a predefined success threshold before scaling
-  3. An underperforming strategy is automatically killed (no new capital allocated) based on its tracked P&L falling below threshold
-  4. Multiple strategies run in parallel as independent goal trees, each with its own P&L tracked separately
-  5. Agent dynamically reallocates capital from underperforming strategies to outperforming ones based on comparative performance
+  1. Strategies are persisted as first-class entities with lifecycle states (hypothesis, testing, active, paused, killed, completed) and a 1:1 mapping to goals
+  2. Agent receives a domain-agnostic portfolio context listing active strategies in every sub-goal system prompt
+  3. Multiple strategies can run in parallel as independent goal trees, each managed by the Supervisor
+  4. Operator can seed goals and strategies via the dashboard API
+  5. Strategy lifecycle transitions and metadata updates are available to the agent through StrategyManager — all domain-specific evaluation logic is left to the LLM
 **Plans:** 2/2 plans complete
 
 Plans:
@@ -151,7 +151,7 @@ Plans:
 ### Phase 8: Self-Extension and Agent Economics
 **Goal**: The agent can write its own TypeScript tools, test them safely, register them for use, extend its database schema, and participate in the agent-to-agent economy via x402 micropayments
 **Depends on**: Phase 7
-**Requirements**: EXTEND-01, EXTEND-02, EXTEND-03, EXTEND-04, EXTEND-05, AGENT-01, AGENT-02, AGENT-03, AGENT-04
+**Requirements**: EXTEND-01, EXTEND-02, EXTEND-03, EXTEND-04, EXTEND-05, AGENT-01, AGENT-02, AGENT-03, AGENT-04, STRAT-07
 **Success Criteria** (what must be TRUE):
   1. Agent writes a new TypeScript tool, tests it in a sandbox, and the tool appears in the tool registry available for use in subsequent planning cycles
   2. A failed code deployment is rolled back without affecting the running agent loop or existing tools
@@ -178,5 +178,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 4. Wallet and Financial Governance | 4/4 | Complete | 2026-02-18 |
 | 5. Web Dashboard | 2/3 | In Progress|  |
 | 6. Browser, Identity, and Bootstrapping | 4/4 | Complete   | 2026-02-19 |
-| 7. Strategy Engine | 2/2 | Complete   | 2026-02-19 |
+| 7. Strategy Engine | 2/2 | Complete    | 2026-02-19 |
 | 8. Self-Extension and Agent Economics | 0/0 | Not started | - |
