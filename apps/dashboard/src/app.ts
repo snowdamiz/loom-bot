@@ -7,6 +7,7 @@ import pnlRoute from './routes/pnl.js';
 import activityRoute from './routes/activity.js';
 import sseRoute from './routes/sse.js';
 import identitiesRoute from './routes/identities.js';
+import apiRoute from './routes/api.js';
 
 /**
  * DASH-01: Hono app factory with middleware and routes.
@@ -35,5 +36,7 @@ app.route('/api/pnl', pnlRoute);
 app.route('/api/sse', sseRoute);
 // Phase 6: Identity ledger (IDENT-06 — operator audit of browser identities)
 app.route('/api', identitiesRoute);
+// Phase 7: Strategy engine — goal seeding + strategy listing
+app.route('/api', apiRoute);
 
 export default app;

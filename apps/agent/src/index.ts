@@ -18,6 +18,7 @@ import { Supervisor } from './multi-agent/supervisor.js';
 import { createSpawnAgentTool, createAwaitAgentTool, createCancelAgentTool } from './multi-agent/sub-agent-tool.js';
 import { createAgentWorker } from './multi-agent/agent-worker.js';
 import { detectCrashRecovery, performStartupRecovery } from './recovery/startup-recovery.js';
+import { StrategyManager } from './strategy/strategy-manager.js';
 
 // Suppress unused import warning — AgentLoop is a transitive dependency of Supervisor
 void AgentLoop;
@@ -126,6 +127,10 @@ async function main(): Promise<void> {
   const evaluator = new EvaluatorImpl(router, db);
   const replanner = new ReplannerImpl(goalManager, router, db);
 
+  // Phase 7: StrategyManager wired at startup (domain-agnostic strategy lifecycle)
+  const strategyManager = new StrategyManager(db, goalManager);
+  process.stderr.write('[agent] StrategyManager wired into Supervisor.\n');
+
   // Supervisor manages multiple independent main agent loops (one per active goal)
   const supervisor = new Supervisor(
     db,
@@ -136,6 +141,7 @@ async function main(): Promise<void> {
     evaluator,
     replanner,
     openAITools,
+    strategyManager,
   );
 
   // Create agent-tasks worker (processes sub-agent BullMQ jobs)

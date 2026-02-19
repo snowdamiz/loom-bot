@@ -5,6 +5,8 @@ import type { GoalManager } from '../loop/goal-manager.js';
 import type { Evaluator } from '../loop/evaluator.js';
 import type { Replanner } from '../loop/replanner.js';
 import { AgentLoop } from '../loop/agent-loop.js';
+import type { StrategyManager } from '../strategy/strategy-manager.js';
+import { buildPortfolioContextPrompt } from '../strategy/strategy-prompts.js';
 
 /**
  * Re-use ChatCompletionTool from @jarvis/ai's ToolCompletionRequest.
@@ -61,6 +63,7 @@ export class Supervisor {
     private readonly evaluator: Evaluator,
     private readonly replanner: Replanner,
     private readonly tools: ChatCompletionTool[],
+    private readonly strategyManager?: StrategyManager,
     config?: SupervisorConfig,
   ) {
     this.maxConcurrentMainAgents = config?.maxConcurrentMainAgents ?? 5;
@@ -90,6 +93,16 @@ export class Supervisor {
       return;
     }
 
+    // Build strategy context if this goal has an associated strategy
+    let strategyContext: string | undefined;
+    if (this.strategyManager) {
+      const strategy = await this.strategyManager.getStrategyByGoalId(goalId);
+      if (strategy) {
+        const allStrategies = await this.strategyManager.getStrategies();
+        strategyContext = buildPortfolioContextPrompt(allStrategies);
+      }
+    }
+
     const agentLoop = new AgentLoop(
       this.router,
       this.registry,
@@ -99,6 +112,7 @@ export class Supervisor {
       this.tools,
       this.evaluator,
       this.replanner,
+      { strategyContext },
     );
 
     this.activeLoops.set(goalId, agentLoop);
