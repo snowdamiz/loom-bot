@@ -174,7 +174,7 @@ Plans:
   2. CreditMonitor is stopped cleanly during graceful shutdown
   3. Sub-agent worker LLM prompts include all registered tools (30+), not just Phase 1+3 tools
   4. After tool_write creates a new tool, sub-agent LLM prompts include the new tool on next spawn
-**Plans:** 0/1
+**Plans:** 1 plan
 
 Plans:
 - [ ] 09-01-PLAN.md — Wire CreditMonitor into agent startup/shutdown + move createAgentWorker after all tool registrations
