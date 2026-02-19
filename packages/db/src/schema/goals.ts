@@ -56,3 +56,41 @@ export const subGoals = pgTable('sub_goals', {
 
 export type SubGoal = typeof subGoals.$inferSelect;
 export type NewSubGoal = typeof subGoals.$inferInsert;
+
+/**
+ * STRAT-03, STRAT-06: Strategy lifecycle tracking table.
+ *
+ * A strategy IS a goal with additional metadata — every strategy has a 1:1
+ * reference to a goal row via goalId FK. The strategy engine is domain-agnostic:
+ * no financial columns, no domain-specific columns exist here. All domain data
+ * (capital, platform, approach, metrics, etc.) lives in the `metadata` jsonb column.
+ *
+ * Co-located with goals.ts to avoid cross-file .js imports that break drizzle-kit's
+ * CJS bundler (`.js` extension cannot resolve back to `.ts` at bundle time).
+ *
+ * Lifecycle states:
+ *   'hypothesis' → strategy idea, not yet tested
+ *   'testing'    → agent is actively evaluating the strategy
+ *   'active'     → strategy is proven and being executed
+ *   'paused'     → temporarily halted (e.g. awaiting external event)
+ *   'killed'     → abandoned — did not work or is no longer viable
+ *   'completed'  → goal fully achieved
+ */
+export const strategies = pgTable('strategies', {
+  id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+  /** 1:1 FK to goals.id — a strategy IS a goal with strategy metadata */
+  goalId: integer('goal_id').references(() => goals.id).notNull(),
+  /** LLM-generated description of what this strategy is and why it will work */
+  hypothesis: text('hypothesis').notNull(),
+  /** Lifecycle state of the strategy */
+  status: varchar('status', { length: 32 }).notNull().default('hypothesis'),
+  /** LLM-supplied reasoning for the most recent lifecycle transition */
+  lastTransitionReason: text('last_transition_reason'),
+  /** Free-form strategy-specific context — agent stores domain data here */
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export type Strategy = typeof strategies.$inferSelect;
+export type NewStrategy = typeof strategies.$inferInsert;
