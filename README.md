@@ -58,10 +58,49 @@ browser            (standalone — Playwright lifecycle, stealth, CAPTCHA)
 
 ## Prerequisites
 
+- Docker + Docker Compose
+- OpenRouter API key (optional; can be entered during install or later in dashboard setup)
+- GitHub OAuth App credentials for setup wizard trust binding (`GITHUB_OAUTH_CLIENT_ID`, `GITHUB_OAUTH_CLIENT_SECRET`, `GITHUB_OAUTH_REDIRECT_URI`)
+
+For local development (non-Docker runtime):
 - Node.js >= 22
 - pnpm 9.15.4 (managed via corepack)
-- Docker (for Postgres 16 and Redis 7)
-- OpenRouter API key (for AI model access)
+
+## One-Command Docker Install (Server/VM)
+
+```bash
+curl -fsSL https://getloom.dev/install.sh | bash
+```
+
+What this command does:
+- Downloads the latest Jarvis source bundle to `/opt/jarvis` (root) or `~/jarvis` (non-root)
+- Preserves existing `.env.docker` when reinstalling/upgrading
+- Creates `.env.docker` from `.env.docker.example` (if missing)
+- Generates Docker Postgres credentials (including a unique `POSTGRES_PASSWORD`) when missing
+- Generates Docker Redis credentials (including a unique `REDIS_PASSWORD`) when missing
+- Pre-sets `DATABASE_URL` to the bundled local Docker Postgres using those credentials
+- Pre-sets `REDIS_URL` to the bundled local Docker Redis using those credentials
+- Opens an install setup wizard to configure `DATABASE_URL`, `REDIS_URL`, and `DASHBOARD_PORT` (press Enter to keep defaults)
+- Generates `DASHBOARD_TOKEN` and `CREDENTIAL_ENCRYPTION_KEY` (if missing)
+- Builds the Jarvis image and starts Postgres, Redis, DB schema push, agent, worker, and dashboard
+- Optionally captures `OPENROUTER_API_KEY` during install, or you can provide it in the dashboard setup wizard after first login
+
+For non-interactive installs (CI/provisioning), set `JARVIS_INSTALL_NONINTERACTIVE=1` to skip prompts and use existing/default values.
+
+The script prints the dashboard URL and token after startup.
+
+### Update an existing deployment
+
+```bash
+curl -fsSL https://getloom.dev/update.sh | bash
+```
+
+This runs the same installer in update mode, preserves `.env.docker`, and defaults to non-interactive execution.
+If you want prompts during update, run:
+
+```bash
+curl -fsSL https://getloom.dev/update.sh | JARVIS_INSTALL_NONINTERACTIVE=0 bash
+```
 
 ## Quick Start
 
@@ -76,7 +115,7 @@ pnpm install
 pnpm docker:up    # Postgres 16 on :5433, Redis 7 on :6379
 
 # 3. Configure environment
-cp apps/agent/.env.example apps/agent/.env
+cp .env.example .env
 # Edit .env with your API keys (see Environment Variables below)
 
 # 4. Push database schema
@@ -94,13 +133,32 @@ pnpm --filter @jarvis/dashboard start
 
 On first boot the agent writes the kill switch to Postgres and inserts a paused self-evolution seed goal. The agent will not take any actions until you activate it via the dashboard.
 
+## GitHub Setup Wizard OAuth Configuration
+
+Phase 10 setup now uses a real GitHub OAuth authorization-code exchange (no placeholder connect state).
+
+1. Create a GitHub OAuth App and set the callback URL to your dashboard callback endpoint (for local default: `http://localhost:3001/setup/github/callback`).
+2. Set `GITHUB_OAUTH_CLIENT_ID`, `GITHUB_OAUTH_CLIENT_SECRET`, and `GITHUB_OAUTH_REDIRECT_URI` in your `.env`/`.env.docker`.
+3. Use the dashboard setup wizard to connect GitHub and bind a repository with write/admin permission.
+
+Security notes:
+- OAuth tokens are stored in encrypted credentials storage (same vault model as other secrets).
+- OAuth callback and setup APIs never return plaintext token values.
+
 ## Environment Variables
 
 | Variable | Required | Description | Example |
 |----------|----------|-------------|---------|
 | `DATABASE_URL` | Yes | Postgres connection string | `postgres://jarvis:jarvis@localhost:5433/jarvis` |
-| `REDIS_URL` | Yes | Redis connection string | `redis://localhost:6379` |
-| `OPENROUTER_API_KEY` | No | Fallback — prefer configuring via dashboard setup wizard | `sk-or-...` |
+| `POSTGRES_USER` | Docker deploy | Bundled Docker Postgres username | `jarvis` |
+| `POSTGRES_PASSWORD` | Docker deploy | Bundled Docker Postgres password (installer auto-generates if missing) | `openssl rand -hex 24` |
+| `POSTGRES_DB` | Docker deploy | Bundled Docker Postgres database name | `jarvis` |
+| `REDIS_PASSWORD` | Docker deploy | Bundled Docker Redis password (installer auto-generates if missing) | `openssl rand -hex 24` |
+| `REDIS_URL` | Yes | Redis connection string (Docker install auto-generates authenticated URL) | `redis://localhost:6379` |
+| `OPENROUTER_API_KEY` | No | Optional fallback — preferred path is dashboard setup wizard | `sk-or-...` |
+| `GITHUB_OAUTH_CLIENT_ID` | Setup wizard | GitHub OAuth App client ID used by `/api/setup/github/start` | `Iv1.0123456789abcdef` |
+| `GITHUB_OAUTH_CLIENT_SECRET` | Setup wizard | GitHub OAuth App client secret used for code exchange | `gho_secret_value` |
+| `GITHUB_OAUTH_REDIRECT_URI` | Setup wizard | OAuth callback URL configured on the same GitHub app | `http://localhost:3001/setup/github/callback` |
 | `CREDENTIAL_ENCRYPTION_KEY` | No | AES key for identity credential vault | `openssl rand -hex 32` |
 | `JARVIS_MODEL_STRONG` | No | Strong tier model override | `anthropic/claude-opus-4.6` |
 | `JARVIS_MODEL_MID` | No | Mid tier model override | `anthropic/claude-sonnet-4.5` |
@@ -123,6 +181,8 @@ pnpm db:push      # push schema changes to database
 pnpm db:generate  # generate Drizzle migrations
 pnpm docker:up    # start Postgres + Redis containers
 pnpm docker:down  # stop containers
+pnpm docker:install      # one-command Docker deployment (creates/uses .env.docker)
+pnpm docker:deploy:down  # stop full Docker deployment
 ```
 
 Each package can also be run individually via `pnpm --filter @jarvis/<package> <script>`.
