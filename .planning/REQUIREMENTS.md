@@ -121,16 +121,16 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **BROWSER-02**: Agent can navigate to URLs and interact with page elements programmatically
 - [ ] **BROWSER-03**: Agent can fill forms, click buttons, and extract structured content from pages
 - [ ] **BROWSER-04**: Agent can handle CAPTCHA challenges via external solving service
-- [ ] **BROWSER-05**: Browser sessions are tied to specific identities for session isolation
+- [x] **BROWSER-05**: Browser sessions are tied to specific identities for session isolation
 
 ### Identity Management
 
 - [ ] **IDENT-01**: Agent can create temporary email addresses for service signups
 - [ ] **IDENT-02**: Agent can sign up for services using generated identities
-- [ ] **IDENT-03**: Agent stores all credentials in an encrypted vault (Postgres)
+- [x] **IDENT-03**: Agent stores all credentials in an encrypted vault (Postgres)
 - [ ] **IDENT-04**: Agent manages credential rotation and handles account bans gracefully
 - [ ] **IDENT-05**: Agent can request human operator credentials when real identity is required
-- [ ] **IDENT-06**: Identity ledger tracks all created accounts with service, status, and purpose
+- [x] **IDENT-06**: Identity ledger tracks all created accounts with service, status, and purpose
 
 ### Strategy Engine
 
@@ -261,13 +261,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BROWSER-02 | Phase 6 | Pending |
 | BROWSER-03 | Phase 6 | Pending |
 | BROWSER-04 | Phase 6 | Pending |
-| BROWSER-05 | Phase 6 | Pending |
+| BROWSER-05 | Phase 6 | Complete |
 | IDENT-01 | Phase 6 | Pending |
 | IDENT-02 | Phase 6 | Pending |
-| IDENT-03 | Phase 6 | Pending |
+| IDENT-03 | Phase 6 | Complete |
 | IDENT-04 | Phase 6 | Pending |
 | IDENT-05 | Phase 6 | Pending |
-| IDENT-06 | Phase 6 | Pending |
+| IDENT-06 | Phase 6 | Complete |
 | BOOT-01 | Phase 6 | Pending |
 | BOOT-02 | Phase 6 | Pending |
 | BOOT-03 | Phase 6 | Pending |
