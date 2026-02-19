@@ -3,7 +3,7 @@ import { fork } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { db, pool, agentState, eq } from '@jarvis/db';
 import { createDefaultRegistry, redis, createWalletTools, createBrowserTools, createIdentityTools, createBootstrapTools, createSelfExtensionTools, loadPersistedTools } from '@jarvis/tools';
-import { createRouter, KillSwitchGuard, loadModelConfig, toolDefinitionsToOpenAI } from '@jarvis/ai';
+import { createRouter, KillSwitchGuard, loadModelConfig, toolDefinitionsToOpenAI, CreditMonitor } from '@jarvis/ai';
 import { BrowserManager } from '@jarvis/browser';
 import { SignerClient, subscribeToWallet } from '@jarvis/wallet';
 import { Queue } from 'bullmq';
@@ -68,6 +68,18 @@ async function main(): Promise<void> {
   const killSwitch = new KillSwitchGuard(db);
   const modelConfig = loadModelConfig();
   const router = createRouter(db, process.env.OPENROUTER_API_KEY!);
+
+  // Phase 9: CreditMonitor — polls OpenRouter balance, Discord DM on low credits
+  const creditMonitor = new CreditMonitor(
+    {
+      apiKey: process.env.OPENROUTER_API_KEY!,
+      discordBotToken: process.env.DISCORD_BOT_TOKEN,
+      discordOperatorUserId: process.env.DISCORD_OPERATOR_USER_ID,
+    },
+    db,
+  );
+  creditMonitor.start();
+  process.stderr.write('[agent] CreditMonitor started (polling every 5 minutes).\n');
 
   // Log model config to stderr for verification
   process.stderr.write(
@@ -347,6 +359,7 @@ async function main(): Promise<void> {
     walletSubscription,
     browserManager: browserManager as ShutdownBrowserManager,
     reloadToolsQueue,
+    creditMonitor,
   });
 
   // Run startup recovery if needed (RECOV-02: resume from last journal checkpoint)

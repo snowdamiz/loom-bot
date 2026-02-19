@@ -79,6 +79,8 @@ export interface ShutdownResources {
   browserManager?: ShutdownBrowserManager;
   /** Phase 8: BullMQ queue for reload-tools dispatch */
   reloadToolsQueue?: { close(): Promise<void> };
+  /** Phase 9: CreditMonitor (OpenRouter balance polling interval) */
+  creditMonitor?: { stop(): void };
 }
 
 export function registerShutdownHandlers(resources: ShutdownResources): void {
@@ -94,6 +96,7 @@ export function registerShutdownHandlers(resources: ShutdownResources): void {
     walletSubscription,
     browserManager,
     reloadToolsQueue,
+    creditMonitor,
   } = resources;
 
   async function gracefulShutdown(signal: string): Promise<void> {
@@ -113,6 +116,12 @@ export function registerShutdownHandlers(resources: ShutdownResources): void {
       if (consolidation !== undefined) {
         clearInterval(consolidation);
         process.stderr.write('[shutdown] Memory consolidation stopped.\n');
+      }
+
+      // 1.5. Stop CreditMonitor polling interval (Phase 9 — prevents event loop hang)
+      if (creditMonitor !== undefined) {
+        creditMonitor.stop();
+        process.stderr.write('[shutdown] CreditMonitor stopped.\n');
       }
 
       // 2. Stop wallet subscription (inbound monitoring) before stopping supervisor
