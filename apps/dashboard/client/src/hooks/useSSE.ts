@@ -1,0 +1,68 @@
+import { useEffect } from 'react';
+import { fetchEventSource } from '@microsoft/fetch-event-source';
+
+export interface AgentStatus {
+  isHalted: boolean;
+  haltReason: string | null;
+  activatedAt: string | null;
+  systemStatus: string;
+  activeGoals: Array<{ id: number; description: string; priority: string }>;
+  uptime: number | null;
+}
+
+export interface ActivityEntry {
+  id: number;
+  type: string;
+  summary: string;
+  detail: unknown;
+  createdAt: string;
+}
+
+interface UseSSEOptions {
+  token: string;
+  onStatus: (status: AgentStatus) => void;
+  onActivity: (activity: ActivityEntry) => void;
+}
+
+/**
+ * SSE hook using @microsoft/fetch-event-source for auth header support.
+ * Native EventSource cannot send Authorization headers.
+ */
+export function useSSE({ token, onStatus, onActivity }: UseSSEOptions): void {
+  useEffect(() => {
+    const controller = new AbortController();
+
+    fetchEventSource('/api/sse', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      signal: controller.signal,
+      onmessage(ev) {
+        if (!ev.data || ev.event === 'heartbeat') return;
+        try {
+          const data: unknown = JSON.parse(ev.data);
+          if (ev.event === 'status') {
+            onStatus(data as AgentStatus);
+          } else if (ev.event === 'activity') {
+            onActivity(data as ActivityEntry);
+          }
+        } catch {
+          // Ignore malformed messages
+        }
+      },
+      onerror(err) {
+        // On 401, stop reconnecting
+        if (err instanceof Error && err.message.includes('401')) {
+          throw err;
+        }
+        // For other errors, let fetchEventSource handle automatic reconnect
+      },
+    }).catch(() => {
+      // Swallow error on abort or token clear
+    });
+
+    return () => {
+      controller.abort();
+    };
+  }, [token, onStatus, onActivity]);
+}
