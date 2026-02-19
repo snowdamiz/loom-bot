@@ -22,7 +22,7 @@ This milestone only covers hardening self-extension. Existing v1.0 capabilities 
 - [x] **SEXT-05**: Every core self-modification must occur on a dedicated branch derived from the repository default branch.
 - [x] **SEXT-06**: Each proposed change must produce a commit that includes machine-readable metadata (goal id, agent cycle id, tool name).
 - [x] **SEXT-07**: The system must open/update a pull request for candidate changes and attach sandbox test evidence before merge.
-- [ ] **SEXT-08**: Merge/promotion must require successful sandbox and regression checks; failed checks must prevent merge.
+- [x] **SEXT-08**: Merge/promotion must require successful sandbox and regression checks; failed checks must prevent merge.
 
 ### Sandbox Verification Gates
 

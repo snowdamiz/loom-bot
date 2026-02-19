@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 ## Current Position
 
 Phase: 11-version-controlled-self-modification-pipeline
-Plan: In Progress (11-02 complete, 11-03 next)
-Status: Phase 11 execution in progress; GitHub branch/commit/PR pipeline with sandbox status evidence is live
-Last activity: 2026-02-19 - Completed 11-02 repository-backed self-modification pipeline integration
+Plan: Complete (11-03 complete; phase verification pending)
+Status: Phase 11 implementation complete; ready for phase-level verification and transition
+Last activity: 2026-02-19 - Completed 11-03 promotion gate and status-based merge blocking
 
-Progress: [█████████████████░░░░░░░░] 67% (phase 11 execution)
+Progress: [█████████████████████████] 100% (phase 11 execution)
 
 ## Accumulated Context
 
@@ -34,11 +34,14 @@ All v1.0 decisions reviewed and outcomes recorded at milestone completion.
 - [Phase 11]: Trusted GitHub context resolution now includes decrypted OAuth token retrieval in tools package. — Self-extension pipeline must call GitHub APIs with fail-closed credentials sourced from validated setup trust state.
 - [Phase 11]: Builtin modify flow now runs compile+sandbox checks before repository promotion operations. — Preserves safety ordering while still publishing candidate branch/PR/status evidence for auditability.
 - [Phase 11]: Pull requests are upserted by deterministic branch identity instead of created per attempt. — Avoids PR spam and keeps retries attached to one auditable candidate lifecycle.
+- [Phase 11]: Promotion gate defaults to required context jarvis/sandbox and blocks merge on missing/pending/failing states. — SEXT-08 requires fail-closed promotion behavior tied to repository status truth.
+- [Phase 11]: Promotion merge uses expected head SHA guard and only cleans branch after successful merge. — Prevents stale-head merges and ensures short-lived branch artifacts are cleaned up only when promotion is truly complete.
+- [Phase 11]: Builtin modify payload now exposes promotionBlocked, blockReasons, and mergeError diagnostics. — Operators and autonomous planning need deterministic machine-readable failure reasons to recover safely.
 
 ### Pending Todos
 
-- Execute 11-03 promotion gate and merge-blocking guardrails.
-- Run Phase 11 verification after plans 02/03 complete.
+- Run Phase 11 verification and close out phase execution.
+- Transition into Phase 12 isolated sandbox verification planning/execution.
 
 ### Blockers/Concerns
 
@@ -58,9 +61,10 @@ All v1.0 decisions reviewed and outcomes recorded at milestone completion.
 |---|---|---|---|---|
 | 11 | 01 | 4 min | 3 | 8 |
 | 11 | 02 | 3 min | 3 | 5 |
+| 11 | 03 | 2 min | 3 | 6 |
 
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 11-02-PLAN.md
+Stopped at: Completed 11-03-PLAN.md
 Resume file: None
