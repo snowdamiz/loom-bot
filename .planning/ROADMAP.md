@@ -85,7 +85,12 @@ Success Criteria (what must be TRUE):
   2. Compile + targeted tests + startup smoke checks run before promotion.
   3. Time/resource bounds enforce safe failure behavior.
   4. Failures emit structured diagnostics for operator and agent reasoning.
-Plans: 0/0 planned
+Plans: 3 plans
+
+Plans:
+- [ ] 12-01-PLAN.md — Isolated worktree lifecycle + bounded command + diagnostics primitives
+- [ ] 12-02-PLAN.md — Isolated verifier orchestration and staging integration for required verification stages
+- [ ] 12-03-PLAN.md — Startup smoke mode + structured diagnostic surfacing in builtin modify responses
 
 ### Phase 13: Promotion Guardrails, Rollback, and Visibility
 Goal: Make failed promotions recoverable and make self-extension state observable.
@@ -121,7 +126,7 @@ Plans: 0/0 planned
 |-------|-----------|----------------|--------|-----------|
 | 10. GitHub Identity and Repo Trust | v1.1 | Complete    | 2026-02-19 | — |
 | 11. Version-Controlled Self-Modification Pipeline | v1.1 | Complete    | 2026-02-19 | — |
-| 12. Isolated Sandbox Verification | v1.1 | 0/0 | Planned | — |
+| 12. Isolated Sandbox Verification | v1.1 | 0/3 | Planned | — |
 | 13. Promotion Guardrails, Rollback, and Visibility | v1.1 | 0/0 | Planned | — |
 | 1-9. v1.0 phases | v1.0 | 31/31 | Complete | 2026-02-19 |
 
