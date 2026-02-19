@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { Worker, UnrecoverableError } from 'bullmq';
 import { db } from '@jarvis/db';
-import { createDefaultRegistry, invokeWithKillCheck } from '@jarvis/tools';
+import { createDefaultRegistry, invokeWithKillCheck, loadPersistedTools } from '@jarvis/tools';
 import { KillSwitchGuard } from '@jarvis/ai';
 import { isTransientError } from './queue/retry-config.js';
 
@@ -37,6 +37,28 @@ import { isTransientError } from './queue/retry-config.js';
 
 const registry = createDefaultRegistry(db);
 const killSwitch = new KillSwitchGuard(db);
+
+// Load agent-authored tools persisted from previous runs (Phase 8).
+// Non-blocking: worker can start accepting jobs immediately while tools load in parallel.
+// This ensures agent-created tools survive process restarts.
+loadPersistedTools(registry)
+  .then((result) => {
+    if (result.loaded.length > 0) {
+      process.stderr.write(
+        `[worker] Loaded ${result.loaded.length} persisted tool(s): ${result.loaded.join(', ')}\n`,
+      );
+    }
+    if (result.failed.length > 0) {
+      process.stderr.write(
+        `[worker] Failed to load ${result.failed.length} persisted tool(s): ${result.failed.join(', ')}\n`,
+      );
+    }
+  })
+  .catch((err) => {
+    process.stderr.write(
+      `[worker] Error loading persisted tools: ${err instanceof Error ? err.message : String(err)}\n`,
+    );
+  });
 
 const worker = new Worker(
   'tool-execution',
@@ -87,4 +109,30 @@ worker.on('error', (err) => {
   process.stderr.write(`[worker] Worker error: ${err.message}\n`);
 });
 
-process.stderr.write('[worker] Worker started, listening for tool-execution jobs\n');
+// Phase 8: Worker that reloads agent-authored tools from disk when notified.
+// The agent loop enqueues a 'reload-tools' job after tool_write or tool_delete succeeds.
+// This ensures the tool-execution worker's registry stays in sync with the agent loop.
+const reloadWorker = new Worker(
+  'reload-tools',
+  async () => {
+    const result = await loadPersistedTools(registry);
+    process.stderr.write(
+      `[worker] Reloaded tools: ${result.loaded.length} loaded, ${result.failed.length} failed\n`,
+    );
+    return result;
+  },
+  {
+    connection: {
+      url: process.env.REDIS_URL!,
+    },
+    concurrency: 1,
+    // Short TTL — reload jobs are transient notifications, not long-term records
+    removeOnComplete: { age: 60 },
+  },
+);
+
+reloadWorker.on('error', (err) => {
+  process.stderr.write(`[worker] Reload worker error: ${err.message}\n`);
+});
+
+process.stderr.write('[worker] Worker started, listening for tool-execution and reload-tools jobs\n');
