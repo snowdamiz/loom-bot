@@ -82,6 +82,23 @@ export type {
   PromotionStatusContext,
   PromotionGateResult,
 } from './promotion-gate.js';
+export {
+  getPromotionControlState,
+  setPromotionControlState,
+  PROMOTION_CONTROL_STATE_KEY,
+} from './promotion-control.js';
+export type {
+  PromotionControlState,
+} from './promotion-control.js';
+export {
+  appendSelfExtensionEvent,
+  SELF_EXTENSION_EVENT_TYPES,
+} from './lifecycle-events.js';
+export type {
+  SelfExtensionLifecycleEventType,
+  AppendSelfExtensionEventInput,
+  SelfExtensionEventWriteResult,
+} from './lifecycle-events.js';
 export { runGitHubSelfExtensionPipeline } from './github-pipeline.js';
 export type {
   GitHubSelfExtensionPipelineInput,
