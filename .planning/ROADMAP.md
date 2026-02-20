@@ -90,7 +90,7 @@ Plans: 3 plans
 Plans:
 - [x] 12-01-PLAN.md — Isolated worktree lifecycle + bounded command + diagnostics primitives (completed 2026-02-19)
 - [x] 12-02-PLAN.md — Isolated verifier orchestration and staging integration for required verification stages (completed 2026-02-19)
-- [ ] 12-03-PLAN.md — Startup smoke mode + structured diagnostic surfacing in builtin modify responses
+- [x] 12-03-PLAN.md — Startup smoke mode + structured diagnostic surfacing in builtin modify responses (completed 2026-02-20)
 
 ### Phase 13: Promotion Guardrails, Rollback, and Visibility
 Goal: Make failed promotions recoverable and make self-extension state observable.
@@ -126,7 +126,7 @@ Plans: 0/0 planned
 |-------|-----------|----------------|--------|-----------|
 | 10. GitHub Identity and Repo Trust | v1.1 | Complete    | 2026-02-19 | — |
 | 11. Version-Controlled Self-Modification Pipeline | v1.1 | Complete    | 2026-02-19 | — |
-| 12. Isolated Sandbox Verification | v1.1 | 2/3 | In Progress | — |
+| 12. Isolated Sandbox Verification | v1.1 | 3/3 | In Progress | — |
 | 13. Promotion Guardrails, Rollback, and Visibility | v1.1 | 0/0 | Planned | — |
 | 1-9. v1.0 phases | v1.0 | 31/31 | Complete | 2026-02-19 |
 

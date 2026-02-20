@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 ## Current Position
 
 Phase: 12-isolated-sandbox-verification
-Plan: 02 completed (next: 03)
-Status: Completed Phase 12 Plan 02 isolated verifier orchestration; ready to execute Plan 03 startup smoke/diagnostics surfacing
-Last activity: 2026-02-19 - Completed 12-02 implementation, summary, and requirements tracking
+Plan: 03 completed
+Status: Completed all Phase 12 plans; ready for phase-level verification and completion
+Last activity: 2026-02-20 - Completed 12-03 startup smoke + diagnostics surfacing implementation and summary updates
 
-Progress: [████████████████░░░░░░░░] 67% (phase 12 execution)
+Progress: [████████████████████████] 100% (phase 12 execution)
 
 ## Accumulated Context
 
@@ -43,10 +43,14 @@ All v1.0 decisions reviewed and outcomes recorded at milestone completion.
 - [Phase 12]: Verification policy now emits fixed required stages compile, targetedTests, and startupSmoke for every builtin candidate run. — SEXT-11 requires deterministic required-stage enforcement; unknown paths must fail closed instead of skipping checks.
 - [Phase 12]: Isolated verifier hydrates required node_modules links into ephemeral worktrees before executing policy stages. — Ensures isolated stage commands can execute toolchain binaries without mutating the live checkout and prevents false failures from missing dependencies.
 - [Phase 12]: stageBuiltinChange now returns before pipeline invocation whenever isolated verifier does not pass. — Promotion safety requires fail-closed behavior so repository branch/PR operations never run on unverified candidates.
+- [Phase 12]: Agent startup smoke mode now validates core boot wiring and exits deterministically with explicit resource teardown. — SEXT-11 requires bounded startup checks that do not enter long-running supervisor behavior.
+- [Phase 12]: Isolated verifier startup stage now executes @jarvis/agent startup:smoke and captures startup-specific stage diagnostics. — Startup smoke must be a required verification stage with actionable diagnostics for SEXT-11 and SEXT-12.
+- [Phase 12]: Builtin modify responses now expose verificationOverallStatus, verificationFailedStage, verificationFailureCategory, and verificationDiagnostics. — Operators and autonomous reasoning need machine-readable failure context without parsing raw logs.
 
 ### Pending Todos
 
-- Execute Phase 12 Plan 03 (startup smoke mode + structured diagnostic surfacing).
+- Run Phase 12 verification workflow and record final must-have audit.
+- Complete Phase 12 phase-level transition updates after verification pass.
 
 ### Blockers/Concerns
 
@@ -69,9 +73,10 @@ All v1.0 decisions reviewed and outcomes recorded at milestone completion.
 | 11 | 03 | 2 min | 3 | 6 |
 | 12 | 01 | 3 min | 3 | 4 |
 | 12 | 02 | 4 min | 3 | 4 |
+| 12 | 03 | 9 min | 3 | 6 |
 
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 12-02-PLAN.md
-Resume file: .planning/phases/12-isolated-sandbox-verification/12-02-SUMMARY.md
+Stopped at: Completed 12-03-PLAN.md
+Resume file: .planning/phases/12-isolated-sandbox-verification/12-03-SUMMARY.md
