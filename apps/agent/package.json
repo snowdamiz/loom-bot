@@ -7,7 +7,7 @@
     "build": "tsc",
     "dev": "tsx --watch src/index.ts",
     "start": "node dist/index.js",
-    "startup:smoke": "node dist/index.js --startup-smoke",
+    "startup:smoke": "tsx src/index.ts --startup-smoke",
     "worker": "tsx src/worker.ts",
     "worker:start": "node dist/worker.js"
   },
