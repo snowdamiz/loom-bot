@@ -10,6 +10,7 @@ import { useSSE } from './hooks/useSSE.js';
 import { getToken } from './lib/api.js';
 import type { AgentStatus } from './hooks/useSSE.js';
 import type { ActivityItem } from './hooks/useActivityFeed.js';
+import type { SelfExtensionStatus } from './hooks/useSelfExtensionStatus.js';
 
 const queryClient = new QueryClient();
 
@@ -44,11 +45,24 @@ function Dashboard() {
     [],
   );
 
+  const handleSelfExtension = useCallback(
+    (status: SelfExtensionStatus) => {
+      queryClient.setQueryData(['self-extension-status'], status);
+    },
+    [],
+  );
+
   const handleReconnect = useCallback(() => {
     setLiveEntries([]);
   }, []);
 
-  useSSE({ token, onStatus: handleStatus, onActivity: handleActivity, onReconnect: handleReconnect });
+  useSSE({
+    token,
+    onStatus: handleStatus,
+    onActivity: handleActivity,
+    onSelfExtension: handleSelfExtension,
+    onReconnect: handleReconnect,
+  });
 
   if (setupLoading) {
     return (
@@ -73,6 +87,9 @@ function Dashboard() {
   return (
     <DashboardLayout>
       <div className="dashboard">
+        <div className="dashboard-header">
+          <img src="/logo-primary.svg" alt="Loom" className="dashboard-logo" />
+        </div>
         <div className="tab-bar">
           <button
             className={`tab-btn ${tab === 'overview' ? 'active' : ''}`}
