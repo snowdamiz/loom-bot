@@ -101,7 +101,12 @@ Success Criteria (what must be TRUE):
   2. Every lifecycle stage emits append-only audit events.
   3. Dashboard/API exposes pipeline health and last PR/test result.
   4. Operator can pause self-extension promotion without halting all agent activity.
-Plans: 0/0 planned
+Plans: 3 plans
+
+Plans:
+- [ ] 13-01-PLAN.md — Append-only self-extension lifecycle events and independent promotion pause guard foundation
+- [ ] 13-02-PLAN.md — Known-good baseline lifecycle and automated rollback orchestration from post-promotion health signals
+- [ ] 13-03-PLAN.md — Dashboard/API/SSE self-extension status visibility plus operator promotion pause controls
 
 ## Previous Milestone Archive
 
