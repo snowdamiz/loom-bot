@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 ## Current Position
 
 Phase: 13-promotion-guardrails-rollback-and-visibility
-Plan: 01 completed
-Status: Completed Phase 13 Plan 01; ready for Plan 02 execution
-Last activity: 2026-02-20 - Completed 13-01 append-only lifecycle events + independent promotion pause guard integration
+Plan: 02 completed
+Status: Completed Phase 13 Plan 02; ready for Plan 03 execution
+Last activity: 2026-02-20 - Completed 13-02 known-good baseline lifecycle + automated rollback orchestration
 
-Progress: [████████░░░░░░░░░░░░░░░░] 33% (phase 13 execution)
+Progress: [████████████████░░░░░░░░] 67% (phase 13 execution)
 
 ## Accumulated Context
 
@@ -49,11 +49,14 @@ All v1.0 decisions reviewed and outcomes recorded at milestone completion.
 - [Phase 13]: Lifecycle audit events now flow through a typed append helper that records run/stage/context metadata in self_extension_events. — SEXT-14 requires durable append-only lifecycle truth that remains machine-readable for operators and downstream automation.
 - [Phase 13]: Promotion pause state is persisted under self_extension:promotion_control and evaluated independently from kill_switch. — SEXT-16 requires an operator promotion guard that does not halt the broader agent runtime.
 - [Phase 13]: Builtin promotion checks pause state both before GitHub mutations and immediately before merge. — A double guard closes pause-race windows and keeps promotion fail-closed even when an operator toggles pause during an in-flight run.
+- [Phase 13]: Promotion now writes promoted_pending_health state and blocks new promotions while pending-health or rollback-failed states remain unresolved. — Keeps promotion fail-closed until runtime health is confirmed or rollback state is cleared.
+- [Phase 13]: Supervisor loop heartbeats are persisted under system:loop_health and used by health-window evaluation logic. — Provides deterministic health signals across process restarts for SEXT-13 rollback triggering.
+- [Phase 13]: Automated rollback runs through deterministic GitHub rollback branch/PR/merge flow with cooldown/idempotency guards. — Prevents duplicate rollback thrash while restoring known-good baselines.
 
 ### Pending Todos
 
-- Execute Phase 13 Plan 02 for known-good baseline lifecycle and automated rollback orchestration.
 - Execute Phase 13 Plan 03 for dashboard/API/SSE self-extension visibility and promotion pause controls.
+- Run Phase 13 verification workflow once Plan 03 is complete.
 
 ### Blockers/Concerns
 
@@ -78,9 +81,10 @@ All v1.0 decisions reviewed and outcomes recorded at milestone completion.
 | 12 | 02 | 4 min | 3 | 4 |
 | 12 | 03 | 9 min | 3 | 6 |
 | 13 | 01 | 3 min | 3 | 8 |
+| 13 | 02 | 6 min | 3 | 10 |
 
 ## Session Continuity
 
 Last session: 2026-02-20
 Stopped at: Completed 13-01-PLAN.md
-Resume file: .planning/phases/13-promotion-guardrails-rollback-and-visibility/13-01-SUMMARY.md
+Resume file: .planning/phases/13-promotion-guardrails-rollback-and-visibility/13-02-SUMMARY.md
