@@ -35,7 +35,7 @@ This milestone only covers hardening self-extension. Existing v1.0 capabilities 
 
 - [x] **SEXT-13**: The system must keep a known-good reference and provide automated rollback when promoted changes degrade agent startup or loop health.
 - [x] **SEXT-14**: Every self-modification lifecycle stage must write append-only audit events (proposed, tested, promoted, rolled back, failed).
-- [ ] **SEXT-15**: Dashboard/API must expose self-extension pipeline state and latest PR/test outcome.
+- [x] **SEXT-15**: Dashboard/API must expose self-extension pipeline state and latest PR/test outcome.
 - [x] **SEXT-16**: Operator must be able to pause self-extension promotion independently from global kill switch.
 
 ## Out of Scope (v1.1)

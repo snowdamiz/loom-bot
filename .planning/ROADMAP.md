@@ -106,7 +106,7 @@ Plans: 3 plans
 Plans:
 - [x] 13-01-PLAN.md — Append-only self-extension lifecycle events and independent promotion pause guard foundation (completed 2026-02-20)
 - [x] 13-02-PLAN.md — Known-good baseline lifecycle and automated rollback orchestration from post-promotion health signals (completed 2026-02-20)
-- [ ] 13-03-PLAN.md — Dashboard/API/SSE self-extension status visibility plus operator promotion pause controls
+- [x] 13-03-PLAN.md — Dashboard/API/SSE self-extension status visibility plus operator promotion pause controls (completed 2026-02-20)
 
 ## Previous Milestone Archive
 
@@ -132,7 +132,7 @@ Plans:
 | 10. GitHub Identity and Repo Trust | v1.1 | Complete    | 2026-02-19 | — |
 | 11. Version-Controlled Self-Modification Pipeline | v1.1 | Complete    | 2026-02-19 | — |
 | 12. Isolated Sandbox Verification | v1.1 | 3/3 | In Progress | — |
-| 13. Promotion Guardrails, Rollback, and Visibility | v1.1 | 2/3 | In Progress | — |
+| 13. Promotion Guardrails, Rollback, and Visibility | v1.1 | 3/3 | In Progress | — |
 | 1-9. v1.0 phases | v1.0 | 31/31 | Complete | 2026-02-19 |
 
 ---

@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 ## Current Position
 
 Phase: 13-promotion-guardrails-rollback-and-visibility
-Plan: 02 completed
-Status: Completed Phase 13 Plan 02; ready for Plan 03 execution
-Last activity: 2026-02-20 - Completed 13-02 known-good baseline lifecycle + automated rollback orchestration
+Plan: 03 completed
+Status: Completed all Phase 13 plans; ready for phase-level verification and completion
+Last activity: 2026-02-20 - Completed 13-03 dashboard/API/SSE visibility + promotion pause controls
 
-Progress: [████████████████░░░░░░░░] 67% (phase 13 execution)
+Progress: [████████████████████████] 100% (phase 13 execution)
 
 ## Accumulated Context
 
@@ -52,11 +52,14 @@ All v1.0 decisions reviewed and outcomes recorded at milestone completion.
 - [Phase 13]: Promotion now writes promoted_pending_health state and blocks new promotions while pending-health or rollback-failed states remain unresolved. — Keeps promotion fail-closed until runtime health is confirmed or rollback state is cleared.
 - [Phase 13]: Supervisor loop heartbeats are persisted under system:loop_health and used by health-window evaluation logic. — Provides deterministic health signals across process restarts for SEXT-13 rollback triggering.
 - [Phase 13]: Automated rollback runs through deterministic GitHub rollback branch/PR/merge flow with cooldown/idempotency guards. — Prevents duplicate rollback thrash while restoring known-good baselines.
+- [Phase 13]: Dashboard now exposes a dedicated /api/self-extension snapshot contract for pipeline, baseline, rollback, and promotion pause state. — Gives operators and autonomous logic a stable machine-readable source for self-extension health.
+- [Phase 13]: Promotion pause/resume controls append promotion_pause_changed audit events before broadcasting SSE updates. — Maintains append-only lifecycle traceability for operator control actions.
+- [Phase 13]: Overview UI includes a SelfExtensionCard with explicit pause/resume flow and non-silent API error handling. — SEXT-15/16 require operator-visible pipeline control independent from kill switch.
 
 ### Pending Todos
 
-- Execute Phase 13 Plan 03 for dashboard/API/SSE self-extension visibility and promotion pause controls.
-- Run Phase 13 verification workflow once Plan 03 is complete.
+- Run Phase 13 verification workflow and capture must-have audit.
+- Complete Phase 13 phase-level transition updates after verification pass.
 
 ### Blockers/Concerns
 
@@ -82,9 +85,10 @@ All v1.0 decisions reviewed and outcomes recorded at milestone completion.
 | 12 | 03 | 9 min | 3 | 6 |
 | 13 | 01 | 3 min | 3 | 8 |
 | 13 | 02 | 6 min | 3 | 10 |
+| 13 | 03 | 3 min | 3 | 12 |
 
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed 13-01-PLAN.md
-Resume file: .planning/phases/13-promotion-guardrails-rollback-and-visibility/13-02-SUMMARY.md
+Stopped at: Completed 13-03-PLAN.md
+Resume file: .planning/phases/13-promotion-guardrails-rollback-and-visibility/13-03-SUMMARY.md
