@@ -24,7 +24,7 @@ Success criteria:
 3. PR is created/updated with sandbox evidence and status.
 4. Promotion path blocks merge when checks fail.
 
-- [ ] **Phase 12: Isolated Sandbox Verification**
+- [x] **Phase 12: Isolated Sandbox Verification** (completed 2026-02-20)
 Goal: Test candidate changes in isolation with bounded runtime and actionable diagnostics.
 Requirements: SEXT-09, SEXT-10, SEXT-11, SEXT-12
 Success criteria:
@@ -33,7 +33,7 @@ Success criteria:
 3. Time/resource bounds enforce safe failure behavior.
 4. Failures emit structured diagnostics for operator and agent reasoning.
 
-- [ ] **Phase 13: Promotion Guardrails, Rollback, and Visibility**
+- [x] **Phase 13: Promotion Guardrails, Rollback, and Visibility** (completed 2026-02-20)
 Goal: Make failed promotions recoverable and make self-extension state observable.
 Requirements: SEXT-13, SEXT-14, SEXT-15, SEXT-16
 Success criteria:
@@ -131,8 +131,8 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 10. GitHub Identity and Repo Trust | v1.1 | Complete    | 2026-02-19 | — |
 | 11. Version-Controlled Self-Modification Pipeline | v1.1 | Complete    | 2026-02-19 | — |
-| 12. Isolated Sandbox Verification | v1.1 | 3/3 | In Progress | — |
-| 13. Promotion Guardrails, Rollback, and Visibility | v1.1 | 3/3 | In Progress | — |
+| 12. Isolated Sandbox Verification | v1.1 | Complete    | 2026-02-20 | — |
+| 13. Promotion Guardrails, Rollback, and Visibility | v1.1 | Complete    | 2026-02-20 | — |
 | 1-9. v1.0 phases | v1.0 | 31/31 | Complete | 2026-02-19 |
 
 ---
