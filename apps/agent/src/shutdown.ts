@@ -53,6 +53,10 @@ export interface ShutdownResources {
   redis: ShutdownRedis;
   worker?: Worker;
   consolidation?: ReturnType<typeof setInterval>;
+  /** Operator chat relay interval (dashboard chat -> live agent loop) */
+  chatRelay?: ReturnType<typeof setInterval>;
+  /** Phase 13: Self-extension health monitor interval */
+  selfExtensionHealthMonitor?: ReturnType<typeof setInterval>;
   /** Phase 3: Supervisor managing main agent loops */
   supervisor?: ShutdownSupervisor;
   /** Phase 3: BullMQ worker processing sub-agent jobs */
@@ -73,6 +77,8 @@ export function registerShutdownHandlers(resources: ShutdownResources): void {
     redis,
     worker,
     consolidation,
+    chatRelay,
+    selfExtensionHealthMonitor,
     supervisor,
     agentWorker,
     agentTasksQueue,
@@ -98,6 +104,17 @@ export function registerShutdownHandlers(resources: ShutdownResources): void {
       if (consolidation !== undefined) {
         clearInterval(consolidation);
         process.stderr.write('[shutdown] Memory consolidation stopped.\n');
+      }
+
+      // 1.25. Stop operator chat relay interval
+      if (chatRelay !== undefined) {
+        clearInterval(chatRelay);
+        process.stderr.write('[shutdown] Operator chat relay stopped.\n');
+      }
+
+      if (selfExtensionHealthMonitor !== undefined) {
+        clearInterval(selfExtensionHealthMonitor);
+        process.stderr.write('[shutdown] Self-extension health monitor stopped.\n');
       }
 
       // 1.5. Stop CreditMonitor polling interval (Phase 9 — prevents event loop hang)

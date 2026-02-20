@@ -14,6 +14,7 @@ import { Supervisor } from './multi-agent/supervisor.js';
 import { createSpawnAgentTool, createAwaitAgentTool, createCancelAgentTool } from './multi-agent/sub-agent-tool.js';
 import { createAgentWorker } from './multi-agent/agent-worker.js';
 import { detectCrashRecovery, performStartupRecovery } from './recovery/startup-recovery.js';
+import { startSelfExtensionHealthMonitor } from './recovery/self-extension-health.js';
 import { StrategyManager } from './strategy/strategy-manager.js';
 import { startOperatorChatRelay } from './chat/operator-chat-relay.js';
 
@@ -397,6 +398,9 @@ async function main(): Promise<void> {
     killSwitch,
   });
 
+  const selfExtensionHealthMonitor = startSelfExtensionHealthMonitor({ db });
+  process.stderr.write('[agent] Self-extension health monitor started.\n');
+
   // Register graceful shutdown handlers
   registerShutdownHandlers({
     pool,
@@ -409,6 +413,7 @@ async function main(): Promise<void> {
     reloadToolsQueue,
     creditMonitor,
     browserManager,
+    selfExtensionHealthMonitor,
   });
 
   // Run startup recovery if needed (RECOV-02: resume from last journal checkpoint)

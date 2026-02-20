@@ -1,4 +1,5 @@
 import type { ModelRouter, ToolCompletionRequest } from '@jarvis/ai';
+import { agentState, eq } from '@jarvis/db';
 import type { DbClient } from '@jarvis/db';
 import type { ToolRegistry } from '@jarvis/tools';
 import type { GoalManager } from '../loop/goal-manager.js';
@@ -197,9 +198,26 @@ export class Supervisor {
             await this.stopMainAgent(runningGoalId);
           }
         }
+
+        await this.recordLoopHealth({
+          status: 'ok',
+          activeGoalCount: activeGoals.length,
+        });
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         process.stderr.write(`[supervisor] Supervisor loop error: ${message}\n`);
+
+        try {
+          await this.recordLoopHealth({
+            status: 'error',
+            activeGoalCount: this.activeLoops.size,
+            error: message,
+          });
+        } catch (healthErr) {
+          process.stderr.write(
+            `[supervisor] Failed to persist loop health: ${healthErr instanceof Error ? healthErr.message : String(healthErr)}\n`,
+          );
+        }
       }
     };
 
@@ -246,6 +264,41 @@ export class Supervisor {
     process.stderr.write(
       `[supervisor] Staggered restart complete: ${activeGoals.length} goals resumed.\n`,
     );
+  }
+
+  private async recordLoopHealth(input: {
+    status: 'ok' | 'error';
+    activeGoalCount: number;
+    error?: string;
+  }): Promise<void> {
+    const value = {
+      status: input.status,
+      activeGoalCount: input.activeGoalCount,
+      runningAgentCount: this.activeLoops.size,
+      supervisorIntervalMs: this.supervisorIntervalMs,
+      error: input.error ?? null,
+      lastHeartbeatAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    const existingRows = await this.db
+      .select()
+      .from(agentState)
+      .where(eq(agentState.key, 'system:loop_health'))
+      .limit(1);
+
+    if (existingRows.length > 0) {
+      await this.db
+        .update(agentState)
+        .set({ value, updatedAt: new Date() })
+        .where(eq(agentState.key, 'system:loop_health'));
+      return;
+    }
+
+    await this.db.insert(agentState).values({
+      key: 'system:loop_health',
+      value,
+    });
   }
 }
 
