@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 
 ## Current Position
 
-Phase: 12-isolated-sandbox-verification
-Plan: 03 completed
-Status: Completed all Phase 12 plans; ready for phase-level verification and completion
-Last activity: 2026-02-20 - Completed 12-03 startup smoke + diagnostics surfacing implementation and summary updates
+Phase: 13-promotion-guardrails-rollback-and-visibility
+Plan: 01 completed
+Status: Completed Phase 13 Plan 01; ready for Plan 02 execution
+Last activity: 2026-02-20 - Completed 13-01 append-only lifecycle events + independent promotion pause guard integration
 
-Progress: [████████████████████████] 100% (phase 12 execution)
+Progress: [████████░░░░░░░░░░░░░░░░] 33% (phase 13 execution)
 
 ## Accumulated Context
 
@@ -46,11 +46,14 @@ All v1.0 decisions reviewed and outcomes recorded at milestone completion.
 - [Phase 12]: Agent startup smoke mode now validates core boot wiring and exits deterministically with explicit resource teardown. — SEXT-11 requires bounded startup checks that do not enter long-running supervisor behavior.
 - [Phase 12]: Isolated verifier startup stage now executes @jarvis/agent startup:smoke and captures startup-specific stage diagnostics. — Startup smoke must be a required verification stage with actionable diagnostics for SEXT-11 and SEXT-12.
 - [Phase 12]: Builtin modify responses now expose verificationOverallStatus, verificationFailedStage, verificationFailureCategory, and verificationDiagnostics. — Operators and autonomous reasoning need machine-readable failure context without parsing raw logs.
+- [Phase 13]: Lifecycle audit events now flow through a typed append helper that records run/stage/context metadata in self_extension_events. — SEXT-14 requires durable append-only lifecycle truth that remains machine-readable for operators and downstream automation.
+- [Phase 13]: Promotion pause state is persisted under self_extension:promotion_control and evaluated independently from kill_switch. — SEXT-16 requires an operator promotion guard that does not halt the broader agent runtime.
+- [Phase 13]: Builtin promotion checks pause state both before GitHub mutations and immediately before merge. — A double guard closes pause-race windows and keeps promotion fail-closed even when an operator toggles pause during an in-flight run.
 
 ### Pending Todos
 
-- Run Phase 12 verification workflow and record final must-have audit.
-- Complete Phase 12 phase-level transition updates after verification pass.
+- Execute Phase 13 Plan 02 for known-good baseline lifecycle and automated rollback orchestration.
+- Execute Phase 13 Plan 03 for dashboard/API/SSE self-extension visibility and promotion pause controls.
 
 ### Blockers/Concerns
 
@@ -74,9 +77,10 @@ All v1.0 decisions reviewed and outcomes recorded at milestone completion.
 | 12 | 01 | 3 min | 3 | 4 |
 | 12 | 02 | 4 min | 3 | 4 |
 | 12 | 03 | 9 min | 3 | 6 |
+| 13 | 01 | 3 min | 3 | 8 |
 
 ## Session Continuity
 
-Last session: 2026-02-19
-Stopped at: Completed 12-03-PLAN.md
-Resume file: .planning/phases/12-isolated-sandbox-verification/12-03-SUMMARY.md
+Last session: 2026-02-20
+Stopped at: Completed 13-01-PLAN.md
+Resume file: .planning/phases/13-promotion-guardrails-rollback-and-visibility/13-01-SUMMARY.md
