@@ -4,12 +4,14 @@ import { runGitHubSelfExtensionPipeline } from './github-pipeline.js';
 import { runIsolatedVerification } from './isolated-verifier.js';
 import type { VerificationRunResult } from './verification-diagnostics.js';
 import type { SelfExtensionExecutionContext } from './pipeline-context.js';
+import { appendSelfExtensionEvent } from './lifecycle-events.js';
 
 const SANDBOX_STATUS_CONTEXT = 'jarvis/sandbox';
 
 export interface StageBuiltinChangeResult {
   success: boolean;
   error?: string;
+  lifecycleRunId?: string;
   branchName?: string;
   headSha?: string;
   pullRequestUrl?: string;
@@ -77,12 +79,47 @@ export async function stageBuiltinChange(opts: {
   testInput: unknown;
   executionContext?: SelfExtensionExecutionContext;
 }): Promise<StageBuiltinChangeResult> {
+  const runId = `builtin-${opts.toolName}-${Date.now()}`;
+  const executionContext: SelfExtensionExecutionContext = {
+    goalId: opts.executionContext?.goalId ?? null,
+    cycleId: opts.executionContext?.cycleId ?? null,
+    subGoalId: opts.executionContext?.subGoalId ?? null,
+    toolName: opts.executionContext?.toolName ?? opts.toolName,
+    toolCallId: opts.executionContext?.toolCallId ?? null,
+    actorSource: opts.executionContext?.actorSource ?? 'tool-write',
+  };
+
+  await appendSelfExtensionEvent(opts.db, {
+    runId,
+    stage: 'staging',
+    eventType: 'proposed',
+    executionContext,
+    payload: {
+      filePath: opts.filePath,
+      toolName: opts.toolName,
+    },
+  });
+
   try {
     await compileTypeScript(opts.newContent);
   } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    await appendSelfExtensionEvent(opts.db, {
+      runId,
+      stage: 'compile',
+      eventType: 'failed',
+      executionContext,
+      payload: {
+        filePath: opts.filePath,
+        toolName: opts.toolName,
+        reason: message,
+      },
+    });
+
     return {
       success: false,
-      error: `Compilation failed: ${err instanceof Error ? err.message : String(err)}`,
+      error: `Compilation failed: ${message}`,
+      lifecycleRunId: runId,
       evidenceStatusContext: SANDBOX_STATUS_CONTEXT,
       evidenceState: 'failure',
       promotionAttempted: false,
@@ -97,14 +134,46 @@ export async function stageBuiltinChange(opts: {
     candidateFilePath: opts.filePath,
     candidateContent: opts.newContent,
     baseRef: 'HEAD',
-    runId: `builtin-${opts.toolName}-${Date.now()}`,
+    runId,
+  });
+
+  const verificationOutcome = extractVerificationOutcome(verification.diagnostics);
+  await appendSelfExtensionEvent(opts.db, {
+    runId,
+    stage: 'verification',
+    eventType: 'tested',
+    executionContext,
+    payload: {
+      passed: verification.passed,
+      overallStatus: verificationOutcome.verificationOverallStatus,
+      failedStage: verificationOutcome.verificationFailedStage,
+      failureCategory: verificationOutcome.verificationFailureCategory,
+      summary: verification.evidence.summary,
+      durationMs: verification.evidence.durationMs,
+    },
   });
 
   if (!verification.passed) {
-    const verificationOutcome = extractVerificationOutcome(verification.diagnostics);
+    await appendSelfExtensionEvent(opts.db, {
+      runId,
+      stage: 'verification',
+      eventType: 'failed',
+      executionContext,
+      payload: {
+        filePath: opts.filePath,
+        toolName: opts.toolName,
+        reason: 'isolated-verification-failed',
+        overallStatus: verificationOutcome.verificationOverallStatus,
+        failedStage: verificationOutcome.verificationFailedStage,
+        failureCategory: verificationOutcome.verificationFailureCategory,
+        failureReason: verificationOutcome.verificationFailureReason,
+      },
+    });
+
     return {
       success: false,
       error: `Isolated verification failed: ${summarizeVerificationFailure(verification.diagnostics)}`,
+      lifecycleRunId: runId,
       evidenceStatusContext: SANDBOX_STATUS_CONTEXT,
       evidenceState: 'failure',
       promotionAttempted: false,
@@ -120,14 +189,13 @@ export async function stageBuiltinChange(opts: {
     };
   }
 
-  const verificationOutcome = extractVerificationOutcome(verification.diagnostics);
-
   const pipelineResult = await runGitHubSelfExtensionPipeline({
     db: opts.db,
     toolName: opts.toolName,
     filePath: opts.filePath,
     newContent: opts.newContent,
-    executionContext: opts.executionContext,
+    executionContext,
+    runId,
     sandboxEvidence: {
       passed: verification.evidence.passed,
       durationMs: verification.evidence.durationMs,
@@ -139,6 +207,7 @@ export async function stageBuiltinChange(opts: {
     return {
       success: false,
       error: pipelineResult.error,
+      lifecycleRunId: runId,
       branchName: pipelineResult.branchName,
       headSha: pipelineResult.headSha,
       pullRequestUrl: pipelineResult.pullRequestUrl,
@@ -161,6 +230,7 @@ export async function stageBuiltinChange(opts: {
 
   return {
     success: true,
+    lifecycleRunId: runId,
     branchName: pipelineResult.branchName,
     headSha: pipelineResult.headSha,
     pullRequestUrl: pipelineResult.pullRequestUrl,

@@ -4,10 +4,13 @@ import { buildSelfExtensionBranchName } from './branch-naming.js';
 import { buildCommitMetadata, type SelfExtensionExecutionContext } from './pipeline-context.js';
 import { evaluatePromotionGate, type PromotionStatusContext } from './promotion-gate.js';
 import { resolveTrustedGitHubContext } from './github-trust-guard.js';
+import { appendSelfExtensionEvent } from './lifecycle-events.js';
+import { getPromotionControlState } from './promotion-control.js';
 
 const GITHUB_API_BASE_URL = 'https://api.github.com';
 const GITHUB_API_VERSION = '2022-11-28';
 const SANDBOX_STATUS_CONTEXT = 'jarvis/sandbox';
+const PROMOTION_PAUSED_REASON = 'promotion-paused';
 
 interface GitHubRefResponse {
   object?: {
@@ -56,6 +59,7 @@ export interface GitHubSelfExtensionPipelineInput {
   toolName: string;
   filePath: string;
   newContent: string;
+  runId?: string;
   executionContext?: SelfExtensionExecutionContext;
   sandboxEvidence: SandboxEvidence;
 }
@@ -63,6 +67,7 @@ export interface GitHubSelfExtensionPipelineInput {
 export interface GitHubSelfExtensionPipelineResult {
   success: boolean;
   error?: string;
+  lifecycleRunId?: string;
   branchName?: string;
   headSha?: string;
   pullRequestUrl?: string;
@@ -529,12 +534,47 @@ export async function runGitHubSelfExtensionPipeline(
   let headSha: string | undefined;
   let pullRequestUrl: string | undefined;
   let pullRequestNumber: number | undefined;
+  const runId = input.runId?.trim()
+    ? input.runId.trim()
+    : `builtin-${input.toolName}-${Date.now()}`;
+  const executionContext = normalizeExecutionContext(input);
+  const evidenceState = toEvidenceState(input.sandboxEvidence.passed);
 
   try {
     const trusted = await resolveTrustedGitHubContext(input.db);
     const { owner, repo } = parseRepoFullName(trusted.repoFullName);
-    const executionContext = normalizeExecutionContext(input);
-    const evidenceState = toEvidenceState(input.sandboxEvidence.passed);
+
+    const promotionControlBeforeGitHub = await getPromotionControlState(input.db);
+    if (promotionControlBeforeGitHub.paused) {
+      await appendSelfExtensionEvent(input.db, {
+        runId,
+        stage: 'promotion-guard',
+        eventType: 'promotion_blocked',
+        executionContext,
+        payload: {
+          reason: PROMOTION_PAUSED_REASON,
+          pausedBy: promotionControlBeforeGitHub.updatedBy,
+          pausedAt: promotionControlBeforeGitHub.updatedAt,
+          check: 'pre-github',
+        },
+      });
+
+      return {
+        success: false,
+        error: 'Promotion blocked: promotion is paused by operator.',
+        lifecycleRunId: runId,
+        branchName,
+        headSha,
+        pullRequestUrl,
+        pullRequestNumber,
+        evidenceStatusContext: SANDBOX_STATUS_CONTEXT,
+        evidenceState,
+        promotionAttempted: false,
+        promotionSucceeded: false,
+        promotionBlocked: true,
+        blockReasons: [PROMOTION_PAUSED_REASON],
+      };
+    }
 
     const contentHash = createHash('sha256')
       .update(input.newContent)
@@ -619,9 +659,25 @@ export async function runGitHubSelfExtensionPipeline(
     });
 
     if (gate.blocked) {
+      await appendSelfExtensionEvent(input.db, {
+        runId,
+        stage: 'promotion-gate',
+        eventType: 'promotion_blocked',
+        executionContext,
+        payload: {
+          reason: 'status-gate',
+          blockReasons: gate.blockReasons,
+          branchName,
+          headSha,
+          pullRequestNumber,
+          pullRequestUrl,
+        },
+      });
+
       return {
         success: false,
         error: `Promotion blocked: ${gate.blockReasons.join('; ')}`,
+        lifecycleRunId: runId,
         branchName,
         headSha,
         pullRequestUrl,
@@ -636,9 +692,25 @@ export async function runGitHubSelfExtensionPipeline(
     }
 
     if (!pullRequestNumber) {
+      const missingPullRequestReasons = ['Missing pull request number'];
+      await appendSelfExtensionEvent(input.db, {
+        runId,
+        stage: 'promotion-guard',
+        eventType: 'promotion_blocked',
+        executionContext,
+        payload: {
+          reason: 'missing-pull-request-number',
+          blockReasons: missingPullRequestReasons,
+          branchName,
+          headSha,
+          pullRequestUrl,
+        },
+      });
+
       return {
         success: false,
         error: 'Promotion blocked: pull request number is missing for merge attempt.',
+        lifecycleRunId: runId,
         branchName,
         headSha,
         pullRequestUrl,
@@ -648,7 +720,43 @@ export async function runGitHubSelfExtensionPipeline(
         promotionAttempted: true,
         promotionSucceeded: false,
         promotionBlocked: true,
-        blockReasons: ['Missing pull request number'],
+        blockReasons: missingPullRequestReasons,
+      };
+    }
+
+    const promotionControlBeforeMerge = await getPromotionControlState(input.db);
+    if (promotionControlBeforeMerge.paused) {
+      await appendSelfExtensionEvent(input.db, {
+        runId,
+        stage: 'promotion-guard',
+        eventType: 'promotion_blocked',
+        executionContext,
+        payload: {
+          reason: PROMOTION_PAUSED_REASON,
+          pausedBy: promotionControlBeforeMerge.updatedBy,
+          pausedAt: promotionControlBeforeMerge.updatedAt,
+          check: 'pre-merge',
+          branchName,
+          headSha,
+          pullRequestNumber,
+          pullRequestUrl,
+        },
+      });
+
+      return {
+        success: false,
+        error: 'Promotion blocked: promotion was paused before merge.',
+        lifecycleRunId: runId,
+        branchName,
+        headSha,
+        pullRequestUrl,
+        pullRequestNumber,
+        evidenceStatusContext: SANDBOX_STATUS_CONTEXT,
+        evidenceState,
+        promotionAttempted: true,
+        promotionSucceeded: false,
+        promotionBlocked: true,
+        blockReasons: [PROMOTION_PAUSED_REASON],
       };
     }
 
@@ -668,9 +776,31 @@ export async function runGitHubSelfExtensionPipeline(
       });
     } catch (mergeErr) {
       const mergeError = mergeErr instanceof Error ? mergeErr.message : String(mergeErr);
+      try {
+        await appendSelfExtensionEvent(input.db, {
+          runId,
+          stage: 'promotion-merge',
+          eventType: 'failed',
+          executionContext,
+          payload: {
+            reason: 'merge-failed',
+            mergeError,
+            branchName,
+            headSha,
+            pullRequestNumber,
+            pullRequestUrl,
+          },
+        });
+      } catch (eventErr) {
+        process.stderr.write(
+          `[self-extension] Failed to write merge failure event: ${eventErr instanceof Error ? eventErr.message : String(eventErr)}\n`,
+        );
+      }
+
       return {
         success: false,
         error: `Promotion merge failed: ${mergeError}`,
+        lifecycleRunId: runId,
         mergeError,
         branchName,
         headSha,
@@ -685,8 +815,29 @@ export async function runGitHubSelfExtensionPipeline(
       };
     }
 
+    try {
+      await appendSelfExtensionEvent(input.db, {
+        runId,
+        stage: 'promotion-merge',
+        eventType: 'promoted',
+        executionContext,
+        payload: {
+          branchName,
+          headSha,
+          pullRequestNumber,
+          pullRequestUrl,
+          evidenceState,
+        },
+      });
+    } catch (eventErr) {
+      process.stderr.write(
+        `[self-extension] Failed to write promoted event: ${eventErr instanceof Error ? eventErr.message : String(eventErr)}\n`,
+      );
+    }
+
     return {
       success: true,
+      lifecycleRunId: runId,
       branchName,
       headSha,
       pullRequestUrl,
@@ -699,15 +850,37 @@ export async function runGitHubSelfExtensionPipeline(
       blockReasons: [],
     };
   } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    try {
+      await appendSelfExtensionEvent(input.db, {
+        runId,
+        stage: 'promotion-pipeline',
+        eventType: 'failed',
+        executionContext,
+        payload: {
+          reason: errorMessage,
+          branchName,
+          headSha,
+          pullRequestNumber,
+          pullRequestUrl,
+        },
+      });
+    } catch (eventErr) {
+      process.stderr.write(
+        `[self-extension] Failed to write pipeline failure event: ${eventErr instanceof Error ? eventErr.message : String(eventErr)}\n`,
+      );
+    }
+
     return {
       success: false,
-      error: err instanceof Error ? err.message : String(err),
+      error: errorMessage,
+      lifecycleRunId: runId,
       branchName,
       headSha,
       pullRequestUrl,
       pullRequestNumber,
       evidenceStatusContext: SANDBOX_STATUS_CONTEXT,
-      evidenceState: toEvidenceState(input.sandboxEvidence.passed),
+      evidenceState,
       promotionAttempted: false,
       promotionSucceeded: false,
       promotionBlocked: false,
