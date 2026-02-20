@@ -83,6 +83,11 @@ export interface GitHubSelfExtensionPipelineResult {
   success: boolean;
   error?: string;
   lifecycleRunId?: string;
+  rollbackAttempted?: boolean;
+  rollbackStatus?: string | null;
+  rollbackReason?: string | null;
+  rollbackTargetBaselineSha?: string | null;
+  rollbackRunId?: string | null;
   branchName?: string;
   headSha?: string;
   pullRequestUrl?: string;
@@ -114,9 +119,18 @@ export interface GitHubRollbackPipelineResult {
   targetBaselineSha: string;
 }
 
+interface RollbackSnapshot {
+  status?: string;
+  reason?: string;
+  targetBaselineSha?: string | null;
+  attemptId?: string | null;
+  [key: string]: unknown;
+}
+
 interface PipelineStatusSnapshot {
   status?: string;
   previousBaselineSha?: string | null;
+  rollback?: RollbackSnapshot | null;
   [key: string]: unknown;
 }
 
@@ -234,6 +248,38 @@ function parseKnownGoodBaseline(value: unknown): KnownGoodBaselineSnapshot | nul
     return null;
   }
   return row as unknown as KnownGoodBaselineSnapshot;
+}
+
+function extractRollbackContext(
+  pipelineStatus: PipelineStatusSnapshot | null,
+): {
+  rollbackAttempted: boolean;
+  rollbackStatus: string | null;
+  rollbackReason: string | null;
+  rollbackTargetBaselineSha: string | null;
+  rollbackRunId: string | null;
+} {
+  const rollback = pipelineStatus?.rollback;
+  const rollbackStatus = rollback && typeof rollback.status === 'string'
+    ? rollback.status
+    : null;
+  const rollbackReason = rollback && typeof rollback.reason === 'string'
+    ? rollback.reason
+    : null;
+  const rollbackTargetBaselineSha = rollback && typeof rollback.targetBaselineSha === 'string'
+    ? rollback.targetBaselineSha
+    : null;
+  const rollbackRunId = rollback && typeof rollback.attemptId === 'string'
+    ? rollback.attemptId
+    : null;
+
+  return {
+    rollbackAttempted: rollbackStatus !== null,
+    rollbackStatus,
+    rollbackReason,
+    rollbackTargetBaselineSha,
+    rollbackRunId,
+  };
 }
 
 async function readAgentStateValue(db: DbClient, key: string): Promise<unknown> {
@@ -868,6 +914,7 @@ export async function runGitHubSelfExtensionPipeline(
     const currentPipelineStatus = parsePipelineStatus(
       await readAgentStateValue(input.db, SELF_EXTENSION_PIPELINE_STATUS_KEY),
     );
+    const currentRollbackContext = extractRollbackContext(currentPipelineStatus);
     const pipelineStatusValue = typeof currentPipelineStatus?.status === 'string'
       ? currentPipelineStatus.status
       : null;
@@ -902,6 +949,7 @@ export async function runGitHubSelfExtensionPipeline(
         promotionSucceeded: false,
         promotionBlocked: true,
         blockReasons: [pipelineBlockReason],
+        ...currentRollbackContext,
       };
     }
 
@@ -1193,6 +1241,11 @@ export async function runGitHubSelfExtensionPipeline(
     return {
       success: true,
       lifecycleRunId: runId,
+      rollbackAttempted: false,
+      rollbackStatus: 'pending_health_check',
+      rollbackReason: null,
+      rollbackTargetBaselineSha: previousBaselineSha,
+      rollbackRunId: null,
       branchName,
       headSha,
       pullRequestUrl,

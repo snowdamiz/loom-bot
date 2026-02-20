@@ -23,6 +23,11 @@ export interface StageBuiltinChangeResult {
   promotionBlocked: boolean;
   blockReasons: string[];
   mergeError?: string;
+  rollbackAttempted?: boolean;
+  rollbackStatus?: string | null;
+  rollbackReason?: string | null;
+  rollbackTargetBaselineSha?: string | null;
+  rollbackRunId?: string | null;
   verificationSummary?: string;
   verificationDiagnostics?: VerificationRunResult;
   verificationOverallStatus?: VerificationRunResult['overallStatus'];
@@ -126,6 +131,11 @@ export async function stageBuiltinChange(opts: {
       promotionSucceeded: false,
       promotionBlocked: false,
       blockReasons: [],
+      rollbackAttempted: false,
+      rollbackStatus: null,
+      rollbackReason: null,
+      rollbackTargetBaselineSha: null,
+      rollbackRunId: null,
     };
   }
 
@@ -180,6 +190,11 @@ export async function stageBuiltinChange(opts: {
       promotionSucceeded: false,
       promotionBlocked: true,
       blockReasons: ['isolated-verification-failed'],
+      rollbackAttempted: false,
+      rollbackStatus: null,
+      rollbackReason: null,
+      rollbackTargetBaselineSha: null,
+      rollbackRunId: null,
       verificationSummary: verification.evidence.summary,
       verificationDiagnostics: verification.diagnostics,
       verificationOverallStatus: verificationOutcome.verificationOverallStatus,
@@ -219,6 +234,11 @@ export async function stageBuiltinChange(opts: {
       promotionBlocked: pipelineResult.promotionBlocked,
       blockReasons: pipelineResult.blockReasons,
       mergeError: pipelineResult.mergeError,
+      rollbackAttempted: pipelineResult.rollbackAttempted,
+      rollbackStatus: pipelineResult.rollbackStatus,
+      rollbackReason: pipelineResult.rollbackReason,
+      rollbackTargetBaselineSha: pipelineResult.rollbackTargetBaselineSha,
+      rollbackRunId: pipelineResult.rollbackRunId,
       verificationSummary: verification.evidence.summary,
       verificationDiagnostics: verification.diagnostics,
       verificationOverallStatus: verificationOutcome.verificationOverallStatus,
@@ -242,6 +262,11 @@ export async function stageBuiltinChange(opts: {
     promotionBlocked: pipelineResult.promotionBlocked,
     blockReasons: pipelineResult.blockReasons,
     mergeError: pipelineResult.mergeError,
+    rollbackAttempted: pipelineResult.rollbackAttempted,
+    rollbackStatus: pipelineResult.rollbackStatus,
+    rollbackReason: pipelineResult.rollbackReason,
+    rollbackTargetBaselineSha: pipelineResult.rollbackTargetBaselineSha,
+    rollbackRunId: pipelineResult.rollbackRunId,
     verificationSummary: verification.evidence.summary,
     verificationDiagnostics: verification.diagnostics,
     verificationOverallStatus: verificationOutcome.verificationOverallStatus,

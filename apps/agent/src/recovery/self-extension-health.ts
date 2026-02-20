@@ -1,6 +1,7 @@
 import { agentState, eq } from '@jarvis/db';
 import type { DbClient } from '@jarvis/db';
 import {
+  appendSelfExtensionEvent,
   runAutomatedRollback,
   SELF_EXTENSION_KNOWN_GOOD_BASELINE_KEY,
   SELF_EXTENSION_PIPELINE_STATUS_KEY,
@@ -164,6 +165,12 @@ async function tickSelfExtensionHealthMonitor(
 
   const loopHealth = parseLoopHealth(await loadAgentState(db, LOOP_HEALTH_KEY));
   const evaluation = evaluateLoopHealth(loopHealth, heartbeatStaleMs);
+  const sourceRunId = typeof pipelineSnapshot.runId === 'string'
+    ? pipelineSnapshot.runId
+    : null;
+  const healthRunId = sourceRunId
+    ? `health-${sourceRunId}-${Date.now()}`
+    : `health-${Date.now()}`;
 
   if (evaluation.healthy) {
     const headSha = typeof pipelineSnapshot.headSha === 'string'
@@ -200,6 +207,17 @@ async function tickSelfExtensionHealthMonitor(
       healthFailedAt: null,
       healthFailureReason: null,
     });
+
+    await appendSelfExtensionEvent(db, {
+      runId: healthRunId,
+      stage: 'health-window',
+      eventType: 'health_window_passed',
+      actorSource: 'health-monitor',
+      payload: {
+        sourceRunId,
+        heartbeatAgeMs: evaluation.heartbeatAgeMs,
+      },
+    });
     return;
   }
 
@@ -223,11 +241,23 @@ async function tickSelfExtensionHealthMonitor(
     healthHeartbeatAgeMs: evaluation.heartbeatAgeMs,
   });
 
+  await appendSelfExtensionEvent(db, {
+    runId: healthRunId,
+    stage: 'health-window',
+    eventType: 'health_window_failed',
+    actorSource: 'health-monitor',
+    payload: {
+      sourceRunId,
+      reason: evaluation.reason,
+      heartbeatAgeMs: evaluation.heartbeatAgeMs,
+      healthDeadlineAt: deadlineRaw,
+    },
+  });
+
   await runAutomatedRollback({
     db,
     reason: evaluation.reason,
-    sourceRunId:
-      typeof pipelineSnapshot.runId === 'string' ? pipelineSnapshot.runId : null,
+    sourceRunId,
     triggeredBy: 'health-monitor',
   });
 }
