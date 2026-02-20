@@ -29,6 +29,21 @@ export { createBootstrapTools } from './bootstrap/index.js';
 // Self-extension tools (Phase 08)
 export { createSelfExtensionTools } from './self-extension/index.js';
 export { loadPersistedTools, AGENT_TOOLS_DIR } from './self-extension/index.js';
+export {
+  appendSelfExtensionEvent,
+  getPromotionControlState,
+  setPromotionControlState,
+  runAutomatedRollback,
+  SELF_EXTENSION_PIPELINE_STATUS_KEY,
+  SELF_EXTENSION_KNOWN_GOOD_BASELINE_KEY,
+  DEFAULT_POST_PROMOTION_HEALTH_WINDOW_MS,
+} from './self-extension/index.js';
+export type {
+  RunAutomatedRollbackInput,
+  RunAutomatedRollbackResult,
+  PromotionControlState,
+  SelfExtensionLifecycleEventType,
+} from './self-extension/index.js';
 
 // Convenience factory: create a registry with all 4 default tools pre-registered.
 // This is what apps/agent will call at startup.

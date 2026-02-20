@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { agentState, eq } from '@jarvis/db';
 import type { DbClient } from '@jarvis/db';
 import { buildSelfExtensionBranchName } from './branch-naming.js';
 import { buildCommitMetadata, type SelfExtensionExecutionContext } from './pipeline-context.js';
@@ -11,6 +12,18 @@ const GITHUB_API_BASE_URL = 'https://api.github.com';
 const GITHUB_API_VERSION = '2022-11-28';
 const SANDBOX_STATUS_CONTEXT = 'jarvis/sandbox';
 const PROMOTION_PAUSED_REASON = 'promotion-paused';
+const PROMOTION_PENDING_HEALTH_REASON = 'promotion-pending-health';
+const ROLLBACK_REQUIRED_REASON = 'rollback-required';
+const BLOCKED_PIPELINE_STATUSES = new Set([
+  'promoted_pending_health',
+  'health_failed',
+  'rollback_in_progress',
+  'rollback_failed',
+]);
+
+export const SELF_EXTENSION_PIPELINE_STATUS_KEY = 'self_extension:pipeline_status';
+export const SELF_EXTENSION_KNOWN_GOOD_BASELINE_KEY = 'self_extension:known_good_baseline';
+export const DEFAULT_POST_PROMOTION_HEALTH_WINDOW_MS = 5 * 60 * 1000;
 
 interface GitHubRefResponse {
   object?: {
@@ -20,6 +33,8 @@ interface GitHubRefResponse {
 
 interface GitHubContentResponse {
   sha?: string;
+  content?: string;
+  encoding?: string;
 }
 
 interface GitHubPutContentResponse {
@@ -79,6 +94,35 @@ export interface GitHubSelfExtensionPipelineResult {
   promotionBlocked: boolean;
   blockReasons: string[];
   mergeError?: string;
+}
+
+export interface GitHubRollbackPipelineInput {
+  db: DbClient;
+  filePath: string;
+  targetBaselineSha: string;
+  reason: string;
+  sourceRunId?: string | null;
+}
+
+export interface GitHubRollbackPipelineResult {
+  success: boolean;
+  error?: string;
+  branchName?: string;
+  headSha?: string;
+  pullRequestUrl?: string;
+  pullRequestNumber?: number;
+  targetBaselineSha: string;
+}
+
+interface PipelineStatusSnapshot {
+  status?: string;
+  previousBaselineSha?: string | null;
+  [key: string]: unknown;
+}
+
+interface KnownGoodBaselineSnapshot {
+  sha?: string;
+  [key: string]: unknown;
 }
 
 class GitHubApiError extends Error {
@@ -167,6 +211,56 @@ function normalizeExecutionContext(
 
 function toEvidenceState(passed: boolean): 'success' | 'failure' {
   return passed ? 'success' : 'failure';
+}
+
+function parseObject(value: unknown): Record<string, unknown> | null {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return null;
+  }
+  return value as Record<string, unknown>;
+}
+
+function parsePipelineStatus(value: unknown): PipelineStatusSnapshot | null {
+  const row = parseObject(value);
+  if (!row) {
+    return null;
+  }
+  return row as unknown as PipelineStatusSnapshot;
+}
+
+function parseKnownGoodBaseline(value: unknown): KnownGoodBaselineSnapshot | null {
+  const row = parseObject(value);
+  if (!row) {
+    return null;
+  }
+  return row as unknown as KnownGoodBaselineSnapshot;
+}
+
+async function readAgentStateValue(db: DbClient, key: string): Promise<unknown> {
+  const rows = await db
+    .select()
+    .from(agentState)
+    .where(eq(agentState.key, key))
+    .limit(1);
+  return rows[0]?.value;
+}
+
+async function upsertAgentStateValue(db: DbClient, key: string, value: unknown): Promise<void> {
+  const existingRows = await db
+    .select()
+    .from(agentState)
+    .where(eq(agentState.key, key))
+    .limit(1);
+
+  if (existingRows.length > 0) {
+    await db
+      .update(agentState)
+      .set({ value, updatedAt: new Date() })
+      .where(eq(agentState.key, key));
+    return;
+  }
+
+  await db.insert(agentState).values({ key, value });
 }
 
 function redactEvidenceSummary(summary: string): string {
@@ -325,6 +419,81 @@ async function fetchExistingFileSha(input: {
     }
     throw err;
   }
+}
+
+function decodeGitHubContent(content: string): string {
+  const normalized = content.replace(/\n/g, '');
+  return Buffer.from(normalized, 'base64').toString('utf8');
+}
+
+async function fetchFileContentAtRef(input: {
+  accessToken: string;
+  owner: string;
+  repo: string;
+  ref: string;
+  filePath: string;
+}): Promise<string> {
+  const encodedPath = encodeFilePath(input.filePath);
+  const payload = await githubApiRequest<GitHubContentResponse>(
+    input.accessToken,
+    `/repos/${input.owner}/${input.repo}/contents/${encodedPath}?ref=${encodeURIComponent(input.ref)}`,
+  );
+
+  const content = payload.content;
+  const encoding = payload.encoding?.toLowerCase();
+
+  if (typeof content !== 'string') {
+    throw new Error(
+      `Rollback blocked: no file content returned for ${input.filePath} at ${input.ref}.`,
+    );
+  }
+
+  if (encoding && encoding !== 'base64') {
+    throw new Error(
+      `Rollback blocked: unsupported GitHub content encoding "${encoding}" for ${input.filePath}.`,
+    );
+  }
+
+  return decodeGitHubContent(content);
+}
+
+function buildRollbackBranchName(input: {
+  filePath: string;
+  targetBaselineSha: string;
+  sourceRunId: string;
+}): string {
+  const pathHash = createHash('sha256')
+    .update(`${input.filePath}:${input.sourceRunId}`)
+    .digest('hex')
+    .slice(0, 10);
+
+  return `jarvis/rollback-${input.targetBaselineSha.slice(0, 12)}-${pathHash}`;
+}
+
+function buildRollbackPullRequestTitle(filePath: string, targetBaselineSha: string): string {
+  return `jarvis: rollback builtin ${filePath} to ${targetBaselineSha.slice(0, 12)}`;
+}
+
+function buildRollbackPullRequestBody(input: {
+  filePath: string;
+  targetBaselineSha: string;
+  sourceRunId: string;
+  reason: string;
+  branchName: string;
+  headSha: string;
+  defaultBranch: string;
+}): string {
+  return [
+    '# Jarvis Self-Extension Rollback',
+    '',
+    `Restoring \`${input.filePath}\` from known-good baseline \`${input.targetBaselineSha}\`.`,
+    '',
+    `- sourceRunId: \`${input.sourceRunId}\``,
+    `- reason: ${input.reason}`,
+    `- rollbackBranch: \`${input.branchName}\``,
+    `- rollbackHead: \`${input.headSha}\``,
+    `- base: \`${input.defaultBranch}\``,
+  ].join('\n');
 }
 
 async function commitFileUpdate(input: {
@@ -527,6 +696,126 @@ async function deleteBranchRef(input: {
   }
 }
 
+export async function runGitHubRollbackPipeline(
+  input: GitHubRollbackPipelineInput,
+): Promise<GitHubRollbackPipelineResult> {
+  let branchName: string | undefined;
+  let headSha: string | undefined;
+  let pullRequestUrl: string | undefined;
+  let pullRequestNumber: number | undefined;
+
+  try {
+    const trusted = await resolveTrustedGitHubContext(input.db);
+    const { owner, repo } = parseRepoFullName(trusted.repoFullName);
+    const sourceRunId = input.sourceRunId?.trim()
+      ? input.sourceRunId.trim()
+      : `rollback-${Date.now()}`;
+
+    const rollbackContent = await fetchFileContentAtRef({
+      accessToken: trusted.accessToken,
+      owner,
+      repo,
+      ref: input.targetBaselineSha,
+      filePath: input.filePath,
+    });
+
+    branchName = buildRollbackBranchName({
+      filePath: input.filePath,
+      targetBaselineSha: input.targetBaselineSha,
+      sourceRunId,
+    });
+
+    await ensureDeterministicBranch({
+      accessToken: trusted.accessToken,
+      owner,
+      repo,
+      defaultBranch: trusted.defaultBranch,
+      branchName,
+    });
+
+    headSha = await commitFileUpdate({
+      accessToken: trusted.accessToken,
+      owner,
+      repo,
+      branchName,
+      filePath: input.filePath,
+      newContent: rollbackContent,
+      commitMessage: [
+        `agent: rollback builtin ${input.filePath}`,
+        '',
+        `Rollback-Source-Run: ${sourceRunId}`,
+        `Rollback-Target-Baseline: ${input.targetBaselineSha}`,
+        `Rollback-Reason: ${input.reason}`,
+      ].join('\n'),
+    });
+
+    const pullRequest = await upsertPullRequest({
+      accessToken: trusted.accessToken,
+      owner,
+      repo,
+      branchName,
+      defaultBranch: trusted.defaultBranch,
+      title: buildRollbackPullRequestTitle(input.filePath, input.targetBaselineSha),
+      body: buildRollbackPullRequestBody({
+        filePath: input.filePath,
+        targetBaselineSha: input.targetBaselineSha,
+        sourceRunId,
+        reason: input.reason,
+        branchName,
+        headSha,
+        defaultBranch: trusted.defaultBranch,
+      }),
+    });
+    pullRequestUrl = pullRequest.htmlUrl;
+    pullRequestNumber = pullRequest.number;
+
+    if (!pullRequestNumber) {
+      return {
+        success: false,
+        error: 'Rollback blocked: pull request number is missing for merge attempt.',
+        branchName,
+        headSha,
+        pullRequestUrl,
+        pullRequestNumber,
+        targetBaselineSha: input.targetBaselineSha,
+      };
+    }
+
+    await mergePullRequestWithHeadGuard({
+      accessToken: trusted.accessToken,
+      owner,
+      repo,
+      pullRequestNumber,
+      expectedHeadSha: headSha,
+    });
+    await deleteBranchRef({
+      accessToken: trusted.accessToken,
+      owner,
+      repo,
+      branchName,
+    });
+
+    return {
+      success: true,
+      branchName,
+      headSha,
+      pullRequestUrl,
+      pullRequestNumber,
+      targetBaselineSha: input.targetBaselineSha,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : String(err),
+      branchName,
+      headSha,
+      pullRequestUrl,
+      pullRequestNumber,
+      targetBaselineSha: input.targetBaselineSha,
+    };
+  }
+}
+
 export async function runGitHubSelfExtensionPipeline(
   input: GitHubSelfExtensionPipelineInput,
 ): Promise<GitHubSelfExtensionPipelineResult> {
@@ -573,6 +862,46 @@ export async function runGitHubSelfExtensionPipeline(
         promotionSucceeded: false,
         promotionBlocked: true,
         blockReasons: [PROMOTION_PAUSED_REASON],
+      };
+    }
+
+    const currentPipelineStatus = parsePipelineStatus(
+      await readAgentStateValue(input.db, SELF_EXTENSION_PIPELINE_STATUS_KEY),
+    );
+    const pipelineStatusValue = typeof currentPipelineStatus?.status === 'string'
+      ? currentPipelineStatus.status
+      : null;
+    if (pipelineStatusValue && BLOCKED_PIPELINE_STATUSES.has(pipelineStatusValue)) {
+      const pipelineBlockReason = pipelineStatusValue === 'promoted_pending_health'
+        ? PROMOTION_PENDING_HEALTH_REASON
+        : ROLLBACK_REQUIRED_REASON;
+
+      await appendSelfExtensionEvent(input.db, {
+        runId,
+        stage: 'promotion-guard',
+        eventType: 'promotion_blocked',
+        executionContext,
+        payload: {
+          reason: pipelineBlockReason,
+          pipelineStatus: pipelineStatusValue,
+          check: 'pipeline-status',
+        },
+      });
+
+      return {
+        success: false,
+        error: `Promotion blocked: pipeline status \"${pipelineStatusValue}\" requires health or rollback resolution.`,
+        lifecycleRunId: runId,
+        branchName,
+        headSha,
+        pullRequestUrl,
+        pullRequestNumber,
+        evidenceStatusContext: SANDBOX_STATUS_CONTEXT,
+        evidenceState,
+        promotionAttempted: false,
+        promotionSucceeded: false,
+        promotionBlocked: true,
+        blockReasons: [pipelineBlockReason],
       };
     }
 
@@ -814,6 +1143,32 @@ export async function runGitHubSelfExtensionPipeline(
         blockReasons: [],
       };
     }
+
+    const baselineSnapshot = parseKnownGoodBaseline(
+      await readAgentStateValue(input.db, SELF_EXTENSION_KNOWN_GOOD_BASELINE_KEY),
+    );
+    const previousBaselineSha = typeof baselineSnapshot?.sha === 'string'
+      ? baselineSnapshot.sha
+      : null;
+    const promotedAt = new Date().toISOString();
+    const healthDeadlineAt = new Date(
+      Date.now() + DEFAULT_POST_PROMOTION_HEALTH_WINDOW_MS,
+    ).toISOString();
+
+    await upsertAgentStateValue(input.db, SELF_EXTENSION_PIPELINE_STATUS_KEY, {
+      status: 'promoted_pending_health',
+      runId,
+      toolName: input.toolName,
+      filePath: input.filePath,
+      branchName,
+      headSha,
+      pullRequestNumber,
+      pullRequestUrl,
+      promotedAt,
+      healthDeadlineAt,
+      previousBaselineSha,
+      rollback: null,
+    });
 
     try {
       await appendSelfExtensionEvent(input.db, {

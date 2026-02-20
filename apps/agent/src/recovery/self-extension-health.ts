@@ -1,8 +1,11 @@
 import { agentState, eq } from '@jarvis/db';
 import type { DbClient } from '@jarvis/db';
+import {
+  runAutomatedRollback,
+  SELF_EXTENSION_KNOWN_GOOD_BASELINE_KEY,
+  SELF_EXTENSION_PIPELINE_STATUS_KEY,
+} from '@jarvis/tools';
 
-const PIPELINE_STATUS_KEY = 'self_extension:pipeline_status';
-const KNOWN_GOOD_BASELINE_KEY = 'self_extension:known_good_baseline';
 const LOOP_HEALTH_KEY = 'system:loop_health';
 
 const DEFAULT_MONITOR_INTERVAL_MS = 15_000;
@@ -146,7 +149,7 @@ async function tickSelfExtensionHealthMonitor(
   heartbeatStaleMs: number,
 ): Promise<void> {
   const pipelineSnapshot = parsePipelineStatus(
-    await loadAgentState(db, PIPELINE_STATUS_KEY),
+    await loadAgentState(db, SELF_EXTENSION_PIPELINE_STATUS_KEY),
   );
   if (!pipelineSnapshot || pipelineSnapshot.status !== 'promoted_pending_health') {
     return;
@@ -168,7 +171,7 @@ async function tickSelfExtensionHealthMonitor(
       : null;
 
     if (headSha) {
-      await upsertAgentState(db, KNOWN_GOOD_BASELINE_KEY, {
+      await upsertAgentState(db, SELF_EXTENSION_KNOWN_GOOD_BASELINE_KEY, {
         sha: headSha,
         confirmedAt: nowIso,
         sourceRunId:
@@ -188,7 +191,7 @@ async function tickSelfExtensionHealthMonitor(
       });
     }
 
-    await upsertAgentState(db, PIPELINE_STATUS_KEY, {
+    await upsertAgentState(db, SELF_EXTENSION_PIPELINE_STATUS_KEY, {
       ...pipelineSnapshot,
       status: 'health_passed',
       healthCheckedAt: nowIso,
@@ -201,7 +204,7 @@ async function tickSelfExtensionHealthMonitor(
   }
 
   if (!deadlinePassed) {
-    await upsertAgentState(db, PIPELINE_STATUS_KEY, {
+    await upsertAgentState(db, SELF_EXTENSION_PIPELINE_STATUS_KEY, {
       ...pipelineSnapshot,
       status: 'promoted_pending_health',
       healthCheckedAt: nowIso,
@@ -211,13 +214,21 @@ async function tickSelfExtensionHealthMonitor(
     return;
   }
 
-  await upsertAgentState(db, PIPELINE_STATUS_KEY, {
+  await upsertAgentState(db, SELF_EXTENSION_PIPELINE_STATUS_KEY, {
     ...pipelineSnapshot,
     status: 'health_failed',
     healthCheckedAt: nowIso,
     healthFailedAt: nowIso,
     healthFailureReason: evaluation.reason,
     healthHeartbeatAgeMs: evaluation.heartbeatAgeMs,
+  });
+
+  await runAutomatedRollback({
+    db,
+    reason: evaluation.reason,
+    sourceRunId:
+      typeof pipelineSnapshot.runId === 'string' ? pipelineSnapshot.runId : null,
+    triggeredBy: 'health-monitor',
   });
 }
 

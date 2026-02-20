@@ -103,8 +103,21 @@ export { runGitHubSelfExtensionPipeline } from './github-pipeline.js';
 export type {
   GitHubSelfExtensionPipelineInput,
   GitHubSelfExtensionPipelineResult,
+  GitHubRollbackPipelineInput,
+  GitHubRollbackPipelineResult,
   SandboxEvidence,
 } from './github-pipeline.js';
+export {
+  runGitHubRollbackPipeline,
+  SELF_EXTENSION_PIPELINE_STATUS_KEY,
+  SELF_EXTENSION_KNOWN_GOOD_BASELINE_KEY,
+  DEFAULT_POST_PROMOTION_HEALTH_WINDOW_MS,
+} from './github-pipeline.js';
+export { runAutomatedRollback } from './rollback-controller.js';
+export type {
+  RunAutomatedRollbackInput,
+  RunAutomatedRollbackResult,
+} from './rollback-controller.js';
 export {
   buildCommitMetadata,
   stableSerialize,
