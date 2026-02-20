@@ -11,6 +11,7 @@ import apiRoute from './routes/api.js';
 import setupRoute from './routes/setup.js';
 import githubOAuthCallbackRoute from './routes/github-oauth-callback.js';
 import chatRoute from './routes/chat.js';
+import selfExtensionRoute from './routes/self-extension.js';
 
 /**
  * DASH-01: Hono app factory with middleware and routes.
@@ -47,5 +48,7 @@ app.route('/api/setup', setupRoute);
 app.route('/setup/github', githubOAuthCallbackRoute);
 // Sidebar chat: POST /api/chat + GET /api/chat/history
 app.route('/api/chat', chatRoute);
+// Self-extension status + promotion pause controls
+app.route('/api/self-extension', selfExtensionRoute);
 
 export default app;
