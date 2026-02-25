@@ -1,0 +1,23 @@
+name: Installer Endpoint Check
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '15 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  check-endpoints:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate install endpoint
+        run: scripts/ci/check-installer-endpoint.sh https://getloom.dev/install.sh
+
+      - name: Validate update endpoint
+        run: scripts/ci/check-installer-endpoint.sh https://getloom.dev/update.sh

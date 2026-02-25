@@ -88,9 +88,6 @@ importers:
       '@jarvis/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@jarvis/tools':
-        specifier: workspace:*
-        version: link:../../packages/tools
       hono:
         specifier: ^4.7.5
         version: 4.11.10

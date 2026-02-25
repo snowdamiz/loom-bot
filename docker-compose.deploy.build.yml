@@ -1,0 +1,5 @@
+services:
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile

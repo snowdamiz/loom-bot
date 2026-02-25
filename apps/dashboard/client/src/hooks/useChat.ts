@@ -55,7 +55,16 @@ export function useChat() {
       });
 
       if (!response.ok) {
-        throw new Error(`Chat error: ${response.status}`);
+        let errorMessage = `Chat error: ${response.status}`;
+        try {
+          const data = (await response.json()) as { error?: string };
+          if (typeof data.error === 'string' && data.error.trim()) {
+            errorMessage = data.error;
+          }
+        } catch {
+          // Ignore JSON parse issues and keep default status-based error.
+        }
+        throw new Error(errorMessage);
       }
 
       const data = (await response.json()) as ChatSendResponse;
@@ -67,9 +76,15 @@ export function useChat() {
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
-    } catch {
-      // Remove the optimistically added user message on error
-      setMessages((prev) => prev.filter((m) => m !== userMessage));
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to send message';
+      const assistantError: ChatMessage = {
+        role: 'assistant',
+        content: `Request failed: ${errorMessage}`,
+        timestamp: new Date().toISOString(),
+      };
+
+      setMessages((prev) => [...prev, assistantError]);
     } finally {
       setIsLoading(false);
     }

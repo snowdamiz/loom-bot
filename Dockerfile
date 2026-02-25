@@ -1,35 +1,26 @@
-# Stage 1: Builder
-FROM node:22-alpine AS builder
+FROM node:22-bookworm-slim AS build
 
-# Install pnpm
+WORKDIR /app
+
+# Use the workspace-pinned pnpm version.
 RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
 
-WORKDIR /app
+COPY . .
+RUN find . -name '*.tsbuildinfo' -delete
 
-# Copy workspace configuration
-COPY package.json pnpm-workspace.yaml turbo.json ./
-COPY packages/typescript-config ./packages/typescript-config/
-
-# Copy package manifests for all packages
-COPY packages/db/package.json ./packages/db/
-
-# Install dependencies
 RUN pnpm install --frozen-lockfile
-
-# Copy source files
-COPY packages/db ./packages/db/
-
-# Build all packages
+RUN pnpm --filter @jarvis/browser build
 RUN pnpm build
 
-# Stage 2: Runner
-FROM node:22-alpine AS runner
+FROM node:22-bookworm-slim AS runtime
 
 WORKDIR /app
+ENV NODE_ENV=production
 
-# Copy built artifacts and node_modules
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/packages ./packages
+# Keep the runtime image simple and predictable for server/VM installs.
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
 
-# Placeholder CMD — will be updated when apps/agent exists
-CMD ["node", "apps/agent/dist/index.js"]
+COPY --from=build /app /app
+
+# Default container process. Compose overrides this for worker/dashboard/migrate.
+CMD ["pnpm", "--filter", "@jarvis/agent", "start"]

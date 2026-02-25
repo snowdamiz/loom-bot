@@ -54,39 +54,33 @@ const config = {
         sm: 'calc(var(--radius) - 4px)',
       },
       fontFamily: {
-        sans: ['Outfit', 'sans-serif'],
-        display: ['Sora', 'sans-serif'],
+        sans: ['"IBM Plex Sans"', 'sans-serif'],
+        display: ['"IBM Plex Sans"', 'sans-serif'],
+        mono: ['"IBM Plex Mono"', 'monospace'],
       },
       backgroundImage: {
-        'grain-radial':
-          'radial-gradient(circle at 18% 8%, hsl(var(--primary) / 0.22), transparent 38%), radial-gradient(circle at 84% 14%, hsl(var(--secondary) / 0.22), transparent 40%), radial-gradient(circle at 55% 82%, hsl(var(--accent) / 0.18), transparent 45%)',
+        'paper-grid':
+          'linear-gradient(to right, hsl(var(--border) / 0.32) 1px, transparent 1px), linear-gradient(to bottom, hsl(var(--border) / 0.32) 1px, transparent 1px)',
+        'console-lights':
+          'radial-gradient(circle at 18% 14%, hsl(var(--secondary) / 0.24), transparent 38%), radial-gradient(circle at 82% 8%, hsl(var(--primary) / 0.24), transparent 34%), radial-gradient(circle at 50% 100%, hsl(var(--accent) / 0.2), transparent 44%)',
       },
       keyframes: {
-        rise: {
-          '0%': { opacity: '0', transform: 'translateY(20px)' },
+        enter: {
+          '0%': { opacity: '0', transform: 'translateY(18px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
-        float: {
+        floatSoft: {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-10px)' },
         },
-        drift: {
-          '0%, 100%': { transform: 'translateX(-14px)' },
-          '50%': { transform: 'translateX(12px)' },
-        },
-        shimmer: {
-          '0%': { backgroundPosition: '0% 50%' },
-          '100%': { backgroundPosition: '200% 50%' },
-        },
       },
       animation: {
-        rise: 'rise 700ms cubic-bezier(0.21, 1.02, 0.73, 1) both',
-        float: 'float 7s ease-in-out infinite',
-        drift: 'drift 12s ease-in-out infinite',
-        shimmer: 'shimmer 5s linear infinite',
+        enter: 'enter 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both',
+        'float-soft': 'floatSoft 9s ease-in-out infinite',
       },
       boxShadow: {
-        glow: '0 24px 80px -30px hsl(var(--primary) / 0.65)',
+        panel: '0 24px 52px -34px hsl(var(--foreground) / 0.35)',
+        console: '0 34px 86px -44px hsl(var(--foreground) / 0.58)',
       },
     },
   },

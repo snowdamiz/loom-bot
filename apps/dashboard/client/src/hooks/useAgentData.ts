@@ -35,23 +35,3 @@ export function useKillSwitch() {
     },
   });
 }
-
-/**
- * Mutation for self-extension promotion pause/resume control.
- * Invalidates self-extension status cache after control changes.
- */
-export function useSelfExtensionPromotionControl() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (body: { action: 'pause' | 'resume'; reason?: string }) =>
-      apiFetch('/api/self-extension/promotion', {
-        method: 'POST',
-        body: JSON.stringify(body),
-        headers: { 'Content-Type': 'application/json' },
-      }),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['self-extension-status'] });
-    },
-  });
-}

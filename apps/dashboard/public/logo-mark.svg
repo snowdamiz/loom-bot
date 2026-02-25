@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="loom-mark-title loom-mark-desc">
+  <title id="loom-mark-title">Loom logo mark</title>
+  <desc id="loom-mark-desc">Rounded square icon with a threaded L monogram.</desc>
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="#0B1220" />
+  <path d="M20 14V38C20 45.18 25.82 51 33 51H44" stroke="#F8FAFC" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M28 30H44" stroke="#F8FAFC" stroke-width="6" stroke-linecap="round" />
+  <circle cx="44" cy="30" r="3" fill="#F8FAFC" />
+</svg>

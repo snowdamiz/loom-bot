@@ -3,6 +3,7 @@ import { apiJson } from '../lib/api.js';
 
 export type SetupState = {
   openrouterKeySet: boolean;
+  githubOauthConfigured: boolean;
   githubConnected: boolean;
   githubUserId: string | null;
   githubUsername: string | null;

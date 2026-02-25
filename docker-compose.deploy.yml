@@ -1,0 +1,112 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: jarvis-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-jarvis}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-jarvis}
+      POSTGRES_DB: ${POSTGRES_DB:-jarvis}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: jarvis-redis
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis}
+    command: ["sh", "-c", "exec redis-server --appendonly yes --requirepass \"$REDIS_PASSWORD\""]
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$${REDIS_PASSWORD}\" redis-cli ping | grep -q PONG"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  migrate:
+    image: ${JARVIS_IMAGE:-ghcr.io/snowdamiz/loom-bot:latest}
+    container_name: jarvis-migrate
+    env_file:
+      - .env.docker
+    environment:
+      DATABASE_URL: "${DATABASE_URL}"
+      REDIS_URL: "${REDIS_URL}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["pnpm", "db:push"]
+    restart: "no"
+
+  agent:
+    image: ${JARVIS_IMAGE:-ghcr.io/snowdamiz/loom-bot:latest}
+    container_name: jarvis-agent
+    env_file:
+      - .env.docker
+    environment:
+      DATABASE_URL: "${DATABASE_URL}"
+      REDIS_URL: "${REDIS_URL}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    command: ["pnpm", "--filter", "@jarvis/agent", "start"]
+    volumes:
+      - agent_tools:/app/apps/agent/agent-tools
+    restart: unless-stopped
+
+  worker:
+    image: ${JARVIS_IMAGE:-ghcr.io/snowdamiz/loom-bot:latest}
+    container_name: jarvis-worker
+    env_file:
+      - .env.docker
+    environment:
+      DATABASE_URL: "${DATABASE_URL}"
+      REDIS_URL: "${REDIS_URL}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    command: ["pnpm", "--filter", "@jarvis/agent", "worker:start"]
+    volumes:
+      - agent_tools:/app/apps/agent/agent-tools
+    restart: unless-stopped
+
+  dashboard:
+    image: ${JARVIS_IMAGE:-ghcr.io/snowdamiz/loom-bot:latest}
+    container_name: jarvis-dashboard
+    env_file:
+      - .env.docker
+    environment:
+      DATABASE_URL: "${DATABASE_URL}"
+      REDIS_URL: "${REDIS_URL}"
+      DASHBOARD_PORT: "${DASHBOARD_PORT:-3001}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    command: ["pnpm", "--filter", "@jarvis/dashboard", "start"]
+    ports:
+      - "${DASHBOARD_PORT:-3001}:${DASHBOARD_PORT:-3001}"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  agent_tools:

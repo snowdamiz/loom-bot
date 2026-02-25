@@ -60,7 +60,7 @@ browser            (standalone — Playwright lifecycle, stealth, CAPTCHA)
 
 - Docker + Docker Compose
 - OpenRouter API key (optional; can be entered during install or later in dashboard setup)
-- GitHub OAuth App credentials for setup wizard trust binding (`GITHUB_OAUTH_CLIENT_ID`, `GITHUB_OAUTH_CLIENT_SECRET`, `GITHUB_OAUTH_REDIRECT_URI`)
+- GitHub OAuth App credentials (can be entered in the dashboard setup wizard or set via env fallback)
 
 For local development (non-Docker runtime):
 - Node.js >= 22
@@ -69,37 +69,38 @@ For local development (non-Docker runtime):
 ## One-Command Docker Install (Server/VM)
 
 ```bash
-curl -fsSL https://getloom.dev/install.sh | bash
+bash <(curl -fsSL https://getloom.dev/install.sh)
 ```
 
 What this command does:
 - Downloads the latest Jarvis source bundle to `/opt/jarvis` (root) or `~/jarvis` (non-root)
 - Preserves existing `.env.docker` when reinstalling/upgrading
 - Creates `.env.docker` from `.env.docker.example` (if missing)
+- Runs strict preflight checks (OS/arch, Docker daemon, Compose, free disk/RAM, outbound network)
 - Generates Docker Postgres credentials (including a unique `POSTGRES_PASSWORD`) when missing
 - Generates Docker Redis credentials (including a unique `REDIS_PASSWORD`) when missing
 - Pre-sets `DATABASE_URL` to the bundled local Docker Postgres using those credentials
 - Pre-sets `REDIS_URL` to the bundled local Docker Redis using those credentials
+- Sets `JARVIS_IMAGE` (defaults to `ghcr.io/snowdamiz/loom-bot:latest`) if missing
 - Opens an install setup wizard to configure `DATABASE_URL`, `REDIS_URL`, and `DASHBOARD_PORT` (press Enter to keep defaults)
 - Generates `DASHBOARD_TOKEN` and `CREDENTIAL_ENCRYPTION_KEY` (if missing)
-- Builds the Jarvis image and starts Postgres, Redis, DB schema push, agent, worker, and dashboard
+- Pulls released images and starts Postgres, Redis, DB schema push, agent, worker, and dashboard
 - Optionally captures `OPENROUTER_API_KEY` during install, or you can provide it in the dashboard setup wizard after first login
 
-For non-interactive installs (CI/provisioning), set `JARVIS_INSTALL_NONINTERACTIVE=1` to skip prompts and use existing/default values.
-
-The script prints the dashboard URL and token after startup.
+For non-interactive installs (CI/provisioning), set `JARVIS_INSTALL_NONINTERACTIVE=1`.
+Set `JARVIS_INSTALL_BUILD_FROM_SOURCE=1` to force source builds, or `JARVIS_INSTALL_STRICT_PULL=1` to fail instead of falling back to source build when image pulls fail.
 
 ### Update an existing deployment
 
 ```bash
-curl -fsSL https://getloom.dev/update.sh | bash
+bash <(curl -fsSL https://getloom.dev/update.sh)
 ```
 
 This runs the same installer in update mode, preserves `.env.docker`, and defaults to non-interactive execution.
 If you want prompts during update, run:
 
 ```bash
-curl -fsSL https://getloom.dev/update.sh | JARVIS_INSTALL_NONINTERACTIVE=0 bash
+JARVIS_INSTALL_NONINTERACTIVE=0 bash <(curl -fsSL https://getloom.dev/update.sh)
 ```
 
 ## Quick Start
@@ -138,8 +139,9 @@ On first boot the agent writes the kill switch to Postgres and inserts a paused 
 Phase 10 setup now uses a real GitHub OAuth authorization-code exchange (no placeholder connect state).
 
 1. Create a GitHub OAuth App and set the callback URL to your dashboard callback endpoint (for local default: `http://localhost:3001/setup/github/callback`).
-2. Set `GITHUB_OAUTH_CLIENT_ID`, `GITHUB_OAUTH_CLIENT_SECRET`, and `GITHUB_OAUTH_REDIRECT_URI` in your `.env`/`.env.docker`.
-3. Use the dashboard setup wizard to connect GitHub and bind a repository with write/admin permission.
+2. Open the dashboard setup wizard and enter `clientId`, `clientSecret`, and `redirectUri` during the GitHub step.
+3. Optionally set `GITHUB_OAUTH_CLIENT_ID`, `GITHUB_OAUTH_CLIENT_SECRET`, and `GITHUB_OAUTH_REDIRECT_URI` in `.env`/`.env.docker` as fallback defaults.
+4. Use the wizard to connect GitHub and bind a repository with write/admin permission.
 
 Security notes:
 - OAuth tokens are stored in encrypted credentials storage (same vault model as other secrets).
@@ -202,10 +204,11 @@ Verifier troubleshooting:
 | `POSTGRES_DB` | Docker deploy | Bundled Docker Postgres database name | `jarvis` |
 | `REDIS_PASSWORD` | Docker deploy | Bundled Docker Redis password (installer auto-generates if missing) | `openssl rand -hex 24` |
 | `REDIS_URL` | Yes | Redis connection string (Docker install auto-generates authenticated URL) | `redis://localhost:6379` |
+| `JARVIS_IMAGE` | Docker deploy | Runtime image used by deploy compose stack | `ghcr.io/snowdamiz/loom-bot:latest` |
 | `OPENROUTER_API_KEY` | No | Optional fallback — preferred path is dashboard setup wizard | `sk-or-...` |
-| `GITHUB_OAUTH_CLIENT_ID` | Setup wizard | GitHub OAuth App client ID used by `/api/setup/github/start` | `Iv1.0123456789abcdef` |
-| `GITHUB_OAUTH_CLIENT_SECRET` | Setup wizard | GitHub OAuth App client secret used for code exchange | `gho_secret_value` |
-| `GITHUB_OAUTH_REDIRECT_URI` | Setup wizard | OAuth callback URL configured on the same GitHub app | `http://localhost:3001/setup/github/callback` |
+| `GITHUB_OAUTH_CLIENT_ID` | No | Optional fallback if not provided in setup wizard; used by `/api/setup/github/start` | `Iv1.0123456789abcdef` |
+| `GITHUB_OAUTH_CLIENT_SECRET` | No | Optional fallback if not provided in setup wizard; used for code exchange | `gho_secret_value` |
+| `GITHUB_OAUTH_REDIRECT_URI` | No | Optional fallback callback URL configured on the same GitHub app | `http://localhost:3001/setup/github/callback` |
 | `CREDENTIAL_ENCRYPTION_KEY` | No | AES key for identity credential vault | `openssl rand -hex 32` |
 | `JARVIS_MODEL_STRONG` | No | Strong tier model override | `anthropic/claude-opus-4.6` |
 | `JARVIS_MODEL_MID` | No | Mid tier model override | `anthropic/claude-sonnet-4.5` |

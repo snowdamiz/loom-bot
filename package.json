@@ -5,13 +5,18 @@
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
-    "dev:landing": "pnpm --filter @jarvis/dashboard-client dev",
+    "dev:landing": "pnpm --filter @jarvis/landing dev",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
     "db:push": "pnpm --filter @jarvis/db run db:push",
     "db:generate": "pnpm --filter @jarvis/db run db:generate",
     "docker:up": "docker compose up -d",
-    "docker:down": "docker compose down"
+    "docker:down": "docker compose down",
+    "docker:install": "./scripts/install-docker.sh",
+    "docker:local:deploy": "docker compose --env-file .env.docker -f docker-compose.deploy.yml -f docker-compose.deploy.build.yml up -d --build",
+    "docker:deploy": "docker compose --env-file .env.docker -f docker-compose.deploy.yml -f docker-compose.deploy.build.yml up -d --build",
+    "docker:deploy:pull": "docker compose --env-file .env.docker -f docker-compose.deploy.yml pull && docker compose --env-file .env.docker -f docker-compose.deploy.yml up -d",
+    "docker:deploy:down": "docker compose --env-file .env.docker -f docker-compose.deploy.yml down"
   },
   "devDependencies": {
     "turbo": "^2.3.3"

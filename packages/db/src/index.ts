@@ -1,4 +1,5 @@
 export * from './client.js';
+export * from './pgcrypto.js';
 export * from './schema/index.js';
 // Re-export commonly used drizzle-orm utilities so downstream packages
 // don't need to import drizzle-orm directly (pnpm strict isolation)

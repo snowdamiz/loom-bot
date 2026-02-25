@@ -1,4 +1,4 @@
-import { and, credentials, eq, isNull, setupState, sql } from '@jarvis/db';
+import { and, credentials, eq, isNull, setupState, sql, ensurePgcryptoExtension } from '@jarvis/db';
 import type { DbClient, SetupState } from '@jarvis/db';
 
 export interface TrustedGitHubContext {
@@ -124,6 +124,7 @@ export async function resolveTrustedGitHubContext(db: DbClient): Promise<Trusted
   await ensureActiveTokenCredential(db, tokenCredentialId);
 
   const encKey = getCredentialEncryptionKey();
+  await ensurePgcryptoExtension(db);
   const tokenResult = await db.execute(sql`
     SELECT pgp_sym_decrypt(encrypted_value, ${encKey}) AS value
     FROM credentials

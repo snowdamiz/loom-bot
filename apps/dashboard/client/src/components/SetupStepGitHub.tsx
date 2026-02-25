@@ -37,6 +37,11 @@ export function SetupStepGitHub({ setupState, onComplete, onRefreshSetupState }:
   const [bindingRepo, setBindingRepo] = useState(false);
   const [repos, setRepos] = useState<GitHubRepoOption[]>([]);
   const [selectedRepoFullName, setSelectedRepoFullName] = useState('');
+  const [oauthClientId, setOauthClientId] = useState('');
+  const [oauthClientSecret, setOauthClientSecret] = useState('');
+  const [oauthRedirectUri, setOauthRedirectUri] = useState(
+    () => `${window.location.origin}/setup/github/callback`,
+  );
   const [error, setError] = useState<string | null>(null);
 
   const writableRepos = useMemo(() => repos.filter((repo) => repo.canBind), [repos]);
@@ -89,27 +94,57 @@ export function SetupStepGitHub({ setupState, onComplete, onRefreshSetupState }:
     setStartingOauth(true);
 
     try {
-      const response = await apiFetch('/api/setup/github/start', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          returnTo: `${window.location.pathname}${window.location.search}`,
-        }),
-      });
+      const clientId = oauthClientId.trim();
+      const clientSecret = oauthClientSecret.trim();
+      const redirectUri = oauthRedirectUri.trim();
+      const providedCount = [clientId, clientSecret, redirectUri].filter((value) => value.length > 0).length;
 
-      if (!response.ok) {
-        const payload = (await response.json()) as { error?: string };
-        setError(payload.error ?? 'Failed to start GitHub OAuth flow');
+      if (!setupState.githubOauthConfigured && providedCount === 0) {
+        setError('Enter GitHub OAuth Client ID, Client Secret, and Redirect URI to continue.');
         return;
       }
 
-      const payload = (await response.json()) as { authorizeUrl?: string };
-      if (!payload.authorizeUrl) {
+      if (providedCount > 0 && providedCount < 3) {
+        setError(
+          'Provide clientId, clientSecret, and redirectUri together, or leave all three blank to use saved config.',
+        );
+        return;
+      }
+
+      const requestBody: {
+        returnTo: string;
+        clientId?: string;
+        clientSecret?: string;
+        redirectUri?: string;
+      } = {
+        returnTo: `${window.location.pathname}${window.location.search}`,
+      };
+
+      if (providedCount === 3) {
+        requestBody.clientId = clientId;
+        requestBody.clientSecret = clientSecret;
+        requestBody.redirectUri = redirectUri;
+      }
+
+      const response = await apiFetch('/api/setup/github/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        const errorPayload = (await response.json()) as { error?: string };
+        setError(errorPayload.error ?? 'Failed to start GitHub OAuth flow');
+        return;
+      }
+
+      const responsePayload = (await response.json()) as { authorizeUrl?: string };
+      if (!responsePayload.authorizeUrl) {
         setError('OAuth start response did not include authorizeUrl');
         return;
       }
 
-      window.location.assign(payload.authorizeUrl);
+      window.location.assign(responsePayload.authorizeUrl);
     } catch {
       setError('Connection error while starting OAuth flow');
     } finally {
@@ -157,14 +192,58 @@ export function SetupStepGitHub({ setupState, onComplete, onRefreshSetupState }:
 
       <div className="wizard-form">
         {!setupState.githubConnected && (
-          <button
-            type="button"
-            onClick={() => void handleStartOAuth()}
-            disabled={startingOauth}
-            className="btn-primary"
-          >
-            {startingOauth ? 'Redirecting to GitHub...' : 'Connect GitHub Account'}
-          </button>
+          <>
+            <p className="wizard-step-subtitle">
+              {setupState.githubOauthConfigured
+                ? 'Saved GitHub OAuth app credentials detected. Leave blank to reuse, or provide new values.'
+                : 'Enter your GitHub OAuth app credentials to start account connection.'}
+            </p>
+
+            <label className="form-label" htmlFor="github-oauth-client-id">GitHub OAuth Client ID</label>
+            <input
+              id="github-oauth-client-id"
+              type="text"
+              value={oauthClientId}
+              onChange={(event) => setOauthClientId(event.target.value)}
+              placeholder="Iv1...."
+              className="form-input"
+              autoComplete="off"
+              disabled={startingOauth}
+            />
+
+            <label className="form-label" htmlFor="github-oauth-client-secret">GitHub OAuth Client Secret</label>
+            <input
+              id="github-oauth-client-secret"
+              type="password"
+              value={oauthClientSecret}
+              onChange={(event) => setOauthClientSecret(event.target.value)}
+              placeholder="Client secret"
+              className="form-input"
+              autoComplete="off"
+              disabled={startingOauth}
+            />
+
+            <label className="form-label" htmlFor="github-oauth-redirect-uri">GitHub OAuth Redirect URI</label>
+            <input
+              id="github-oauth-redirect-uri"
+              type="text"
+              value={oauthRedirectUri}
+              onChange={(event) => setOauthRedirectUri(event.target.value)}
+              placeholder={`${window.location.origin}/setup/github/callback`}
+              className="form-input"
+              autoComplete="off"
+              disabled={startingOauth}
+            />
+
+            <button
+              type="button"
+              onClick={() => void handleStartOAuth()}
+              disabled={startingOauth}
+              className="btn-primary"
+            >
+              {startingOauth ? 'Redirecting to GitHub...' : 'Connect GitHub Account'}
+            </button>
+          </>
         )}
 
         {setupState.githubConnected && (

@@ -8,6 +8,19 @@ A fully autonomous money-making agent that runs 24/7 on a Fly.io VM. Given a Sol
 
 The agent must be able to autonomously reason about opportunities, acquire the tools and accounts it needs, and execute money-making strategies without human intervention.
 
+## Current Milestone
+
+**Version:** v1.1
+**Name:** Self-Extension Safety and GitHub Control
+
+**Goal:** Make self-extension production-safe by requiring real GitHub-backed version control and sandbox-gated promotion for all self-authored code changes.
+
+**Target features:**
+- Real GitHub OAuth connection (not stub) with repo selection and secure token handling
+- Branch/commit/PR workflow for self-modifications, tied to the connected user repo
+- Isolated sandbox test pipeline before merge/promotion
+- Automatic rollback + operator-visible audit trail for every self-change
+
 ## Requirements
 
 ### Validated
@@ -30,8 +43,10 @@ The agent must be able to autonomously reason about opportunities, acquire the t
 
 ### Active
 
-- [ ] On-chain DeFi integration (Jupiter swaps, DEX liquidity, staking)
-- [ ] Dashboard frontend SPA (React/Vite client — backend API is complete)
+- [ ] Real GitHub OAuth + repo binding for self-extension operations
+- [ ] Branch/PR based self-modification pipeline (no direct core writes on default branch)
+- [ ] Sandbox promotion gate (compile + tests + smoke checks in isolated execution)
+- [ ] Rollback + audit/observability for failed or risky self-modification attempts
 
 ### Out of Scope
 
@@ -49,7 +64,7 @@ The agent must be able to autonomously reason about opportunities, acquire the t
 Shipped v1.0 MVP with 12,394 LOC TypeScript across 128 files.
 Tech stack: TypeScript, Turborepo, pnpm workspaces, Postgres 16, Redis 7, Drizzle ORM, BullMQ, Hono, OpenRouter (Claude/GPT/Grok), Playwright, @solana/web3.js.
 Architecture: 9 packages — @jarvis/db, @jarvis/logging, @jarvis/tools, @jarvis/ai, @jarvis/wallet, @jarvis/browser, @jarvis/agent, apps/agent, apps/dashboard.
-All 93 v1 requirements satisfied. Dashboard frontend (React SPA) has backend API complete but frontend partially built (API + SSE backend done, React client scaffolded).
+All 93 v1 requirements satisfied. v1.1 scope now focuses on hardening the self-extension path: GitHub-authenticated version control, isolated testing, and controlled promotion/rollback.
 
 ## Constraints
 
@@ -80,4 +95,4 @@ All 93 v1 requirements satisfied. Dashboard frontend (React SPA) has backend API
 | esbuild for self-extension compiler | Fast TypeScript compilation, in-memory transform | ✓ Good — sub-second tool compilation |
 
 ---
-*Last updated: 2026-02-19 after v1.0 milestone*
+*Last updated: 2026-02-19 — started v1.1 milestone (Self-Extension Safety and GitHub Control)*

@@ -1,7 +1,6 @@
 import type { DbClient } from '@jarvis/db';
 import { agentState, goals, toolCalls, decisionLog, eq, desc } from '@jarvis/db';
 import { broadcaster } from './broadcaster.js';
-import { readSelfExtensionSnapshot } from './routes/self-extension.js';
 
 /**
  * DASH-07: DB poller for SSE real-time updates.
@@ -54,9 +53,6 @@ export function startPoller(db: DbClient, intervalMs = 2000): NodeJS.Timeout {
       };
 
       broadcaster.emit('update', 'status', statusPayload);
-
-      const selfExtensionSnapshot = await readSelfExtensionSnapshot();
-      broadcaster.emit('update', 'self_extension', selfExtensionSnapshot);
 
       // Query latest tool calls (last 5 by id DESC)
       const latestToolCalls = await db

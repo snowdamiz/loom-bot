@@ -89,7 +89,8 @@ export function AuthGate({ children }: AuthGateProps) {
   return (
     <div style={styles.page}>
       <div style={styles.card}>
-        <h1 style={styles.title}>Jarvis Dashboard</h1>
+        <img src="/logo-mark.svg" alt="Loom" style={styles.logo} />
+        <h1 style={styles.title}>Loom Dashboard</h1>
         <p style={styles.subtitle}>Enter your access token to continue</p>
         <form onSubmit={(e) => void handleSubmit(e)} style={styles.form}>
           <input
@@ -128,6 +129,12 @@ const styles = {
     width: '100%',
     maxWidth: '360px',
     textAlign: 'center' as const,
+  } as React.CSSProperties,
+  logo: {
+    width: '40px',
+    height: '40px',
+    display: 'block',
+    margin: '0 auto 14px',
   } as React.CSSProperties,
   title: {
     fontSize: '20px',

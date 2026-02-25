@@ -1,13 +1,16 @@
 import { Hono } from 'hono';
-import { db, agentState, setupState, oauthState, eq, sql } from '@jarvis/db';
+import { db, agentState, setupState, oauthState, eq, sql, ensurePgcryptoExtension } from '@jarvis/db';
 import {
   buildGitHubAuthorizeUrl,
   createOAuthState,
   createPkceChallenge,
   fetchAccessibleRepositories,
   fetchRepositoryByFullName,
-  getGitHubOAuthConfig,
+  hasStoredOrEnvGitHubOAuthConfig,
   hashOAuthState,
+  parseOptionalGitHubOAuthConfig,
+  resolveGitHubOAuthConfigFromStoreOrEnv,
+  upsertStoredGitHubOAuthConfig,
 } from './github-oauth-helpers.js';
 
 /**
@@ -18,6 +21,7 @@ const app = new Hono();
 
 interface SetupStatePayload {
   openrouterKeySet: boolean;
+  githubOauthConfigured: boolean;
   githubConnected: boolean;
   githubUserId: string | null;
   githubUsername: string | null;
@@ -72,10 +76,14 @@ function isSetupComplete(row: (typeof setupState.$inferSelect) | undefined): boo
   return row.openrouterKeySet && row.githubConnected && isGitHubTrustBound(row);
 }
 
-function toSetupStatePayload(row: (typeof setupState.$inferSelect) | undefined): SetupStatePayload {
+function toSetupStatePayload(
+  row: (typeof setupState.$inferSelect) | undefined,
+  githubOauthConfigured: boolean,
+): SetupStatePayload {
   if (!row) {
     return {
       openrouterKeySet: false,
+      githubOauthConfigured,
       githubConnected: false,
       githubUserId: null,
       githubUsername: null,
@@ -92,6 +100,7 @@ function toSetupStatePayload(row: (typeof setupState.$inferSelect) | undefined):
 
   return {
     openrouterKeySet: row.openrouterKeySet,
+    githubOauthConfigured,
     githubConnected: row.githubConnected,
     githubUserId: row.githubUserId ?? null,
     githubUsername: row.githubUsername ?? null,
@@ -104,6 +113,17 @@ function toSetupStatePayload(row: (typeof setupState.$inferSelect) | undefined):
     setupCompletedAt: row.setupCompletedAt?.toISOString() ?? null,
     complete: isSetupComplete(row),
   };
+}
+
+async function hasStoredOpenRouterKey(): Promise<boolean> {
+  const rows = await db
+    .select()
+    .from(agentState)
+    .where(eq(agentState.key, 'config:openrouter_api_key'))
+    .limit(1);
+
+  const apiKey = (rows[0]?.value as { apiKey?: string } | undefined)?.apiKey;
+  return typeof apiKey === 'string' && apiKey.trim().length > 0;
 }
 
 function normalizeReturnTo(rawReturnTo: unknown): string | null {
@@ -148,6 +168,7 @@ async function getGitHubAuthContext(): Promise<{
   }
 
   const encKey = getCredentialEncryptionKey();
+  await ensurePgcryptoExtension(db);
   const tokenResult = await db.execute(sql`
     SELECT pgp_sym_decrypt(encrypted_value, ${encKey}) AS value
     FROM credentials
@@ -201,8 +222,38 @@ function toRepoSummary(input: {
  * Returns current setup state. If no row exists, returns all-false defaults.
  */
 app.get('/', async (c) => {
-  const rows = await db.select().from(setupState).limit(1);
-  return c.json(toSetupStatePayload(rows[0]));
+  const [rows, openrouterKeySet, githubOauthConfigured] = await Promise.all([
+    db.select().from(setupState).limit(1),
+    hasStoredOpenRouterKey(),
+    hasStoredOrEnvGitHubOAuthConfig(),
+  ]);
+
+  const row = rows[0];
+  if (!row) {
+    return c.json({
+      ...toSetupStatePayload(undefined, githubOauthConfigured),
+      openrouterKeySet,
+    });
+  }
+
+  if (row.openrouterKeySet !== openrouterKeySet) {
+    const now = new Date();
+    const setupCompletedAt =
+      openrouterKeySet && row.githubConnected && isGitHubTrustBound(row) ? (row.setupCompletedAt ?? now) : null;
+
+    await db
+      .update(setupState)
+      .set({
+        openrouterKeySet,
+        setupCompletedAt,
+        updatedAt: now,
+      })
+      .where(eq(setupState.id, row.id));
+
+    return c.json(toSetupStatePayload({ ...row, openrouterKeySet, setupCompletedAt, updatedAt: now }, githubOauthConfigured));
+  }
+
+  return c.json(toSetupStatePayload(row, githubOauthConfigured));
 });
 
 /**
@@ -283,22 +334,43 @@ app.post('/openrouter', async (c) => {
  * Starts real GitHub OAuth flow with server-managed state + PKCE persistence.
  */
 app.post('/github/start', async (c) => {
-  let body: { returnTo?: unknown } = {};
+  let body: { returnTo?: unknown; clientId?: unknown; clientSecret?: unknown; redirectUri?: unknown } = {};
   try {
-    body = await c.req.json<{ returnTo?: unknown }>();
+    body = await c.req.json<{ returnTo?: unknown; clientId?: unknown; clientSecret?: unknown; redirectUri?: unknown }>();
   } catch {
     // Body is optional. Ignore parse failures and continue without returnTo.
   }
 
-  let oauthConfig;
-  try {
-    oauthConfig = getGitHubOAuthConfig();
-  } catch (err) {
+  const parsedInputConfig = parseOptionalGitHubOAuthConfig({
+    clientId: body.clientId,
+    clientSecret: body.clientSecret,
+    redirectUri: body.redirectUri,
+  });
+
+  if (parsedInputConfig.provided && parsedInputConfig.missingFields.length > 0) {
     return c.json(
       {
-        error: err instanceof Error ? err.message : 'GitHub OAuth configuration is invalid',
+        error:
+          `GitHub OAuth configuration is incomplete. Missing: ${parsedInputConfig.missingFields.join(', ')}`,
       },
-      500,
+      400,
+    );
+  }
+
+  let oauthConfig = parsedInputConfig.config;
+  if (oauthConfig) {
+    await upsertStoredGitHubOAuthConfig(oauthConfig);
+  } else {
+    oauthConfig = await resolveGitHubOAuthConfigFromStoreOrEnv();
+  }
+
+  if (!oauthConfig) {
+    return c.json(
+      {
+        error:
+          'GitHub OAuth app credentials are required. Provide clientId, clientSecret, and redirectUri in setup.',
+      },
+      400,
     );
   }
 

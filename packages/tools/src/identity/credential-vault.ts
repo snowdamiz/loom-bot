@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { sql } from '@jarvis/db';
+import { sql, ensurePgcryptoExtension } from '@jarvis/db';
 import type { DbClient } from '@jarvis/db';
 import type { ToolDefinition } from '../types.js';
 
@@ -47,6 +47,7 @@ export async function storeCredential(
 ): Promise<string> {
   const encKey = getEncryptionKey();
   const { identityId, service, key, value, expiresAt } = params;
+  await ensurePgcryptoExtension(db);
 
   const result = await db.execute(sql`
     INSERT INTO credentials (id, identity_id, service, key, encrypted_value, status, created_at, expires_at)
@@ -94,6 +95,7 @@ export async function retrieveCredential(
 ): Promise<RetrievedCredential | null> {
   const encKey = getEncryptionKey();
   const { identityId, service, key, accessedBy, purpose } = params;
+  await ensurePgcryptoExtension(db);
 
   // Build WHERE clause based on whether identityId is provided
   const credResult = identityId
@@ -196,6 +198,7 @@ export async function rotateCredential(
 ): Promise<string> {
   const encKey = getEncryptionKey();
   const { credentialId, newValue } = params;
+  await ensurePgcryptoExtension(db);
 
   // Fetch current credential metadata for copying to the new row
   const metaResult = await db.execute(sql`

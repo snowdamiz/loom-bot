@@ -1,6 +1,5 @@
 import { useAgentStatus } from '../hooks/useAgentData.js';
 import { KillSwitchButton } from './KillSwitchButton.js';
-import { SelfExtensionCard } from './SelfExtensionCard.js';
 import { getToken } from '../lib/api.js';
 
 interface OverviewTabProps {
@@ -41,8 +40,6 @@ export function OverviewTab({ onViewActivity }: OverviewTabProps) {
 
   return (
     <div className="card-grid">
-      <SelfExtensionCard />
-
       {/* Status card */}
       <div className="card">
         <p className="card-title">Agent Status</p>

@@ -30,7 +30,8 @@ export function SetupWizard({ setupState, onRefreshSetupState, onSetupComplete }
     <div className="wizard-page">
       <div className="wizard-card">
         <div className="wizard-header">
-          <h1 className="wizard-title">Jarvis Setup</h1>
+          <img src="/logo-mark.svg" alt="Loom" className="wizard-brand-mark" />
+          <h1 className="wizard-title">Loom Setup</h1>
           <div className="wizard-progress">
             <div className={`wizard-dot ${currentStep >= 1 ? 'filled' : ''}`} />
             <div className={`wizard-dot ${currentStep >= 2 ? 'filled' : ''}`} />

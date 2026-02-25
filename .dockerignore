@@ -1,0 +1,12 @@
+.git
+.gitignore
+.planning
+.turbo
+**/.turbo
+node_modules
+**/node_modules
+apps/**/dist
+packages/**/dist
+**/*.tsbuildinfo
+.env
+.env.docker

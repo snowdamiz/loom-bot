@@ -74,16 +74,23 @@ async function closeStartupSmokeResources(): Promise<void> {
 }
 
 /**
- * Resolve OpenRouter API key with DB-first precedence.
+ * Resolve OpenRouter API key from DB only.
  *
  * Behavior:
  * - If DB key is present (configured by dashboard setup wizard), use it.
- * - Else if OPENROUTER_API_KEY env var is present, use it as fallback.
+ * - Environment fallback is intentionally disabled to enforce wizard onboarding.
  * - Else wait and poll until the wizard writes the key.
  */
 async function waitForOpenRouterApiKey(): Promise<string> {
   let warnedMissingKey = false;
   let warnedDbUnavailable = false;
+  const envKey = process.env.OPENROUTER_API_KEY?.trim();
+
+  if (envKey) {
+    process.stderr.write(
+      '[agent] OPENROUTER_API_KEY is set in environment but ignored. Use dashboard setup to store key in DB.\n',
+    );
+  }
 
   for (;;) {
     try {
@@ -101,13 +108,6 @@ async function waitForOpenRouterApiKey(): Promise<string> {
           process.stderr.write('[agent] OpenRouter API key detected from dashboard setup. Continuing startup.\n');
         }
         return dbKey;
-      }
-
-      if (envKey) {
-        if (warnedMissingKey || warnedDbUnavailable) {
-          process.stderr.write('[agent] OpenRouter API key detected from environment fallback. Continuing startup.\n');
-        }
-        return envKey;
       }
 
       if (!warnedMissingKey) {
@@ -131,6 +131,31 @@ async function waitForOpenRouterApiKey(): Promise<string> {
 }
 
 /**
+ * Startup safety default: keep kill switch active unless operator explicitly resumes.
+ * This runs on every boot so restarts always come up in a stopped state.
+ */
+async function enforceStartupStopped(): Promise<void> {
+  const killSwitchRows = await db
+    .select()
+    .from(agentState)
+    .where(eq(agentState.key, 'kill_switch'))
+    .limit(1);
+
+  const killSwitchValue = killSwitchRows[0]?.value as { active?: boolean } | undefined;
+  if (killSwitchValue?.active === true) {
+    process.stderr.write('[agent] Kill switch already active at startup.\n');
+    return;
+  }
+
+  await activateKillSwitch(
+    db,
+    'Startup safety default — agent starts in OFF state until operator resumes',
+    'system',
+  );
+  process.stderr.write('[agent] Kill switch activated at startup (default OFF).\n');
+}
+
+/**
  * Main agent process entry point.
  *
  * Startup sequence:
@@ -145,7 +170,7 @@ async function waitForOpenRouterApiKey(): Promise<string> {
  * 2. Create BullMQ Queue for dispatching jobs to worker processes
  * 3. Start memory consolidation periodic job
  * 4. Wire KillSwitchGuard and ModelRouter
- * 5. On first boot (kill switch not yet set AND no goals): activate kill switch (agent starts OFF)
+ * 5. On every boot, enforce kill switch active (agent starts OFF)
  * 6. Seed a paused self-evolution goal if goals table is empty
  * 7. Start supervisor loop
  *
@@ -194,8 +219,11 @@ async function main(): Promise<void> {
   const killSwitch = new KillSwitchGuard(db);
   const modelConfig = loadModelConfig();
 
-  // Resolve OpenRouter API key: DB (setup wizard) takes priority, env var is fallback.
-  // If neither exists yet, wait until setup is completed.
+  // Startup default is always OFF: operator must explicitly resume.
+  await enforceStartupStopped();
+
+  // Resolve OpenRouter API key from DB.
+  // If key is missing, wait until setup wizard stores it.
   const openrouterApiKey = await waitForOpenRouterApiKey();
 
   const router = createRouter(db, openrouterApiKey);
@@ -318,31 +346,6 @@ async function main(): Promise<void> {
   // StrategyManager wired at startup (domain-agnostic strategy lifecycle)
   const strategyManager = new StrategyManager(db, goalManager);
   process.stderr.write('[agent] StrategyManager wired into Supervisor.\n');
-
-  // === Kill Switch: Ensure agent starts OFF on first boot ===
-  // If kill switch is not yet set AND no goals exist → activate kill switch
-  // This guarantees the agent is dormant until the operator enables it after setup.
-  const killSwitchRows = await db
-    .select()
-    .from(agentState)
-    .where(eq(agentState.key, 'kill_switch'))
-    .limit(1);
-
-  const killSwitchValue = killSwitchRows[0]?.value as { active?: boolean } | undefined;
-  const killSwitchAlreadySet = killSwitchValue !== undefined;
-
-  if (!killSwitchAlreadySet) {
-    await activateKillSwitch(
-      db,
-      'Initial setup — agent starts in OFF state',
-      'system',
-    );
-    process.stderr.write('[agent] Kill switch activated: first boot, agent starts OFF.\n');
-  } else {
-    process.stderr.write(
-      `[agent] Kill switch already set (active=${String(killSwitchValue?.active ?? false)}).\n`,
-    );
-  }
 
   // === Seed Goal: Self-evolution mission ===
   // If goals table is empty, insert a paused seed goal describing the agent's purpose.

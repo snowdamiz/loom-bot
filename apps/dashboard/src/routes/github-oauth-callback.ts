@@ -1,10 +1,10 @@
 import { Hono } from 'hono';
-import { db, setupState, sql, oauthState, eq } from '@jarvis/db';
+import { db, setupState, sql, oauthState, eq, ensurePgcryptoExtension } from '@jarvis/db';
 import {
   exchangeOAuthCode,
   fetchAuthenticatedUser,
-  getGitHubOAuthConfig,
   hashOAuthState,
+  resolveGitHubOAuthConfigFromStoreOrEnv,
 } from './github-oauth-helpers.js';
 
 const app = new Hono();
@@ -68,10 +68,19 @@ app.get('/callback', async (c) => {
   }
 
   const consumed = consumedRows[0];
+  const oauthConfig = await resolveGitHubOAuthConfigFromStoreOrEnv();
+  if (!oauthConfig) {
+    return c.json(
+      {
+        error:
+          'GitHub OAuth configuration is missing. Provide clientId, clientSecret, and redirectUri in setup, then retry.',
+      },
+      400,
+    );
+  }
 
   let accessToken: string;
   try {
-    const oauthConfig = getGitHubOAuthConfig();
     accessToken = await exchangeOAuthCode({
       clientId: oauthConfig.clientId,
       clientSecret: oauthConfig.clientSecret,
@@ -105,6 +114,7 @@ app.get('/callback', async (c) => {
   let credentialId: string;
   try {
     const encryptionKey = requireCredentialEncryptionKey();
+    await ensurePgcryptoExtension(db);
 
     await db.execute(sql`
       UPDATE credentials

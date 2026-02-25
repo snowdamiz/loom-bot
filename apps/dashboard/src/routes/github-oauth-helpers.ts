@@ -1,4 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto';
+import { db, agentState, eq } from '@jarvis/db';
 
 export interface GitHubOAuthConfig {
   clientId: string;
@@ -38,6 +39,9 @@ const GITHUB_AUTHORIZE_URL = 'https://github.com/login/oauth/authorize';
 const GITHUB_ACCESS_TOKEN_URL = 'https://github.com/login/oauth/access_token';
 const GITHUB_API_BASE_URL = 'https://api.github.com';
 const GITHUB_API_VERSION = '2022-11-28';
+const GITHUB_OAUTH_CONFIG_KEY = 'config:github_oauth';
+
+type GitHubOAuthInputField = 'clientId' | 'clientSecret' | 'redirectUri';
 
 function toBase64Url(input: Buffer): string {
   return input
@@ -60,25 +64,159 @@ function githubApiHeaders(accessToken?: string): HeadersInit {
   return headers;
 }
 
-export function getGitHubOAuthConfig(): GitHubOAuthConfig {
-  const clientId = process.env.GITHUB_OAUTH_CLIENT_ID?.trim() ?? '';
-  const clientSecret = process.env.GITHUB_OAUTH_CLIENT_SECRET?.trim() ?? '';
-  const redirectUri = process.env.GITHUB_OAUTH_REDIRECT_URI?.trim() ?? '';
+function normalizeConfigValue(value: unknown): string {
+  if (typeof value !== 'string') {
+    return '';
+  }
 
-  const missing: string[] = [];
-  if (!clientId) missing.push('GITHUB_OAUTH_CLIENT_ID');
-  if (!clientSecret) missing.push('GITHUB_OAUTH_CLIENT_SECRET');
-  if (!redirectUri) missing.push('GITHUB_OAUTH_REDIRECT_URI');
+  return value.trim();
+}
 
-  if (missing.length > 0) {
-    throw new Error(`Missing required GitHub OAuth env vars: ${missing.join(', ')}`);
+function parseRequiredGitHubOAuthConfig(input: {
+  clientId?: unknown;
+  clientSecret?: unknown;
+  redirectUri?: unknown;
+}): {
+  config: GitHubOAuthConfig | null;
+  missingFields: GitHubOAuthInputField[];
+} {
+  const clientId = normalizeConfigValue(input.clientId);
+  const clientSecret = normalizeConfigValue(input.clientSecret);
+  const redirectUri = normalizeConfigValue(input.redirectUri);
+
+  const missingFields: GitHubOAuthInputField[] = [];
+  if (!clientId) missingFields.push('clientId');
+  if (!clientSecret) missingFields.push('clientSecret');
+  if (!redirectUri) missingFields.push('redirectUri');
+
+  if (missingFields.length > 0) {
+    return { config: null, missingFields };
   }
 
   return {
-    clientId,
-    clientSecret,
-    redirectUri,
+    config: {
+      clientId,
+      clientSecret,
+      redirectUri,
+    },
+    missingFields: [],
   };
+}
+
+export function parseOptionalGitHubOAuthConfig(input: {
+  clientId?: unknown;
+  clientSecret?: unknown;
+  redirectUri?: unknown;
+}): {
+  provided: boolean;
+  config: GitHubOAuthConfig | null;
+  missingFields: GitHubOAuthInputField[];
+} {
+  const hasAnyValue = [input.clientId, input.clientSecret, input.redirectUri]
+    .some((value) => normalizeConfigValue(value).length > 0);
+
+  if (!hasAnyValue) {
+    return {
+      provided: false,
+      config: null,
+      missingFields: [],
+    };
+  }
+
+  const parsed = parseRequiredGitHubOAuthConfig(input);
+  return {
+    provided: true,
+    config: parsed.config,
+    missingFields: parsed.missingFields,
+  };
+}
+
+export function getGitHubOAuthConfig(): GitHubOAuthConfig {
+  const parsed = parseRequiredGitHubOAuthConfig({
+    clientId: process.env.GITHUB_OAUTH_CLIENT_ID,
+    clientSecret: process.env.GITHUB_OAUTH_CLIENT_SECRET,
+    redirectUri: process.env.GITHUB_OAUTH_REDIRECT_URI,
+  });
+
+  if (!parsed.config) {
+    const envVarNames = parsed.missingFields.map((field) => {
+      if (field === 'clientId') return 'GITHUB_OAUTH_CLIENT_ID';
+      if (field === 'clientSecret') return 'GITHUB_OAUTH_CLIENT_SECRET';
+      return 'GITHUB_OAUTH_REDIRECT_URI';
+    });
+
+    throw new Error(`Missing required GitHub OAuth env vars: ${envVarNames.join(', ')}`);
+  }
+
+  return parsed.config;
+}
+
+export async function getStoredGitHubOAuthConfig(): Promise<GitHubOAuthConfig | null> {
+  const rows = await db
+    .select()
+    .from(agentState)
+    .where(eq(agentState.key, GITHUB_OAUTH_CONFIG_KEY))
+    .limit(1);
+
+  const value = rows[0]?.value as {
+    clientId?: unknown;
+    clientSecret?: unknown;
+    redirectUri?: unknown;
+  } | undefined;
+
+  if (!value) {
+    return null;
+  }
+
+  const parsed = parseRequiredGitHubOAuthConfig(value);
+  return parsed.config;
+}
+
+export async function upsertStoredGitHubOAuthConfig(config: GitHubOAuthConfig): Promise<void> {
+  const existing = await db
+    .select({ id: agentState.id })
+    .from(agentState)
+    .where(eq(agentState.key, GITHUB_OAUTH_CONFIG_KEY))
+    .limit(1);
+
+  const value = {
+    clientId: config.clientId,
+    clientSecret: config.clientSecret,
+    redirectUri: config.redirectUri,
+  };
+
+  if (existing.length > 0) {
+    await db
+      .update(agentState)
+      .set({
+        value,
+        updatedAt: new Date(),
+      })
+      .where(eq(agentState.key, GITHUB_OAUTH_CONFIG_KEY));
+    return;
+  }
+
+  await db.insert(agentState).values({
+    key: GITHUB_OAUTH_CONFIG_KEY,
+    value,
+  });
+}
+
+export async function resolveGitHubOAuthConfigFromStoreOrEnv(): Promise<GitHubOAuthConfig | null> {
+  const stored = await getStoredGitHubOAuthConfig();
+  if (stored) {
+    return stored;
+  }
+
+  try {
+    return getGitHubOAuthConfig();
+  } catch {
+    return null;
+  }
+}
+
+export async function hasStoredOrEnvGitHubOAuthConfig(): Promise<boolean> {
+  return (await resolveGitHubOAuthConfigFromStoreOrEnv()) !== null;
 }
 
 export function createOAuthState(): string {

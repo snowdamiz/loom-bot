@@ -1,5 +1,19 @@
 # Milestones
 
+## v1.1 Self-Extension Safety and GitHub Control (Started: 2026-02-19)
+
+**Status:** IN PROGRESS (requirements + roadmap)
+**Planned phases:** 4 (Phases 10-13)
+**Focus:** Harden the bot's self-extension path so all core code evolution is GitHub-versioned and sandbox-validated before promotion.
+
+**Planned outcomes:**
+1. Replace GitHub setup stub with real OAuth + secure token handling
+2. Enforce branch/commit/PR workflow for self-modifying operations
+3. Add isolated sandbox verification pipeline for candidate changes
+4. Add rollback + full audit trail for safe recovery when a change fails
+
+---
+
 ## v1.0 MVP (Shipped: 2026-02-19)
 
 **Phases:** 9 (Phases 1-9)
@@ -26,4 +40,3 @@
 **Archive:** `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQUIREMENTS.md`
 
 ---
-

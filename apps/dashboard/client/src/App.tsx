@@ -10,14 +10,19 @@ import { useSSE } from './hooks/useSSE.js';
 import { getToken } from './lib/api.js';
 import type { AgentStatus } from './hooks/useSSE.js';
 import type { ActivityItem } from './hooks/useActivityFeed.js';
-import type { SelfExtensionStatus } from './hooks/useSelfExtensionStatus.js';
 
 const queryClient = new QueryClient();
 
 type Tab = 'overview' | 'activity';
 
 function Dashboard() {
-  const { data: setupState, isLoading: setupLoading, refetch: refetchSetupState } = useSetupState();
+  const {
+    data: setupState,
+    isLoading: setupLoading,
+    isError: setupError,
+    error: setupErrorValue,
+    refetch: refetchSetupState,
+  } = useSetupState();
   const [setupComplete, setSetupComplete] = useState(false);
   const [tab, setTab] = useState<Tab>('overview');
   const [liveEntries, setLiveEntries] = useState<ActivityItem[]>([]);
@@ -45,13 +50,6 @@ function Dashboard() {
     [],
   );
 
-  const handleSelfExtension = useCallback(
-    (status: SelfExtensionStatus) => {
-      queryClient.setQueryData(['self-extension-status'], status);
-    },
-    [],
-  );
-
   const handleReconnect = useCallback(() => {
     setLiveEntries([]);
   }, []);
@@ -60,7 +58,6 @@ function Dashboard() {
     token,
     onStatus: handleStatus,
     onActivity: handleActivity,
-    onSelfExtension: handleSelfExtension,
     onReconnect: handleReconnect,
   });
 
@@ -68,6 +65,19 @@ function Dashboard() {
     return (
       <div className="loading-page">
         <p className="loading-text">Loading...</p>
+      </div>
+    );
+  }
+
+  if (setupError) {
+    return (
+      <div className="loading-page">
+        <p className="loading-text" style={{ color: '#ef4444' }}>
+          {setupErrorValue instanceof Error ? setupErrorValue.message : 'Failed to load setup state'}
+        </p>
+        <button className="btn btn-ghost" onClick={() => void refetchSetupState()}>
+          Retry
+        </button>
       </div>
     );
   }
